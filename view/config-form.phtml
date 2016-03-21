@@ -1,0 +1,400 @@
+<style type="text/css">
+    .inputs label {
+        display: block;
+    }
+</style>
+<p>
+<?php
+    echo $this->translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.') . '<br />';
+    echo sprintf($this->translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/CleanUrl">ReadMe</a>');
+    echo '<br />';
+    echo sprintf($this->translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>');
+?>
+</p>
+<fieldset id="fieldset-cleanurl-identifiers">
+    <legend><?php echo $this->translate('Identifiers'); ?></legend>
+    <div class="field">
+        <?php
+            $select = new Zend\Form\Element\Select('clean_url_identifier_property');
+            $select->setLabel($this->translate('Field where id is saved'));
+            $select->setAttribute('id', 'clean_url_identifier_property');
+            $select->setValueOptions($properties);
+            $select->setValue($settings->get('clean_url_identifier_property'));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($select); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Field where to save the identifier of the item or media.'); ?>
+                    <?php echo $this->translate('It should be an identifier used for all resource types (Item set, Item and Media).'); ?>
+                    <?php echo $this->translate('Default is to use "dcterms:identifier".'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formSelect($select); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $text = new Zend\Form\Element\Text('clean_url_identifier_prefix');
+            $text->setLabel($this->translate('Prefix of identifiers to use'));
+            $text->setAttribute('id', 'clean_url_identifier_prefix');
+            $text->setValue($settings->get('clean_url_identifier_prefix'));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($text); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Urls are built with the sanitized Dublin Core identifier with the selected prefix, for example "item:", "record:" or "doc =". Let empty to use simply the first identifier.'); ?>
+                    <?php echo $this->translate('If this identifier does not exists, the Omeka item id will be used.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formText($text); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $checkbox = new Zend\Form\Element\Checkbox('clean_url_identifier_unspace');
+            $checkbox->setLabel($this->translate('Check the prefix without space'));
+            $checkbox->setAttribute('id', 'clean_url_identifier_unspace');
+            $checkbox->setValue($settings->get('clean_url_identifier_unspace'));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkbox); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('If checked, the prefix will be checked without space inside it too.'); ?>
+                    <?php echo $this->translate('This may be useful if the prefix is like "record =", but some records use "record=".'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formCheckbox($checkbox); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $checkbox = new Zend\Form\Element\Checkbox('clean_url_case_insensitive');
+            $checkbox->setLabel($this->translate('Allow case insensitive identifier'));
+            $checkbox->setAttribute('id', 'clean_url_case_insensitive');
+            $checkbox->setValue($settings->get('clean_url_case_insensitive'));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkbox); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.'); ?>
+                    <?php echo $this->translate('Furthermore, it can slow server responses, unless you add an index for lower texts.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formCheckbox($checkbox); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-main-path">
+    <legend><?php echo $this->translate('Main base path'); ?></legend>
+    <div class="field">
+        <?php
+            $name = 'clean_url_main_path';
+            $text = new Zend\Form\Element\Text($name);
+            $text->setLabel($this->translate('Main path to add'));
+            $text->setAttribute('id', $name);
+            $text->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($text); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('The main path to add in the beginning of the url, for example "library/" or "archives/".'); ?>
+                    <?php echo $this->translate('Let empty if you do not want any.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formText($text); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-item-sets">
+    <legend><?php echo $this->translate('Item sets'); ?></legend>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_item_set_generic';
+            $text = new Zend\Form\Element\Text($name);
+            $text->setLabel($this->translate('Generic name to add before item set identifier'));
+            $text->setAttribute('id', $name);
+            $text->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($text); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('This main path is added before the item set name, for example "/ my_item_sets / item set identifier".'); ?>
+                    <?php echo $this->translate('Let empty if you do not want any, so path will be "/ item set identifier".'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formText($text); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-items">
+    <legend><?php echo $this->translate('Items'); ?></legend>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_item_default';
+            $radio = new Zend\Form\Element\Radio($name);
+            $radio->setLabel($this->translate('Default url of items'));
+            $radio->setAttribute('id', $name);
+            $radio->setValueOptions([
+                'generic' => '/ generic / item identifier',
+                'item_set' => '/ item set identifier / item identifier',
+            ]);
+            $radio->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($radio); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Select the default format of the url for items.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formRadio($radio); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_item_allowed';
+            $checkboxes = new Zend\Form\Element\MultiCheckbox($name);
+            $checkboxes->setLabel($this->translate('Allowed urls for items'));
+            $checkboxes->setAttribute('id', $name);
+            $checkboxes->setValueOptions([
+                'generic' => '/ generic / item identifier',
+                'item_set' => '/ item set identifier / item identifier',
+
+            ]);
+            $checkboxes->setValue(unserialize($settings->get($name)));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkboxes); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Select the allowed formats for urls of items.'); ?>
+                    <?php echo $this->translate('This is useful to allow a permalink and a search engine optimized link.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formMultiCheckbox($checkboxes); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_item_generic';
+            $text = new Zend\Form\Element\Text($name);
+            $text->setLabel($this->translate('Generic name to add before item identifier'));
+            $text->setAttribute('id', $name);
+            $text->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($text); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('The generic name to use if generic identifier is selected above, for example "item/", "record/" or "doc/".'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formText($text); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-files">
+    <legend><?php echo $this->translate('Media'); ?></legend>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_media_default';
+            $radio = new Zend\Form\Element\Radio($name);
+            $radio->setLabel($this->translate('Default url of media'));
+            $radio->setAttribute('id', $name);
+            $radio->setValueOptions([
+                'generic' => '/ generic / media identifier',
+                'generic_item' => '/ generic / item identifier / media identifier',
+                'item_set' => '/ item_set identifier / media identifier',
+                'item_set_item' => '/ item set identifier / item identifier / media identifier',
+            ]);
+            $radio->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($radio); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Select the default format of the url for media.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formRadio($radio); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_media_allowed';
+            $checkboxes = new Zend\Form\Element\MultiCheckbox($name);
+            $checkboxes->setLabel($this->translate('Allowed urls for media'));
+            $checkboxes->setAttribute('id', $name);
+            $checkboxes->setValueOptions([
+                'generic' => '/ generic / media identifier',
+                'generic_item' => '/ generic / item identifier / media identifier',
+                'item_set' => '/ item_set identifier / media identifier',
+                'item_set_item' => '/ item set identifier / item identifier / media identifier',
+            ]);
+            $checkboxes->setValue(unserialize($settings->get($name)));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkboxes); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('Select the allowed formats for urls of files.'); ?>
+                    <?php echo $this->translate('This is useful to allow a permalink and a search engine optimized link.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formMultiCheckbox($checkboxes); ?>
+        </div>
+    </div>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_media_generic';
+            $text = new Zend\Form\Element\Text($name);
+            $text->setLabel($this->translate('Generic name to add before media identifier'));
+            $text->setAttribute('id', $name);
+            $text->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($text); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('The generic name to use if generic identifier is selected above, for example "file/", "record/" or "image/".'); ?>
+                    <?php echo $this->translate('In the first case, currently, it should be different from the name used for items.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formText($text); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-admin">
+    <legend><?php echo $this->translate('Admin Interface'); ?></legend>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_display_admin_show_identifier';
+            $checkbox = new Zend\Form\Element\Checkbox($name);
+            $checkbox->setLabel($this->translate('Display identifier in admin items/show'));
+            $checkbox->setAttribute('id', $name);
+            $checkbox->setValue($settings->get($name));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkbox); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('If checked, the identifier of each item will be displayed in the admin item show page.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php echo $this->formCheckbox($checkbox); ?>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset id="fieldset-cleanurl-routes">
+    <legend><?php echo $this->translate('Routes of other plugins'); ?></legend>
+
+    <p>
+        <?php echo $this->translate('These options are only used when the respective plugins are enabled.'); ?>
+        <?php echo $this->translate('Some combinations of routes may be not usable.'); ?>
+    </p>
+
+    <div class="field">
+        <?php
+            $name = 'clean_url_route_plugins';
+            $checkboxes = new Zend\Form\Element\MultiCheckbox($name);
+            $checkboxes->setLabel($this->translate('Plugins'));
+            $checkboxes->setAttribute('id', $name);
+            $checkboxes->setValueOptions($route_plugins);
+            $checkboxes->setValue(unserialize($settings->get($name)));
+        ?>
+        <div class="field-meta">
+            <?php echo $this->formLabel($checkboxes); ?>
+
+            <a class="expand" href="#"></a>
+            <div class="collapsible">
+                <div class="field-description">
+                    <?php echo $this->translate('These options allows to add a suffix to the selected urls.'); ?>
+                </div>
+            </div>
+        </div>
+        <div class='inputs'>
+            <?php if (!empty($route_plugins)): ?>
+                <?php echo $this->formMultiCheckbox($checkboxes); ?>
+            <?php else: ?>
+                <p>
+                    <?php echo $this->translate('No available route.'); ?>
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+</fieldset>
