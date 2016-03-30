@@ -171,8 +171,6 @@ class Module extends AbstractModule
     {
         $sharedEventManager->attach('Omeka\Controller\Admin\Item',
             'view.show.after', array($this, 'displayItemIdentifier'));
-        $sharedEventManager->attach('CleanUrl',
-            'route_plugins', array($this, 'routePlugins'));
     }
 
     /**
@@ -192,45 +190,6 @@ class Module extends AbstractModule
                 . ($identifier ?: $translator->translate('none'))
                 . '</span></div>';
         }
-    }
-
-    /**
-     * Add a route to a plugin.
-     *
-     * @param array $routePlugins Route plugins array.
-     * @return array Filtered route plugins array.
-    */
-    public function routePlugins()
-    {
-        $routePlugins = [];
-
-        //$routePlugins['bookreader'] = array(
-        //    'plugin' => 'BookReader',
-        //    'resource_names' => array('items'),
-        //    'map' => array(
-        //        'id' => 'id',
-        //    ),
-        //    'params' => array(
-        //        '__NAMESPACE__' => 'BookReader\Controller',
-        //        'controller' => 'Viewer',
-        //        'action' => 'show',
-        //    ),
-        //);
-
-        //$routePlugins['embed'] = array(
-        //    'plugin' => 'EmbedCodes',
-        //    'resource_names' => array('items'),
-        //    'map' => array(
-        //        'id' => 'id',
-        //    ),
-        //    'params' => array(
-        //        '__NAMESPACE__' => 'EmbedCodes\Controller',
-        //        'controller' => 'Index',
-        //        'action' => 'embed',
-        //    ),
-        //);
-
-        return $routePlugins;
     }
 
     /**
