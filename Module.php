@@ -87,13 +87,6 @@ class Module extends AbstractModule
         $moduleManager = $serviceLocator->get('Omeka\ModuleManager');
         $translator = $serviceLocator->get('MvcTranslator');
 
-        $response = $api->search('properties');
-        $properties = [];
-        foreach ($response->getContent() as $p) {
-            $properties[$p->id()] = $p->term();
-        }
-        asort($properties);
-
         $eventManager->setIdentifiers('CleanUrl');
         $responses = $eventManager->trigger('route_plugins');
 
@@ -113,7 +106,6 @@ class Module extends AbstractModule
 
         $vars = [
             'settings' => $serviceLocator->get('Omeka\Settings'),
-            'properties' => $properties,
             'route_plugins' => $route_plugins,
         ];
         return $renderer->render('config-form', $vars);

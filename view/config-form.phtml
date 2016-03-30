@@ -18,7 +18,7 @@
             $select = new Zend\Form\Element\Select('clean_url_identifier_property');
             $select->setLabel($this->translate('Field where id is saved'));
             $select->setAttribute('id', 'clean_url_identifier_property');
-            $select->setValueOptions($properties);
+            $select->setValueOptions($this->propertySelect()->getValueOptions());
             $select->setValue($settings->get('clean_url_identifier_property'));
         ?>
         <div class="field-meta">
