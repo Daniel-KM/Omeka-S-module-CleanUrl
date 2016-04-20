@@ -4,6 +4,7 @@ namespace CleanUrl\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Omeka\Mvc\Exception\NotFoundException;
+use Omeka\Api\Representation\ItemRepresentation;
 
 /**
  * The plugin controller for index pages.
@@ -89,15 +90,7 @@ class IndexController extends AbstractActionController
                 throw new NotFoundException;
             }
 
-            // Check if the found item belongs to the item set, if any.
-            if (!empty($this->_item_set_id)) {
-                $itemSetsIds = array_map(function($itemSet) {
-                    return $itemSet->id();
-                }, $resource->itemSets());
-                if (!in_array($this->_item_set_id, $itemSetsIds)) {
-                    throw new Omeka_Controller_Exception_404;
-                }
-            }
+            $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
 
             $id = $this->_resource_identifier;
         }
@@ -386,6 +379,21 @@ class IndexController extends AbstractActionController
         }
 
         return true;
+    }
+
+    protected function checkItemBelongsToItemSet(ItemRepresentation $item, $item_set_id)
+    {
+        if (empty($item_set_id)) {
+            return;
+        }
+
+        $itemSetsIds = array_map(function($itemSet) {
+            return $itemSet->id();
+        }, $item->itemSets());
+
+        if (!in_array($item_set_id, $itemSetsIds)) {
+            throw new Omeka_Controller_Exception_404;
+        }
     }
 
     protected function _setItemSetId()
