@@ -40,7 +40,7 @@ class GetResourceFullIdentifier extends AbstractHelper
         $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
         $settings = $serviceLocator->get('Omeka\Settings');
 
-        switch ($resource->getResourceName()) {
+        switch ($resource->resourceName()) {
             case 'item_sets':
                 $identifier = $view->getResourceIdentifier($resource);
                 if (empty($identifier)) {
@@ -64,9 +64,26 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                if ($format === 'generic') {
-                    $generic = $settings->get('clean_url_item_generic');
-                    return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
+                switch ($format) {
+                    case 'generic':
+                        $generic = $settings->get('clean_url_item_generic');
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
+
+                    case 'item_set':
+                        $itemSets = $resource->itemSets();
+                        if (!empty($itemSets)) {
+                            $itemSet = reset($itemSets);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                        }
+                        if (!isset($itemSetIdentifier)) {
+                            $genericFormat = $this->_getGenericFormat('items');
+                            if ($genericFormat) {
+                                return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                            }
+                            return '';
+                        }
+
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
                 }
                 break;
 
@@ -77,7 +94,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $settings->get('clean_url_file_default');
+                    $format = $settings->get('clean_url_media_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
@@ -86,11 +103,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $settings->get('clean_url_file_generic');
+                        $generic = $settings->get('clean_url_media_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item':
-                        $generic = $settings->get('clean_url_file_generic');
+                        $generic = $settings->get('clean_url_media_generic');
 
                         $item = $resource->item();
                         $item_identifier = $view->getResourceIdentifier($item);
@@ -98,6 +115,42 @@ class GetResourceFullIdentifier extends AbstractHelper
                             $item_identifier = $item->id();
                         }
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $item_identifier . '/' . $identifier;
+
+                    case 'item_set':
+                        $item = $resource->item();
+                        $itemSets = $item->itemSets();
+                        if (!empty($itemSets)) {
+                            $itemSet = reset($itemSets);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                        }
+                        if (!isset($itemSetIdentifier)) {
+                            $genericFormat = $this->_getGenericFormat('media');
+                            if ($genericFormat) {
+                                return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                            }
+                            return '';
+                        }
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
+
+                    case 'item_set_item':
+                        $item = $resource->item();
+                        $itemSets = $item->itemSets();
+                        if (!empty($itemSets)) {
+                            $itemSet = reset($itemSets);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                        }
+                        if (!isset($itemSetIdentifier)) {
+                            $genericFormat = $this->_getGenericFormat('media');
+                            if ($genericFormat) {
+                                return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                            }
+                            return '';
+                        }
+                        $itemIdentifier = $view->getResourceIdentifier($item);
+                        if (!$itemIdentifier) {
+                            $itemIdentifier = $item->id();
+                        }
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
                 }
                 break;
         }
@@ -116,6 +169,10 @@ class GetResourceFullIdentifier extends AbstractHelper
      */
     protected function _getUrlPath($absolute, $withMainPath, $withBasePath)
     {
+        $view = $this->getView();
+        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
+        $settings = $serviceLocator->get('Omeka\Settings');
+
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
             $withMainPath = true;
@@ -124,9 +181,10 @@ class GetResourceFullIdentifier extends AbstractHelper
             $withMainPath = true;
         }
 
-        $view = $this->getView();
+        $routeMatch = $serviceLocator->get('Application')->getMvcEvent()->getRouteMatch();
 
-        $publicBasePath = $view->basePath();
+        $site_slug = $routeMatch->getParam('site-slug');
+        $publicBasePath = $view->basePath("s/$site_slug");
         $adminBasePath = $view->basePath('admin');
 
         switch ($withBasePath) {
@@ -139,8 +197,6 @@ class GetResourceFullIdentifier extends AbstractHelper
                 break;
 
             case 'current':
-                $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
-                $routeMatch = $serviceLocator->get('Application')->getMvcEvent()->getRouteMatch();
                 if ($routeMatch->getParam('__ADMIN__')) {
                     $basePath = $adminBasePath;
                 } else {
@@ -164,15 +220,19 @@ class GetResourceFullIdentifier extends AbstractHelper
      * @param string $resourceName
      * @return boolean|null True if allowed, false if not, null if no format.
      */
-    private function _isFormatAllowed($format, $resourceName)
+    protected function _isFormatAllowed($format, $resourceName)
     {
+        $view = $this->getView();
+        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
+        $settings = $serviceLocator->get('Omeka\Settings');
+
         if (empty($format)) {
             return;
         }
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($settings->get('clean_url_items_allowed'));
+                $allowedForItems = unserialize($settings->get('clean_url_item_allowed'));
                 return in_array($format, $allowedForItems);
 
             case 'media':
@@ -187,11 +247,15 @@ class GetResourceFullIdentifier extends AbstractHelper
      * @param string $resourceName
      * @return string|null
      */
-    private function _getGenericFormat($resourceName)
+    protected function _getGenericFormat($resourceName)
     {
+        $view = $this->getView();
+        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
+        $settings = $serviceLocator->get('Omeka\Settings');
+
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($settings->get('clean_url_items_allowed'));
+                $allowedForItems = unserialize($settings->get('clean_url_item_allowed'));
                 if (in_array('generic', $allowedForItems)) {
                     return 'generic';
                 }

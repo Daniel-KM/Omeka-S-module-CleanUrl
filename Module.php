@@ -320,7 +320,7 @@ class Module extends AbstractModule
 
         // Add a generic / item route for media.
         if (in_array('generic_item', $allowedForMedia)) {
-            $route = '/s/:site-slug/' . $mainPath . $itemGeneric;
+            $route = '/s/:site-slug/' . $mainPath . $mediaGeneric;
             $router->addRoute('cleanUrl_generic_item_media', [
                 'type' => 'segment',
                 'options' => [

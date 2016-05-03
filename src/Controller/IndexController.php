@@ -85,7 +85,7 @@ class IndexController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $resource = $api->read($this->_resource_name, $this->_resource_identifier);
+            $resource = $api->read($this->_resource_name, $this->_resource_identifier)->getContent();
             if (!$resource) {
                 throw new NotFoundException;
             }
