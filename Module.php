@@ -108,7 +108,7 @@ class Module extends AbstractModule
             'settings' => $serviceLocator->get('Omeka\Settings'),
             'route_plugins' => $route_plugins,
         ];
-        return $renderer->render('config-form', $vars);
+        return $renderer->render('clean-url/config-form', $vars);
     }
 
     /**
