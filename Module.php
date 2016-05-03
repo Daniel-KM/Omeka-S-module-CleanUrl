@@ -41,7 +41,6 @@ class Module extends AbstractModule
         'clean_url_media_allowed' => 'a:2:{i:0;s:7:"generic";i:1;s:13:"item_set_item";}',
         'clean_url_media_generic' => 'media/',
         'clean_url_display_admin_show_identifier' => true,
-        'clean_url_route_plugins' => 'a:0:{}',
     );
 
     /**
@@ -88,27 +87,8 @@ class Module extends AbstractModule
         $translator = $serviceLocator->get('MvcTranslator');
 
         $eventManager->setIdentifiers('CleanUrl');
-        $responses = $eventManager->trigger('route_plugins');
 
-        $route_plugins = [];
-        foreach ($responses as $response) {
-            foreach ($response as $key => $plugin) {
-                $label = $plugin['plugin'];
-
-                $module = $moduleManager->getModule($plugin['plugin']);
-                if (!$module || $module->getState() != ModuleManager::STATE_ACTIVE) {
-                    $label .= ' <em>(' . $translator->translate('inactive') . ')</em>';
-                }
-
-                $route_plugins[$key] = $label;
-            }
-        }
-
-        $vars = [
-            'settings' => $serviceLocator->get('Omeka\Settings'),
-            'route_plugins' => $route_plugins,
-        ];
-        return $renderer->render('clean-url/config-form', $vars);
+        return $renderer->render('clean-url/config-form');
     }
 
     /**
@@ -146,7 +126,6 @@ class Module extends AbstractModule
             if (in_array($settingKey, [
                     'clean_url_item_allowed',
                     'clean_url_media_allowed',
-                    'clean_url_route_plugins',
                 ]))
             {
                 $post[$settingKey] = empty($post[$settingKey])

@@ -26,11 +26,6 @@ class IndexController extends AbstractActionController
     private $_item_id = 0;
     private $_file_id = 0;
 
-    // Resolved route plugin.
-    private $_routePlugin = '';
-    // The allowed plugins.
-    private $_routePlugins = array();
-
     public function itemsetShowAction()
     {
         $this->_item_set_identifier = rawurldecode($this->params('resource_identifier'));
@@ -97,10 +92,6 @@ class IndexController extends AbstractActionController
 
         $this->_resource_id = $id;
 
-        if ($this->_checkRoutePlugin()) {
-            return $this->_forwardToPlugin();
-        }
-
         return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__', true,
@@ -129,10 +120,6 @@ class IndexController extends AbstractActionController
         }
 
         $this->_resource_id = $id;
-
-        if ($this->_checkRoutePlugin()) {
-            return $this->_forwardToPlugin();
-        }
 
         return $this->forward()->dispatch('Omeka\Controller\Site\Media', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
@@ -205,10 +192,6 @@ class IndexController extends AbstractActionController
         }
 
         $this->_resource_id = $id;
-
-        if ($this->_checkRoutePlugin()) {
-            return $this->_forwardToPlugin();
-        }
 
         return $this->forward()->dispatch('Omeka\Controller\Site\Media', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
@@ -428,79 +411,4 @@ class IndexController extends AbstractActionController
         return $this->_media_id;
     }
 
-    /**
-     * Check if this is a route to a plugin.
-     *
-     * @return string|null The plugin route to use, else null.
-     */
-    protected function _checkRoutePlugin()
-    {
-        $routePlugin = $this->params('rp');
-        if (empty($routePlugin)) {
-            return;
-        }
-
-        $serviceLocator = $this->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
-
-        $allowed = unserialize($settings->get('clean_url_route_plugins')) ?: array();
-        if (!in_array($routePlugin, $allowed)) {
-            return;
-        }
-
-        $eventManager = $serviceLocator->get('EventManager');
-        $eventManager->setIdentifiers('CleanUrl');
-        $responses = $eventManager->trigger('route_plugins');
-        $route_plugins = [];
-        foreach ($responses as $response) {
-            $route_plugins = array_merge($route_plugins, $response);
-        }
-        $this->_routePlugins = $route_plugins;
-        if (!isset($this->_routePlugins[$routePlugin])) {
-            return;
-        }
-
-        $plugin = $this->_routePlugins[$routePlugin];
-        $moduleManager = $serviceLocator->get('Omeka\ModuleManager');
-        $module = $moduleManager->getModule($plugin['plugin']);
-
-        if ($module->getState() == ModuleManager::STATE_ACTIVE) {
-            return;
-        }
-
-        if (!empty($plugin['resource_names'])
-                && !in_array($this->_resource_name, $plugin['resource_names'])
-            ) {
-            return;
-        }
-
-        $this->_routePlugin = $routePlugin;
-
-        return $routePlugin;
-    }
-
-    /**
-     * Forward to a plugin.
-     *
-     * @return string|null The plugin route to use, else null.
-     */
-    protected function _forwardToPlugin()
-    {
-        $route = &$this->_routePlugins[$this->_routePlugin];
-
-        $params = array_merge($this->params()->fromRoute(), $this->params()->fromQuery());
-        unset($params['resource_identifier']);
-        unset($params['rp']);
-
-        if (isset($route['map']['id'])) {
-            $params[$route['map']['id']] = $this->_resource_id;
-        }
-        if (isset($route['map']['type'])) {
-            $params[$route['map']['type']] = $this->_resource_name;
-        }
-
-        $params = array_merge($params, $route['params']);
-
-        return $this->forward()->dispatch($route['params']['controller'], $params);
-    }
 }

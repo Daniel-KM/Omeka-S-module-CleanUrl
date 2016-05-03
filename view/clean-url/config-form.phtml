@@ -19,7 +19,7 @@
             $select->setLabel($this->translate('Field where id is saved'));
             $select->setAttribute('id', 'clean_url_identifier_property');
             $select->setValueOptions($this->propertySelect()->getValueOptions());
-            $select->setValue($settings->get('clean_url_identifier_property'));
+            $select->setValue($this->setting('clean_url_identifier_property'));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($select); ?>
@@ -43,7 +43,7 @@
             $text = new Zend\Form\Element\Text('clean_url_identifier_prefix');
             $text->setLabel($this->translate('Prefix of identifiers to use'));
             $text->setAttribute('id', 'clean_url_identifier_prefix');
-            $text->setValue($settings->get('clean_url_identifier_prefix'));
+            $text->setValue($this->setting('clean_url_identifier_prefix'));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($text); ?>
@@ -66,7 +66,7 @@
             $checkbox = new Zend\Form\Element\Checkbox('clean_url_identifier_unspace');
             $checkbox->setLabel($this->translate('Check the prefix without space'));
             $checkbox->setAttribute('id', 'clean_url_identifier_unspace');
-            $checkbox->setValue($settings->get('clean_url_identifier_unspace'));
+            $checkbox->setValue($this->setting('clean_url_identifier_unspace'));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($checkbox); ?>
@@ -89,7 +89,7 @@
             $checkbox = new Zend\Form\Element\Checkbox('clean_url_case_insensitive');
             $checkbox->setLabel($this->translate('Allow case insensitive identifier'));
             $checkbox->setAttribute('id', 'clean_url_case_insensitive');
-            $checkbox->setValue($settings->get('clean_url_case_insensitive'));
+            $checkbox->setValue($this->setting('clean_url_case_insensitive'));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($checkbox); ?>
@@ -116,7 +116,7 @@
             $text = new Zend\Form\Element\Text($name);
             $text->setLabel($this->translate('Main path to add'));
             $text->setAttribute('id', $name);
-            $text->setValue($settings->get($name));
+            $text->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($text); ?>
@@ -144,7 +144,7 @@
             $text = new Zend\Form\Element\Text($name);
             $text->setLabel($this->translate('Generic name to add before item set identifier'));
             $text->setAttribute('id', $name);
-            $text->setValue($settings->get($name));
+            $text->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($text); ?>
@@ -176,7 +176,7 @@
                 'generic' => '/ generic / item identifier',
                 'item_set' => '/ item set identifier / item identifier',
             ]);
-            $radio->setValue($settings->get($name));
+            $radio->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($radio); ?>
@@ -204,7 +204,7 @@
                 'item_set' => '/ item set identifier / item identifier',
 
             ]);
-            $checkboxes->setValue(unserialize($settings->get($name)));
+            $checkboxes->setValue(unserialize($this->setting($name)));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($checkboxes); ?>
@@ -228,7 +228,7 @@
             $text = new Zend\Form\Element\Text($name);
             $text->setLabel($this->translate('Generic name to add before item identifier'));
             $text->setAttribute('id', $name);
-            $text->setValue($settings->get($name));
+            $text->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($text); ?>
@@ -261,7 +261,7 @@
                 'item_set' => '/ item_set identifier / media identifier',
                 'item_set_item' => '/ item set identifier / item identifier / media identifier',
             ]);
-            $radio->setValue($settings->get($name));
+            $radio->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($radio); ?>
@@ -290,7 +290,7 @@
                 'item_set' => '/ item_set identifier / media identifier',
                 'item_set_item' => '/ item set identifier / item identifier / media identifier',
             ]);
-            $checkboxes->setValue(unserialize($settings->get($name)));
+            $checkboxes->setValue(unserialize($this->setting($name)));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($checkboxes); ?>
@@ -314,7 +314,7 @@
             $text = new Zend\Form\Element\Text($name);
             $text->setLabel($this->translate('Generic name to add before media identifier'));
             $text->setAttribute('id', $name);
-            $text->setValue($settings->get($name));
+            $text->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($text); ?>
@@ -342,7 +342,7 @@
             $checkbox = new Zend\Form\Element\Checkbox($name);
             $checkbox->setLabel($this->translate('Display identifier in admin items/show'));
             $checkbox->setAttribute('id', $name);
-            $checkbox->setValue($settings->get($name));
+            $checkbox->setValue($this->setting($name));
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($checkbox); ?>
@@ -356,45 +356,6 @@
         </div>
         <div class='inputs'>
             <?php echo $this->formCheckbox($checkbox); ?>
-        </div>
-    </div>
-</fieldset>
-
-<fieldset id="fieldset-cleanurl-routes">
-    <legend><?php echo $this->translate('Routes of other plugins'); ?></legend>
-
-    <p>
-        <?php echo $this->translate('These options are only used when the respective plugins are enabled.'); ?>
-        <?php echo $this->translate('Some combinations of routes may be not usable.'); ?>
-    </p>
-
-    <div class="field">
-        <?php
-            $name = 'clean_url_route_plugins';
-            $checkboxes = new Zend\Form\Element\MultiCheckbox($name);
-            $checkboxes->setLabel($this->translate('Plugins'));
-            $checkboxes->setAttribute('id', $name);
-            $checkboxes->setValueOptions($route_plugins);
-            $checkboxes->setValue(unserialize($settings->get($name)));
-        ?>
-        <div class="field-meta">
-            <?php echo $this->formLabel($checkboxes); ?>
-
-            <a class="expand" href="#"></a>
-            <div class="collapsible">
-                <div class="field-description">
-                    <?php echo $this->translate('These options allows to add a suffix to the selected urls.'); ?>
-                </div>
-            </div>
-        </div>
-        <div class='inputs'>
-            <?php if (!empty($route_plugins)): ?>
-                <?php echo $this->formMultiCheckbox($checkboxes); ?>
-            <?php else: ?>
-                <p>
-                    <?php echo $this->translate('No available route.'); ?>
-                </p>
-            <?php endif; ?>
         </div>
     </div>
 </fieldset>
