@@ -12,6 +12,7 @@ use Omeka\Module\AbstractModule;
 
 use Omeka\Event\Event;
 use Zend\EventManager\SharedEventManagerInterface;
+use Zend\EventManager\Event as ZendEvent;
 use Zend\Mvc\Controller\AbstractController;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -142,6 +143,8 @@ class Module extends AbstractModule
     {
         $sharedEventManager->attach('Omeka\Controller\Admin\Item',
             'view.show.after', array($this, 'displayItemIdentifier'));
+        $sharedEventManager->attach('Omeka\Api\Representation\ValueRepresentation',
+            Event::REP_VALUE_HTML, array($this, 'repValueHtml'));
     }
 
     /**
@@ -160,6 +163,25 @@ class Module extends AbstractModule
                 . ' '
                 . ($identifier ?: $translator->translate('none'))
                 . '</span></div>';
+        }
+    }
+
+    public function repValueHtml(ZendEvent $event)
+    {
+        $value = $event->getTarget();
+        $params = $event->getParams();
+
+        if ($value->type() == 'resource') {
+            $resource = $value->valueResource();
+            $viewHelperManager = $this->getServiceLocator()->get('ViewHelperManager');
+            $getResourceFullIdentifier = $viewHelperManager->get('getResourceFullIdentifier');
+
+            $url = $getResourceFullIdentifier($resource);
+            if ($url) {
+                $escapeHtml = $viewHelperManager->get('escapeHtml');
+                $title = $escapeHtml($resource->displayTitle());
+                $params['html'] = '<a href="' . $url . '">' . $title . '</a>';
+            }
         }
     }
 
