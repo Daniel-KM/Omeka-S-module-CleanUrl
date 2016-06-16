@@ -14,15 +14,10 @@
 <fieldset id="fieldset-cleanurl-identifiers">
     <legend><?php echo $this->translate('Identifiers'); ?></legend>
     <div class="field">
-        <?php
-            $select = new Zend\Form\Element\Select('clean_url_identifier_property');
-            $select->setLabel($this->translate('Field where id is saved'));
-            $select->setAttribute('id', 'clean_url_identifier_property');
-            $select->setValueOptions($this->propertySelect()->getValueOptions());
-            $select->setValue($this->setting('clean_url_identifier_property'));
-        ?>
         <div class="field-meta">
-            <?php echo $this->formLabel($select); ?>
+            <label for="clean_url_identifier_property">
+                <?php echo $this->translate('Field where id is saved'); ?>
+            </label>
 
             <a class="expand" href="#"></a>
             <div class="collapsible">
@@ -34,7 +29,9 @@
             </div>
         </div>
         <div class='inputs'>
-            <?php echo $this->formSelect($select); ?>
+            <?php echo $this->propertySelect([
+                'name' => 'clean_url_identifier_property',
+            ]); ?>
         </div>
     </div>
 
