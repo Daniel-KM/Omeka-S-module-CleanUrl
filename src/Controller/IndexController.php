@@ -5,6 +5,7 @@ namespace CleanUrl\Controller;
 use Zend\Mvc\Controller\AbstractActionController;
 use Omeka\Mvc\Exception\NotFoundException;
 use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Representation\MediaRepresentation;
 
 /**
  * The plugin controller for index pages.
