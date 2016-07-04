@@ -66,7 +66,8 @@ class Module extends AbstractModule
         }
     }
 
-    public function getConfig() {
+    public function getConfig()
+    {
         return include __DIR__ . '/config/module.config.php';
     }
 
@@ -226,7 +227,7 @@ class Module extends AbstractModule
             $itemSetsRegex = '(' . str_replace('/', '\/', implode('|', $itemSetsRegex)) . ')';
 
             // Add an item set route.
-            $route = '/s/:site-slug:/' . $mainPath . $itemSetGeneric;
+            $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
             $router->addRoute('cleanUrl_item_sets', [
                 'type' => 'segment',
                 'options' => [

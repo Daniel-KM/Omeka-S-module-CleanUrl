@@ -1,8 +1,8 @@
 <?php
 return [
     'controllers' => [
-        'invokables' => [
-            'CleanUrl\Controller\Index' => 'CleanUrl\Controller\IndexController',
+        'factories' => [
+            'CleanUrl\Controller\Index' => 'CleanUrl\Service\Controller\IndexControllerFactory',
         ],
     ],
     'view_manager' => [

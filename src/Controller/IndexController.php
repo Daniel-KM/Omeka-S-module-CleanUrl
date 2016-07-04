@@ -27,7 +27,10 @@ class IndexController extends AbstractActionController
     private $_item_id = 0;
     private $_file_id = 0;
 
-    public function itemsetShowAction()
+    protected $connection;
+    protected $apiAdapterManager;
+
+    public function itemSetShowAction()
     {
         $this->_item_set_identifier = rawurldecode($this->params('resource_identifier'));
         $result = $this->_setItemSetId();
@@ -66,9 +69,6 @@ class IndexController extends AbstractActionController
      */
     public function routeItemSetItemAction()
     {
-        $serviceLocator = $this->getServiceLocator();
-        $api = $serviceLocator->get('Omeka\ApiManager');
-
         $this->_item_set_identifier = rawurldecode($this->params('item_set_identifier'));
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
@@ -81,7 +81,7 @@ class IndexController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $resource = $api->read($this->_resource_name, $this->_resource_identifier)->getContent();
+            $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
             if (!$resource) {
                 throw new NotFoundException;
             }
@@ -152,9 +152,6 @@ class IndexController extends AbstractActionController
      */
     public function routeItemSetItemMediaAction()
     {
-        $serviceLocator = $this->getServiceLocator();
-        $api = $serviceLocator->get('Omeka\ApiManager');
-
         $this->_item_set_identifier = rawurldecode($this->params('item_set_identifier'));
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
@@ -172,7 +169,7 @@ class IndexController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $response = $api->read($this->_resource_name, $this->_resource_identifier);
+            $response = $this->api()->read($this->_resource_name, $this->_resource_identifier);
             $resource = $response->getContent();
 
             if (!$resource) {
@@ -203,6 +200,26 @@ class IndexController extends AbstractActionController
         ]);
     }
 
+    public function setConnection($connection)
+    {
+        $this->connection = $connection;
+    }
+
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    public function setApiAdapterManager($apiAdapterManager)
+    {
+        $this->apiAdapterManager = $apiAdapterManager;
+    }
+
+    public function getApiAdapterManager()
+    {
+        return $this->apiAdapterManager;
+    }
+
     /**
      * Routes a clean url of an item or a media to the default url.
      *
@@ -213,13 +230,10 @@ class IndexController extends AbstractActionController
      */
     protected function _routeResource()
     {
-        $serviceLocator = $this->getServiceLocator();
-        $db = $serviceLocator->get('Omeka\Connection');
-        $settings = $serviceLocator->get('Omeka\Settings');
-        $apiAdapterManager = $serviceLocator->get('Omeka\ApiAdapterManager');
-        $api = $serviceLocator->get('Omeka\ApiManager');
+        $db = $this->getConnection();
+        $apiAdapterManager = $this->getApiAdapterManager();
 
-        $propertyId = (integer) $settings->get('clean_url_identifier_property');
+        $propertyId = (integer) $this->settings()->get('clean_url_identifier_property');
 
         $this->_resource_identifier = rawurldecode($this->params('resource_identifier'));
 
@@ -229,13 +243,13 @@ class IndexController extends AbstractActionController
         $bind = array();
 
         // Check the dublin core identifier of the record.
-        $prefix = $settings->get('clean_url_identifier_prefix');
+        $prefix = $this->settings()->get('clean_url_identifier_prefix');
         $identifiers = array();
         $identifiers[] = $prefix . $this->_resource_identifier;
         // Check with a space between prefix and identifier too.
         $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
         // Check prefix with a space and a no-break space.
-        if ($settings->get('clean_url_identifier_unspace')) {
+        if ($this->settings()->get('clean_url_identifier_unspace')) {
             $unspace = str_replace(array(' ', ' '), '', $prefix);
             if ($prefix != $unspace) {
                 $identifiers[] = $unspace . $this->_resource_identifier;
@@ -245,7 +259,7 @@ class IndexController extends AbstractActionController
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
         // If the table is case sensitive, lower-case the search.
-        if ($settings->get('clean_url_case_insensitive')) {
+        if ($this->settings()->get('clean_url_case_insensitive')) {
             $identifiers = array_map('strtolower', $identifiers);
             $sqlWhereValue =
                 "AND LOWER(value.value) IN ($in)";
@@ -301,7 +315,7 @@ class IndexController extends AbstractActionController
         // TODO Include this in the query.
         if ($id && !empty($this->_item_identifier) && $this->_resource_name == 'media') {
             // Check if the found file belongs to the item.
-            $response = $api->read('media', $id);
+            $response = $this->api()->read('media', $id);
             $media = $response->getContent();
             if (!$this->_checkItemMedia($media)) {
                 return null;
@@ -351,8 +365,7 @@ class IndexController extends AbstractActionController
         // Check if the found file belongs to the item.
         if (!empty($this->_item_identifier)) {
             // Get the item identifier.
-            $viewHelpers = $this->getServiceLocator()->get('ViewHelperManager');
-            $getResourceIdentifier = $viewHelpers->get('getResourceIdentifier');
+            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
             $item_identifier = $getResourceIdentifier($item, false);
             // Check identifier and id of item.
             if (strtolower($this->_item_identifier) != strtolower($item_identifier)
@@ -383,8 +396,7 @@ class IndexController extends AbstractActionController
     protected function _setItemSetId()
     {
         if ($this->_item_set_identifier) {
-            $viewHelpers = $this->getServiceLocator()->get('ViewHelperManager');
-            $getResourceFromIdentifier = $viewHelpers->get('getResourceFromIdentifier');
+            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
 
             $itemSet = $getResourceFromIdentifier($this->_item_set_identifier, false, 'item_sets');
             $this->_item_set_id = $itemSet ? $itemSet->id() : null;
@@ -395,8 +407,7 @@ class IndexController extends AbstractActionController
     protected function _setItemId()
     {
         if ($this->_item_identifier) {
-            $viewHelpers = $this->getServiceLocator()->get('ViewHelperManager');
-            $getResourceFromIdentifier = $viewHelpers->get('getResourceFromIdentifier');
+            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
 
             $item = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
             $this->_item_id = $item ? $item->id() : null;
@@ -411,5 +422,4 @@ class IndexController extends AbstractActionController
         }
         return $this->_media_id;
     }
-
 }
