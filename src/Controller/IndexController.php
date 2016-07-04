@@ -34,12 +34,12 @@ class IndexController extends AbstractActionController
         if (empty($result)) {
             throw new NotFoundException;
         }
-        return $this->forward()->dispatch('Omeka\Controller\Site\ItemSet', [
+        return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__' => true,
-            'action' => 'show',
+            'action' => 'browse',
             'site-slug' => $this->params('site-slug'),
-            'id' => $this->_item_set_id,
+            'item-set-id' => $this->_item_set_id,
         ]);
     }
 
