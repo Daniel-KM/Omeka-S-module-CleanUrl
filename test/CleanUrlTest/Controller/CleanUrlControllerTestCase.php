@@ -41,7 +41,7 @@ abstract class CleanUrlControllerTestCase extends AbstractHttpControllerTestCase
         ]);
         $this->item_set = $response->getContent();
 
-        $this->media_url = 'https://pixabay.com/static/uploads/photo/2015/11/19/21/14/phone-1052023__340.jpg';
+        $this->media_url = 'http://farm8.staticflickr.com/7495/28077970085_4d976b3c96_z_d.jpg';
         $response = $api->create('items', [
             'dcterms:identifier' => [
                 [
