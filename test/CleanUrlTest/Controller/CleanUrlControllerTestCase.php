@@ -2,9 +2,9 @@
 
 namespace CleanUrlTest\Controller;
 
-use Omeka\Test\AbstractHttpControllerTestCase;
+use OmekaTestHelper\Controller\OmekaControllerTestCase;
 
-abstract class CleanUrlControllerTestCase extends AbstractHttpControllerTestCase
+abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
 {
     protected $item;
     protected $item_set;
@@ -96,27 +96,5 @@ abstract class CleanUrlControllerTestCase extends AbstractHttpControllerTestCase
         $this->api()->delete('items', $this->item->id());
         $this->api()->delete('item_sets', $this->item_set->id());
         $this->api()->delete('sites', $this->site->id());
-    }
-
-    protected function loginAsAdmin()
-    {
-        $application = $this->getApplication();
-        $serviceLocator = $application->getServiceManager();
-        $auth = $serviceLocator->get('Omeka\AuthenticationService');
-        $adapter = $auth->getAdapter();
-        $adapter->setIdentity('admin@example.com');
-        $adapter->setCredential('root');
-        $auth->authenticate();
-    }
-
-    protected function api()
-    {
-        $serviceLocator = $this->getApplication()->getServiceManager();
-        return $serviceLocator->get('Omeka\ApiManager');
-    }
-
-    protected function resetApplication()
-    {
-        $this->application = null;
     }
 }
