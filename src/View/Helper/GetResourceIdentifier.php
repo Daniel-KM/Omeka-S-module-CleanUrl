@@ -6,14 +6,25 @@ namespace CleanUrl\View\Helper;
  * Clean Url Get Record Identifier
  */
 
-use Omeka\Api\Representation\AbstractResourceRepresentation;
+use Doctrine\DBAL\Connection;
 use Zend\View\Helper\AbstractHelper;
+use Omeka\Api\Adapter\Manager as ApiAdapterManager;
+use Omeka\Api\Representation\AbstractResourceRepresentation;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
 class GetResourceIdentifier extends AbstractHelper
 {
+    protected $apiAdapterManager;
+    protected $connection;
+
+    public function __construct(ApiAdapterManager $apiAdapterManager, Connection $connection)
+    {
+        $this->apiAdapterManager = $apiAdapterManager;
+        $this->connection = $connection;
+    }
+
     /**
      * Return the identifier of a record, if any. It can be sanitized.
      *
@@ -23,26 +34,21 @@ class GetResourceIdentifier extends AbstractHelper
      */
     public function __invoke(AbstractResourceRepresentation $resource, $rawEncoded = true)
     {
-        $serviceLocator = $this->getView()->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
-        $apiAdapterManager = $serviceLocator->get('Omeka\ApiAdapterManager');
-
         // Use a direct query in order to improve speed.
-        $db = $serviceLocator->get('Omeka\Connection');
-        $apiAdapter = $apiAdapterManager->get($resource->resourceName());
+        $apiAdapter = $this->apiAdapterManager->get($resource->resourceName());
         $resourceType = $apiAdapter->getEntityClass();
         $bind = array(
             $resourceType,
             $resource->id(),
         );
 
-        $prefix = $settings->get('clean_url_identifier_prefix');
+        $prefix = $this->view->setting('clean_url_identifier_prefix');
         $checkUnspace = false;
         if ($prefix) {
             $bind[] = $prefix . '%';
             // Check prefix with a space and a no-break space.
             $unspace = str_replace(array(' ', ' '), '', $prefix);
-            if ($prefix != $unspace && $settings->get('clean_url_identifier_unspace')) {
+            if ($prefix != $unspace && $this->view->setting('clean_url_identifier_unspace')) {
                 $checkUnspace = true;
                 $sqlWhereText = 'AND (value.value LIKE ? OR value.value LIKE ?)';
                 $bind[] = $unspace . '%';
@@ -57,7 +63,7 @@ class GetResourceIdentifier extends AbstractHelper
             $sqlWhereText = '';
         }
 
-        $propertyId = (integer) $settings->get('clean_url_identifier_property');
+        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
         $sql = "
             SELECT value.value
             FROM value
@@ -69,7 +75,7 @@ class GetResourceIdentifier extends AbstractHelper
             ORDER BY value.id
             LIMIT 1
         ";
-        $identifier = $db->fetchColumn($sql, $bind);
+        $identifier = $this->connection->fetchColumn($sql, $bind);
 
         // Keep only the identifier without the configured prefix.
         if ($identifier) {

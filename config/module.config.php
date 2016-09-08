@@ -11,11 +11,11 @@ return [
         ],
     ],
     'view_helpers' => [
-        'invokables' => [
-            'getResourceFromIdentifier' => 'CleanUrl\View\Helper\GetResourceFromIdentifier',
-            'getResourceFullIdentifier' => 'CleanUrl\View\Helper\GetResourceFullIdentifier',
-            'getResourceTypeIdentifiers' => 'CleanUrl\View\Helper\GetResourceTypeIdentifiers',
-            'getResourceIdentifier' => 'CleanUrl\View\Helper\GetResourceIdentifier',
+        'factories' => [
+            'getResourceFromIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFromIdentifierFactory',
+            'getResourceFullIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFullIdentifierFactory',
+            'getResourceTypeIdentifiers' => 'CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory',
+            'getResourceIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceIdentifierFactory',
         ],
     ],
 ];

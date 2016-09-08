@@ -6,13 +6,24 @@ namespace CleanUrl\View\Helper;
  * Clean Url Get Record Type Identifiers
  */
 
+use Doctrine\DBAL\Connection;
 use Zend\View\Helper\AbstractHelper;
+use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
+    protected $apiAdapterManager;
+    protected $connection;
+
+    public function __construct(ApiAdapterManager $apiAdapterManager, Connection $connection)
+    {
+        $this->apiAdapterManager = $apiAdapterManager;
+        $this->connection = $connection;
+    }
+
     /**
      * Return identifiers for a record type, if any. It can be sanitized.
      *
@@ -26,15 +37,11 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             return array();
         }
 
-        $serviceLocator = $this->getView()->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
-
         // Use a direct query in order to improve speed.
-        $db = $serviceLocator->get('Omeka\Connection');
-        $propertyId = (integer) $settings->get('clean_url_identifier_property');
+        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
         $bind = array();
 
-        $prefix = $settings->get('clean_url_identifier_prefix');
+        $prefix = $this->view->setting('clean_url_identifier_prefix');
         if ($prefix) {
             // Keep only the identifier without the configured prefix.
             $prefixLenght = strlen($prefix) + 1;
@@ -47,8 +54,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             $sqlWereText = '';
         }
 
-        $apiAdapterManager = $serviceLocator->get('Omeka\ApiAdapterManager');
-        $apiAdapter = $apiAdapterManager->get($resourceName);
+        $apiAdapter = $this->apiAdapterManager->get($resourceName);
         $resourceType = $apiAdapter->getEntityClass();
 
         // The "order by id DESC" allows to get automatically the first row in
@@ -64,7 +70,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             ORDER BY value.resource_id, value.id DESC
         ";
         $bind[] = $resourceType;
-        $sth = $db->executeQuery($sql, $bind);
+        $sth = $this->connection->executeQuery($sql, $bind);
         $result = $sth->fetchAll(\PDO::FETCH_KEY_PAIR);
 
         return $rawEncoded

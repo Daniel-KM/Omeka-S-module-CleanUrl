@@ -9,6 +9,7 @@ namespace CleanUrl\View\Helper;
  * @see Omeka\View\Helper\RecordUrl.php
  */
 
+use Zend\Mvc\Application;
 use Zend\View\Helper\AbstractHelper;
 
 /**
@@ -16,6 +17,13 @@ use Zend\View\Helper\AbstractHelper;
  */
 class GetResourceFullIdentifier extends AbstractHelper
 {
+    protected $application;
+
+    public function __construct(Application $application)
+    {
+        $this->application = $application;
+    }
+
     /**
      * Get clean url path of a record in the default or specified format.
      *
@@ -37,8 +45,6 @@ class GetResourceFullIdentifier extends AbstractHelper
         $format = null)
     {
         $view = $this->getView();
-        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
 
         switch ($resource->resourceName()) {
             case 'item_sets':
@@ -47,7 +53,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $generic = $settings->get('clean_url_itemset_generic');
+                $generic = $this->view->setting('clean_url_itemset_generic');
                 return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
@@ -57,7 +63,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $settings->get('clean_url_item_default');
+                    $format = $this->view->setting('clean_url_item_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'items')) {
@@ -66,7 +72,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $settings->get('clean_url_item_generic');
+                        $generic = $this->view->setting('clean_url_item_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'item_set':
@@ -94,7 +100,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $settings->get('clean_url_media_default');
+                    $format = $this->view->setting('clean_url_media_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
@@ -103,11 +109,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $settings->get('clean_url_media_generic');
+                        $generic = $this->view->setting('clean_url_media_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item':
-                        $generic = $settings->get('clean_url_media_generic');
+                        $generic = $this->view->setting('clean_url_media_generic');
 
                         $item = $resource->item();
                         $item_identifier = $view->getResourceIdentifier($item);
@@ -170,8 +176,6 @@ class GetResourceFullIdentifier extends AbstractHelper
     protected function _getUrlPath($absolute, $withMainPath, $withBasePath)
     {
         $view = $this->getView();
-        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
 
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
@@ -181,7 +185,7 @@ class GetResourceFullIdentifier extends AbstractHelper
             $withMainPath = true;
         }
 
-        $routeMatch = $serviceLocator->get('Application')->getMvcEvent()->getRouteMatch();
+        $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
 
         $site_slug = $routeMatch->getParam('site-slug');
         $publicBasePath = $view->basePath("s/$site_slug");
@@ -208,7 +212,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 $basePath = '';
         }
 
-        $mainPath = $withMainPath ? $settings->get('clean_url_main_path') : '';
+        $mainPath = $withMainPath ? $this->view->setting('clean_url_main_path') : '';
 
         return ($absolute ? $this->getView()->serverUrl() : '') . $basePath . '/' . $mainPath;
     }
@@ -223,8 +227,6 @@ class GetResourceFullIdentifier extends AbstractHelper
     protected function _isFormatAllowed($format, $resourceName)
     {
         $view = $this->getView();
-        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
 
         if (empty($format)) {
             return;
@@ -232,11 +234,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($settings->get('clean_url_item_allowed'));
+                $allowedForItems = unserialize($this->view->setting('clean_url_item_allowed'));
                 return in_array($format, $allowedForItems);
 
             case 'media':
-                $allowedForMedia = unserialize($settings->get('clean_url_media_allowed'));
+                $allowedForMedia = unserialize($this->view->setting('clean_url_media_allowed'));
                 return in_array($format, $allowedForMedia);
         }
     }
@@ -250,19 +252,17 @@ class GetResourceFullIdentifier extends AbstractHelper
     protected function _getGenericFormat($resourceName)
     {
         $view = $this->getView();
-        $serviceLocator = $view->getHelperPluginManager()->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($settings->get('clean_url_item_allowed'));
+                $allowedForItems = unserialize($this->view->setting('clean_url_item_allowed'));
                 if (in_array('generic', $allowedForItems)) {
                     return 'generic';
                 }
                 break;
 
             case 'media':
-                $allowedForMedia = unserialize($settings->get('clean_url_media_allowed'));
+                $allowedForMedia = unserialize($this->view->setting('clean_url_media_allowed'));
                 if (in_array('generic_item', $allowedForMedia)) {
                     return 'generic_item';
                 }

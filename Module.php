@@ -197,7 +197,7 @@ class Module extends AbstractModule
         $settings = $serviceLocator->get('Omeka\Settings');
         $router = $serviceLocator->get('Router');
 
-        if (!$router instanceof \Zend\Mvc\Router\Http\TreeRouteStack) {
+        if (!$router instanceof \Zend\Router\Http\TreeRouteStack) {
             return;
         }
 
