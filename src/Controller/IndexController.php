@@ -40,6 +40,7 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__' => true,
+            'controller' => 'Omeka\Controller\Site\Item',
             'action' => 'browse',
             'site-slug' => $this->params('site-slug'),
             'item-set-id' => $this->_item_set_id,
@@ -51,6 +52,7 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__' => true,
+            'controller' => 'Omeka\Controller\Site\Item',
             'action' => 'browse',
             'site-slug' => $this->params('site-slug'),
         ]);
@@ -96,6 +98,7 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__', true,
+            'controller' => 'Omeka\Controller\Site\Item',
             'action' => 'show',
             'site-slug' => $this->params('site-slug'),
             'id' => $this->_resource_id,
@@ -125,6 +128,7 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch('Omeka\Controller\Site\Media', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__' => true,
+            'controller' => 'Omeka\Controller\Site\Media',
             'action' => 'show',
             'site-slug' => $this->params('site-slug'),
             'id' => $this->_resource_id,
@@ -194,6 +198,7 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch('Omeka\Controller\Site\Media', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
             '__SITE__' => true,
+            'controller' => 'Omeka\Controller\Site\Media',
             'action' => 'show',
             'site-slug' => $this->params('site-slug'),
             'id' => $this->_resource_id,
