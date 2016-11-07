@@ -10,9 +10,8 @@ use Omeka\Module\AbstractModule;
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
-use Omeka\Event\Event;
 use Zend\EventManager\SharedEventManagerInterface;
-use Zend\EventManager\Event as ZendEvent;
+use Zend\EventManager\Event;
 use Zend\Mvc\Controller\AbstractController;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -143,9 +142,9 @@ class Module extends AbstractModule
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
         $sharedEventManager->attach('Omeka\Controller\Admin\Item',
-            'view.show.after', array($this, 'displayItemIdentifier'));
+            'view.show.after', [$this, 'displayItemIdentifier']);
         $sharedEventManager->attach('Omeka\Api\Representation\ValueRepresentation',
-            Event::REP_VALUE_HTML, array($this, 'repValueHtml'));
+            'rep.value.html', [$this, 'repValueHtml']);
     }
 
     /**
@@ -167,7 +166,7 @@ class Module extends AbstractModule
         }
     }
 
-    public function repValueHtml(ZendEvent $event)
+    public function repValueHtml(Event $event)
     {
         $value = $event->getTarget();
         $params = $event->getParams();
