@@ -156,11 +156,11 @@ class Module extends AbstractModule
             $view = $event->getTarget();
             $identifier = $view->getResourceIdentifier($view->item);
 
-            echo '<div><span>'
-                . $translator->translate('CleanUrl identifier:')
-                . ' '
-                . ($identifier ?: $translator->translate('none'))
-                . '</span></div>';
+            echo '<div class="property"><h4>'
+                . $translator->translate('CleanUrl identifier')
+                . '</h4><div class="value">'
+                . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
+                . '</div></div>';
         }
     }
 
