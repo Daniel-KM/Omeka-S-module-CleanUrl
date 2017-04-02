@@ -9,7 +9,7 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
     protected function getSettings()
     {
         return [
-            'clean_url_identifier_property' => '10',
+            'clean_url_identifier_property' => 10,
             'clean_url_identifier_prefix' => '',
             'clean_url_main_path' => '',
             'clean_url_item_set_generic' => 'collection/',

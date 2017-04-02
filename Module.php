@@ -70,6 +70,9 @@ class Module extends AbstractModule
         if (version_compare($oldVersion, '3.14', '<')) {
             $settings = $serviceLocator->get('Omeka\Settings');
 
+            $settings->set('clean_url_identifier_property',
+                (integer) $settings->get('clean_url_identifier_property'));
+
             $settings->set('clean_url_item_allowed',
                 unserialize($settings->get('clean_url_item_allowed')));
             $settings->set('clean_url_media_allowed',
@@ -126,6 +129,8 @@ class Module extends AbstractModule
             $value = trim($post[$posted], ' /');
             $post[$posted] = empty($value) ? '' : trim($value) . '/';
         }
+
+        $post['clean_url_identifier_property'] = (integer) $post['clean_url_identifier_property'];
 
         // The default url should be allowed for items and media.
         $post['clean_url_item_allowed'][] = $post['clean_url_item_default'];
