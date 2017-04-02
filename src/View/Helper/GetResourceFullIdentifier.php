@@ -53,7 +53,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $generic = $this->view->setting('clean_url_item_set_generic');
+                $generic = $view->setting('clean_url_item_set_generic');
                 return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
@@ -63,7 +63,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $this->view->setting('clean_url_item_default');
+                    $format = $view->setting('clean_url_item_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'items')) {
@@ -72,7 +72,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $this->view->setting('clean_url_item_generic');
+                        $generic = $view->setting('clean_url_item_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'item_set':
@@ -100,7 +100,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $this->view->setting('clean_url_media_default');
+                    $format = $view->setting('clean_url_media_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
@@ -109,11 +109,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $this->view->setting('clean_url_media_generic');
+                        $generic = $view->setting('clean_url_media_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item':
-                        $generic = $this->view->setting('clean_url_media_generic');
+                        $generic = $view->setting('clean_url_media_generic');
 
                         $item = $resource->item();
                         $item_identifier = $view->getResourceIdentifier($item);
@@ -161,7 +161,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 break;
         }
 
-        // This resource don't have a clean url.
+        // This resource doesn't have a clean url.
         return '';
     }
 
@@ -175,8 +175,6 @@ class GetResourceFullIdentifier extends AbstractHelper
      */
     protected function _getUrlPath($absolute, $withMainPath, $withBasePath)
     {
-        $view = $this->getView();
-
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
             $withMainPath = true;
@@ -187,8 +185,8 @@ class GetResourceFullIdentifier extends AbstractHelper
         $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
 
         $site_slug = $routeMatch->getParam('site-slug');
-        $publicBasePath = $view->basePath("s/$site_slug");
-        $adminBasePath = $view->basePath('admin');
+        $publicBasePath = $this->view->basePath("s/$site_slug");
+        $adminBasePath = $this->view->basePath('admin');
 
         switch ($withBasePath) {
             case 'public':
@@ -213,7 +211,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         $mainPath = $withMainPath ? $this->view->setting('clean_url_main_path') : '';
 
-        return ($absolute ? $this->getView()->serverUrl() : '') . $basePath . '/' . $mainPath;
+        return ($absolute ? $this->view->serverUrl() : '') . $basePath . '/' . $mainPath;
     }
 
     /**
@@ -225,8 +223,6 @@ class GetResourceFullIdentifier extends AbstractHelper
      */
     protected function _isFormatAllowed($format, $resourceName)
     {
-        $view = $this->getView();
-
         if (empty($format)) {
             return;
         }
@@ -250,8 +246,6 @@ class GetResourceFullIdentifier extends AbstractHelper
      */
     protected function _getGenericFormat($resourceName)
     {
-        $view = $this->getView();
-
         switch ($resourceName) {
             case 'items':
                 $allowedForItems = $this->view->setting('clean_url_item_allowed');
