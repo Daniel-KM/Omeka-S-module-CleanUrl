@@ -102,6 +102,9 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
 
         $settings = $serviceLocator->get('Omeka\Settings');
         $cleanurl_settings = $this->getSettings();
+        if (!isset($cleanurl_settings['clean_url_item_set_regex'])) {
+            $cleanurl_settings['clean_url_item_set_regex'] = 'my_item_set|my_item_set_bis';
+        }
         foreach ($cleanurl_settings as $name => $value) {
             $settings->set($name, $value);
         }

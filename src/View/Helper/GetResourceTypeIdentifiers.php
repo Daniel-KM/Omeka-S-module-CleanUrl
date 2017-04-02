@@ -15,6 +15,8 @@ use Zend\View\Helper\AbstractHelper;
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
     protected $connection;
+    protected $propertyId;
+    protected $prefix;
 
     public function __construct(Connection $connection)
     {
@@ -45,8 +47,13 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         }
 
         $resourceType = $resourceTypes[$resourceName];
-        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
-        $prefix = $this->view->setting('clean_url_identifier_prefix');
+
+        if (empty($this->propertyId)) {
+            $this->propertyId = (integer) $this->view->setting('clean_url_identifier_property');
+            $this->prefix = $this->view->setting('clean_url_identifier_prefix');
+        }
+        $propertyId = $this->propertyId;
+        $prefix = $this->prefix;
 
         // Use a direct query in order to improve speed.
         $connection = $this->connection;
@@ -81,5 +88,15 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         return $rawUrlEncode
             ? array_map('rawurlencode', $result)
             : $result;
+    }
+
+    public function setPropertyId($propertyId)
+    {
+        $this->propertyId = $propertyId;
+    }
+
+    public function setPrefix($prefix)
+    {
+        $this->prefix = $prefix;
     }
 }

@@ -2,17 +2,19 @@
 namespace CleanUrl;
 
 use Omeka\Module\AbstractModule;
+
 /*
  * Clean Url
  *
  * Allows to have URL like http://example.com/my_item_set/dc:identifier.
  *
- * @copyright Daniel Berthereau, 2012-2014
+ * @copyright Daniel Berthereau, 2012-2017
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
-use Zend\EventManager\SharedEventManagerInterface;
+use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
 use Zend\EventManager\Event;
+use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\Controller\AbstractController;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -34,6 +36,7 @@ class Module extends AbstractModule
         'clean_url_identifier_unspace' => false,
         'clean_url_case_insensitive' => false,
         'clean_url_main_path' => '',
+        'clean_url_item_set_regex' => '',
         'clean_url_item_set_generic' => '',
         'clean_url_item_default' => 'generic',
         'clean_url_item_allowed' => ['generic', 'item_set'],
@@ -64,6 +67,8 @@ class Module extends AbstractModule
         foreach ($this->settings as $name => $value) {
             $settings->set($name, $value);
         }
+
+        $this->cacheItemSetsRegex($serviceLocator);
     }
 
     /**
@@ -89,6 +94,8 @@ class Module extends AbstractModule
                 unserialize($settings->get('clean_url_item_allowed')));
             $settings->set('clean_url_media_allowed',
                 unserialize($settings->get('clean_url_media_allowed')));
+
+            $this->cacheItemSetsRegex($serviceLocator);
         }
     }
 
@@ -143,14 +150,37 @@ class Module extends AbstractModule
                 $settings->set($settingKey, $post[$settingKey]);
             }
         }
+
+        $this->cacheItemSetsRegex($this->getServiceLocator());
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
-        $sharedEventManager->attach('Omeka\Controller\Admin\Item',
-            'view.show.after', [$this, 'displayItemIdentifier']);
-        $sharedEventManager->attach('Omeka\Api\Representation\ValueRepresentation',
-            'rep.value.html', [$this, 'repValueHtml']);
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.show.after',
+            [$this, 'displayItemIdentifier']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Api\Representation\ValueRepresentation',
+            'rep.value.html',
+            [$this, 'repValueHtml']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Api\Adapter\ItemSetAdapter',
+            'api.create.post',
+            [$this, 'afterSaveItemSet']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Api\Adapter\ItemSetAdapter',
+            'api.update.post',
+            [$this, 'afterSaveItemSet']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Api\Adapter\ItemSetAdapter',
+            'api.delete.post',
+            [$this, 'afterSaveItemSet']
+        );
     }
 
     /**
@@ -219,28 +249,11 @@ class Module extends AbstractModule
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-        // Get all item sets identifiers with one query.
-        $viewHelpers = $serviceLocator->get('ViewHelperManager');
-        $getResourceTypeIdentifiers = $viewHelpers->get('getResourceTypeIdentifiers');
-        $itemSetsIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
-
-        if (!empty($itemSetsIdentifiers)) {
-            // Use one regex for all item sets. Default is case insensitve.
-            // To avoid issues with identifiers that contain another identifier,
-            // for example "item_set_bis" contains "item_set", they are ordered
-            // by reversed length.
-            array_multisort(
-                array_map('strlen', $itemSetsIdentifiers),
-                $itemSetsIdentifiers
-            );
-            $itemSetsIdentifiers = array_reverse($itemSetsIdentifiers);
-            $itemSetsRegex = array_map('preg_quote', $itemSetsIdentifiers);
-            // To avoid a bug with identifiers that contain a "/", that is not
-            // escaped with preg_quote().
-            $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
-
+        $itemSetsRegex= $settings->get('clean_url_item_set_regex');
+        if (!empty($itemSetsRegex)) {
             // Add an item set route.
             $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
+            // Use one regex for all item sets. Default is case insensitve.
             $router->addRoute('cleanUrl_item_sets', [
                 'type' => 'segment',
                 'options' => [
@@ -380,5 +393,87 @@ class Module extends AbstractModule
                 ],
             ]);
         }
+    }
+
+    /**
+     * Process after saving or deleting an item set.
+     *
+     * @param Event $event
+     */
+    public function afterSaveItemSet(Event $event)
+    {
+        $this->cacheItemSetsRegex($this->getServiceLocator());
+    }
+
+    /**
+     * Cache items identifiers as a string to speed up the creation of routes.
+     *
+     * @param ServiceLocatorInterface $serviceLocator
+     */
+    protected function cacheItemSetsRegex(ServiceLocatorInterface $serviceLocator)
+    {
+        // Get all item set identifiers with one query.
+        $viewHelpers = $serviceLocator->get('ViewHelperManager');
+        // The view helper is not available during intall, upgrade and tests.
+        if ($viewHelpers->has('getResourceTypeIdentifiers')) {
+            $getResourceTypeIdentifiers = $viewHelpers->get('getResourceTypeIdentifiers');
+            $itemSetsIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
+        } else {
+            $getResourceTypeIdentifiers = $this->getViewHelperRTI($serviceLocator);
+            $itemSetsIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
+        }
+
+        // To avoid issues with identifiers that contain another identifier,
+        // for example "item_set_bis" contains "item_set", they are ordered
+        // by reversed length.
+        array_multisort(
+            array_map('strlen', $itemSetsIdentifiers),
+            $itemSetsIdentifiers
+        );
+        $itemSetsIdentifiers = array_reverse($itemSetsIdentifiers);
+
+        $itemSetsRegex = array_map('preg_quote', $itemSetsIdentifiers);
+        // To avoid a bug with identifiers that contain a "/", that is not
+        // escaped with preg_quote().
+        $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
+
+        $settings = $serviceLocator->get('Omeka\Settings');
+        $settings->set('clean_url_item_set_regex', $itemSetsRegex);
+    }
+
+    /**
+     * Get the view helper getResourceTypeIdentifiers with some params.
+     *
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return \CleanUrl\View\Helper\GetResourceTypeIdentifiers
+     */
+    protected function getViewHelperRTI(ServiceLocatorInterface $serviceLocator)
+    {
+        require_once __DIR__
+            . DIRECTORY_SEPARATOR . 'src'
+            . DIRECTORY_SEPARATOR . 'Service'
+            . DIRECTORY_SEPARATOR . 'ViewHelper'
+            . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiersFactory.php';
+
+        require_once __DIR__
+            . DIRECTORY_SEPARATOR . 'src'
+            . DIRECTORY_SEPARATOR . 'View'
+            . DIRECTORY_SEPARATOR . 'Helper'
+            . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiers.php';
+
+        $settings = $serviceLocator->get('Omeka\Settings');
+        $propertyId = (integer) $settings->get('clean_url_identifier_property');
+        $prefix = $settings->get('clean_url_identifier_prefix');
+
+        $factory = new GetResourceTypeIdentifiersFactory();
+        $helper = $factory(
+            $serviceLocator,
+            'getResourceTypeIdentifiers',
+            [
+                'propertyId' => $propertyId,
+                'prefix' => $prefix,
+            ]
+        );
+        return $helper;
     }
 }

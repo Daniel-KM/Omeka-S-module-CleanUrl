@@ -13,8 +13,13 @@ class GetResourceTypeIdentifiersFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-        return new GetResourceTypeIdentifiers(
+        $helper = new GetResourceTypeIdentifiers(
             $services->get('Omeka\Connection')
         );
+        if (isset($options['propertyId'])) {
+            $helper->setPropertyId($options['propertyId']);
+            $helper->setPrefix($options['prefix']);
+        }
+        return $helper;
     }
 }

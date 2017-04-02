@@ -34,6 +34,7 @@
                 'name' => 'clean_url_identifier_property',
                 'attributes' => [
                     'value' => $this->setting('clean_url_identifier_property'),
+                    'required' => true,
                 ],
             ]); ?>
         </div>
@@ -178,6 +179,7 @@
                 'item_set' => '/ item set identifier / item identifier',
             ]);
             $radio->setValue($this->setting($name));
+            $radio->setAttribute('required', true);
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($radio); ?>
@@ -263,6 +265,7 @@
                 'item_set_item' => '/ item set identifier / item identifier / media identifier',
             ]);
             $radio->setValue($this->setting($name));
+            $radio->setAttribute('required', true);
         ?>
         <div class="field-meta">
             <?php echo $this->formLabel($radio); ?>
