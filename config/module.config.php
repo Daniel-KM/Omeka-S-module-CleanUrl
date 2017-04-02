@@ -11,6 +11,9 @@ return [
         ],
     ],
     'view_helpers' => [
+        'invokables' => [
+            'Url' => 'CleanUrl\View\Helper\CleanUrl',
+        ],
         'factories' => [
             'getIdentifiersFromResources' => 'CleanUrl\Service\ViewHelper\GetIdentifiersFromResourcesFactory',
             'getResourceFromIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFromIdentifierFactory',

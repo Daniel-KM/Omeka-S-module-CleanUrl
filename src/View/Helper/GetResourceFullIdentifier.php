@@ -27,15 +27,14 @@ class GetResourceFullIdentifier extends AbstractHelper
     /**
      * Get clean url path of a record in the default or specified format.
      *
-     * @param AbstractResourceRepresentation $resource
+     * @param AbstractResourceRepresentation|array $resource
      * @param bool $withMainPath
      * @param string $withBasePath Can be empty, 'admin', 'public' or
      * 'current'. If any, implies main path.
      * @param bool $absoluteUrl If true, implies current / admin or public
      * path and main path.
      * @param string $format Format of the identifier (default one if empty).
-     * @return string
-     *   Full identifier of the record, if any, else empty string.
+     * @return string Full identifier of the record, if any, else empty string.
      */
     public function __invoke(
         $resource,
@@ -45,6 +44,39 @@ class GetResourceFullIdentifier extends AbstractHelper
         $format = null)
     {
         $view = $this->getView();
+
+        if (is_array($resource)) {
+            $resourceNames = [
+                // Manage controller names.
+                'item-set' => 'item_sets',
+                'item' => 'items',
+                'media' => 'media',
+                // Manage api names too.
+                'item_sets' => 'item_sets',
+                'items' => 'items',
+                'medias' => 'media',
+                // Manage json ld types too.
+                'o:ItemSet' => 'item_sets',
+                'o:Item' => 'items',
+                'o:Media' => 'media',
+            ];
+            if (!isset($resource['type'])
+                || !isset($resource['id'])
+                || !isset($resourceNames[$resource['type']])
+            ) {
+                return '';
+            }
+
+            $resource = $this->view->api()
+                ->read(
+                    $resourceNames[$resource['type']],
+                    $resource['id']
+                )
+                ->getContent();
+            if (empty($resource)) {
+                return '';
+            }
+        }
 
         switch ($resource->resourceName()) {
             case 'item_sets':
