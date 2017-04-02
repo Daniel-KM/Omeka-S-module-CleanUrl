@@ -394,7 +394,7 @@ class IndexController extends AbstractActionController
         }, $item->itemSets());
 
         if (!in_array($item_set_id, $itemSetsIds)) {
-            throw new Omeka_Controller_Exception_404;
+            throw new NotFoundException;
         }
     }
 
