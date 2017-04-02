@@ -12,6 +12,7 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
+            'getIdentifiersFromResources' => 'CleanUrl\Service\ViewHelper\GetIdentifiersFromResourcesFactory',
             'getResourceFromIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFromIdentifierFactory',
             'getResourceFullIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFullIdentifierFactory',
             'getResourceTypeIdentifiers' => 'CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory',
