@@ -53,7 +53,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $generic = $this->view->setting('clean_url_itemset_generic');
+                $generic = $this->view->setting('clean_url_item_set_generic');
                 return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
