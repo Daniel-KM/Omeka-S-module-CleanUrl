@@ -26,10 +26,10 @@ class GetResourceTypeIdentifiers extends AbstractHelper
      *
      * @param string $resourceName Should be "item_sets", "items" or "media"
      * or equivalent resource type.
-     * @param bool $rawEncoded Sanitize the identifier for http or not.
+     * @param bool $rawUrlEncode Sanitize the identifiers for http or not.
      * @return array List of identifiers.
      */
-    public function __invoke($resourceName, $rawEncoded = true)
+    public function __invoke($resourceName, $rawUrlEncode = true)
     {
         $resourceTypes = [
             'item_sets' => 'Omeka\Entity\ItemSet',
@@ -48,33 +48,37 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
         $prefix = $this->view->setting('clean_url_identifier_prefix');
 
-        $bind = [];
-        $bind[] = $resourceType;
+        // Use a direct query in order to improve speed.
+        $connection = $this->connection;
+        $qb = $connection->createQueryBuilder()
+            ->from('value', 'value')
+            ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
+            ->andWhere('value.property_id = :property_id')
+            ->setParameter('property_id', $propertyId)
+            ->andWhere('resource.resource_type = :resource_type')
+            ->setParameter('resource_type', $resourceType)
+            ->addOrderBy('value.resource_id', 'ASC')
+            ->addOrderBy('value.id', 'ASC');
 
         if ($prefix) {
-            // Keep only the identifier without the configured prefix.
-            $prefixLength = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT TRIM(SUBSTR(value.value, ' . $prefixLength . '))';
-            $sqlWereText = 'AND value.value LIKE ?';
-            $bind[] = $prefix . '%';
+            $qb
+                ->select([
+                    // $qb->expr()->trim($qb->expr()->substring('value.text', strlen($this->prefix) + 1)),
+                    '(TRIM(SUBSTR(value.value, ' . (strlen($prefix) + 1) . ')))',
+                ])
+                ->andWhere('value.value LIKE :value_value')
+                ->setParameter('value_value', $prefix . '%');
         } else {
-            $sqlSelect = 'SELECT value.value';
-            $sqlWereText = '';
+            $qb
+                ->select([
+                    'value.value',
+                ]);
         }
 
-        $sql = "
-            $sqlSelect
-            FROM value
-                LEFT JOIN resource ON (value.resource_id = resource.id)
-            WHERE value.property_id = '$propertyId'
-                AND resource.resource_type = ?
-                $sqlWereText
-            ORDER BY value.resource_id ASC, value.id ASC
-        ";
-        $sth = $this->connection->executeQuery($sql, $bind);
-        $result = $sth->fetchAll(\PDO::FETCH_COLUMN);
+        $stmt = $connection->executeQuery($qb, $qb->getParameters());
+        $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-        return $rawEncoded
+        return $rawUrlEncode
             ? array_map('rawurlencode', $result)
             : $result;
     }
