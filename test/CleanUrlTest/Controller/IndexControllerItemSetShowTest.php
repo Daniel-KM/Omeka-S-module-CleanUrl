@@ -30,4 +30,28 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
 
         $this->assertQueryContentContains('#content > h2', 'Item Set 1');
     }
+
+    public function testItemSetShowActionWithTwoItemSets()
+    {
+        $site_slug = $this->site->slug();
+        $item_set_identifier = $this->item_set->value('dcterms:identifier');
+        $path = "/s/$site_slug/collection/$item_set_identifier";
+        $this->dispatch($path);
+
+        $this->assertResponseStatusCode(200);
+        $this->assertControllerName('CleanUrl\Controller\Index');
+        $this->assertActionName('item-set-show');
+
+        $this->assertQueryContentContains('#content > h2', 'Item Set 1');
+
+        $item_set_identifier = $this->item_set_2->value('dcterms:identifier');
+        $path = "/s/$site_slug/collection/$item_set_identifier";
+        $this->dispatch($path);
+
+        $this->assertResponseStatusCode(200);
+        $this->assertControllerName('CleanUrl\Controller\Index');
+        $this->assertActionName('item-set-show');
+
+        $this->assertQueryContentContains('#content > h2', 'Item Set 2');
+    }
 }

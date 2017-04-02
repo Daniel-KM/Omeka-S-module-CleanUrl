@@ -226,6 +226,14 @@ class Module extends AbstractModule
 
         if (!empty($itemSetsIdentifiers)) {
             // Use one regex for all item sets. Default is case insensitve.
+            // To avoid issues with identifiers that contain another identifier,
+            // for example "item_set_bis" contains "item_set", they are ordered
+            // by reversed length.
+            array_multisort(
+                array_map('strlen', $itemSetsIdentifiers),
+                $itemSetsIdentifiers
+            );
+            $itemSetsIdentifiers = array_reverse($itemSetsIdentifiers);
             $itemSetsRegex = array_map('preg_quote', $itemSetsIdentifiers);
             // To avoid a bug with identifiers that contain a "/", that is not
             // escaped with preg_quote().

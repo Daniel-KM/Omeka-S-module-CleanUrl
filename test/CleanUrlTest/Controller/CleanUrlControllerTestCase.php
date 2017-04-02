@@ -6,9 +6,10 @@ use OmekaTestHelper\Controller\OmekaControllerTestCase;
 
 abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
 {
-    protected $item;
-    protected $item_set;
     protected $site;
+    protected $item_set;
+    protected $item_set_2;
+    protected $item;
     protected $media_url;
 
     protected function getSettings()
@@ -28,7 +29,7 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
                 [
                     'type' => 'literal',
                     'property_id' => '10',
-                    '@value' => 'is1',
+                    '@value' => 'my_item_set',
                 ],
             ],
             'dcterms:title' => [
@@ -40,6 +41,23 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
             ],
         ]);
         $this->item_set = $response->getContent();
+
+        $this->item_set_2 = $api->create('item_sets', [
+            'dcterms:identifier' => [
+                [
+                    'type' => 'literal',
+                    'property_id' => '10',
+                    '@value' => 'my_item_set_bis',
+                ],
+            ],
+            'dcterms:title' => [
+                [
+                    'type' => 'literal',
+                    'property_id' => '1',
+                    '@value' => 'Item Set 2',
+                ],
+            ],
+        ])->getContent();
 
         $this->media_url = 'http://farm8.staticflickr.com/7495/28077970085_4d976b3c96_z_d.jpg';
         $response = $api->create('items', [
@@ -95,6 +113,7 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
     {
         $this->api()->delete('items', $this->item->id());
         $this->api()->delete('item_sets', $this->item_set->id());
+        $this->api()->delete('item_sets', $this->item_set_2->id());
         $this->api()->delete('sites', $this->site->id());
     }
 }
