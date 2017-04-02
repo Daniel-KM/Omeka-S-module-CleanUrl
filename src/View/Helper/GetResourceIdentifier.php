@@ -12,6 +12,10 @@ use Omeka\Api\Representation\AbstractResourceRepresentation;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\ItemSetRepresentation;
 use Omeka\Api\Representation\MediaRepresentation;
+use Omeka\Entity\Item;
+use Omeka\Entity\ItemSet;
+use Omeka\Entity\Media;
+use Omeka\Entity\Resource;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
@@ -28,16 +32,19 @@ class GetResourceIdentifier extends AbstractHelper
     /**
      * Return the identifier of a record, if any. It can be sanitized.
      *
-     * @param AbstractResourceRepresentation $resource
+     * @param AbstractResourceRepresentation|Resource $resource
      * @param bool $rawUrlEncode Sanitize the identifier for http or not.
      * @return string Identifier of the record, if any, else empty string.
      */
-    public function __invoke(AbstractResourceRepresentation $resource, $rawUrlEncode = true)
+    public function __invoke($resource, $rawUrlEncode = true)
     {
         $resourceTypes = [
             ItemSetRepresentation::class => 'Omeka\Entity\ItemSet',
             ItemRepresentation::class => 'Omeka\Entity\Item',
             MediaRepresentation::class => 'Omeka\Entity\Media',
+            ItemSet::class => 'Omeka\Entity\ItemSet',
+            Item::class => 'Omeka\Entity\Item',
+            Media::class => 'Omeka\Entity\Media',
         ];
         $resourceType = get_class($resource);
         if (!isset($resourceTypes[$resourceType])) {
@@ -50,7 +57,7 @@ class GetResourceIdentifier extends AbstractHelper
         // Use a direct query in order to improve speed.
         $bind = [
             $resourceTypes[$resourceType],
-            $resource->id(),
+            $resource instanceof Resource ? $resource->getId() : $resource->id(),
         ];
 
         $checkUnspace = false;

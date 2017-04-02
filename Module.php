@@ -156,10 +156,34 @@ class Module extends AbstractModule
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
+        $serviceLocator = $this->getServiceLocator();
+        $settings = $serviceLocator->get('Omeka\Settings');
+        if ($settings->get('clean_url_display_admin_show_identifier')) {
+            $sharedEventManager->attach(
+                'Omeka\Controller\Admin\ItemSet',
+                'view.show.after',
+                [$this, 'displayViewResourceIdentifier']
+            );
+            $sharedEventManager->attach(
+                'Omeka\Controller\Admin\Item',
+                'view.show.after',
+                [$this, 'displayViewResourceIdentifier']
+            );
+            $sharedEventManager->attach(
+                'Omeka\Controller\Admin\Media',
+                'view.show.after',
+                [$this, 'displayViewResourceIdentifier']
+            );
+        }
         $sharedEventManager->attach(
             'Omeka\Controller\Admin\Item',
-            'view.show.after',
-            [$this, 'displayItemIdentifier']
+            'view.details',
+            [$this, 'displayViewEntityIdentifier']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\ItemSet',
+            'view.details',
+            [$this, 'displayViewEntityIdentifier']
         );
         $sharedEventManager->attach(
             'Omeka\Api\Representation\ValueRepresentation',
@@ -184,22 +208,41 @@ class Module extends AbstractModule
     }
 
     /**
-     * Add the identifiant in the list.
+     * Display an identifier.
      */
-    public function displayItemIdentifier(Event $event)
+    public function displayViewResourceIdentifier(Event $event)
     {
-        $settings = $this->getServiceLocator()->get('Omeka\Settings');
-        $translator = $this->getServiceLocator()->get('MvcTranslator');
-        if ($settings->get('clean_url_display_admin_show_identifier')) {
-            $view = $event->getTarget();
-            $identifier = $view->getResourceIdentifier($view->item);
+        $resource = $event->getTarget()->resource;
+        $this->displayResourceIdentifier($resource);
+    }
 
-            echo '<div class="property"><h4>'
-                . $translator->translate('CleanUrl identifier')
-                . '</h4><div class="value">'
-                . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
-                . '</div></div>';
-        }
+    /**
+     * Display an identifier.
+     */
+    public function displayViewEntityIdentifier(Event $event)
+    {
+        $resource = $event->getParam('entity');
+        $this->displayResourceIdentifier($resource);
+    }
+
+    /**
+     * Helepr to display an identifier.
+     *
+     * @param AbstractResourceRepresentation|Resource $resource
+     */
+    protected function displayResourceIdentifier($resource)
+    {
+        $services = $this->getServiceLocator();
+        $translator = $services->get('MvcTranslator');
+        $getResourceIdentifier = $services->get('ViewHelperManager')
+            ->get('getResourceIdentifier');
+        $identifier = $getResourceIdentifier($resource);
+
+        echo '<div class="property meta-group"><h4>'
+            . $translator->translate('CleanUrl identifier')
+            . '</h4><div class="value">'
+            . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
+            . '</div></div>';
     }
 
     public function repValueHtml(Event $event)
@@ -249,7 +292,7 @@ class Module extends AbstractModule
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-        $itemSetsRegex= $settings->get('clean_url_item_set_regex');
+        $itemSetsRegex = $settings->get('clean_url_item_set_regex');
         if (!empty($itemSetsRegex)) {
             // Add an item set route.
             $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
@@ -406,7 +449,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Cache items identifiers as a string to speed up the creation of routes.
+     * Cache item set identifiers as string to speed up routing.
      *
      * @param ServiceLocatorInterface $serviceLocator
      */
@@ -417,22 +460,22 @@ class Module extends AbstractModule
         // The view helper is not available during intall, upgrade and tests.
         if ($viewHelpers->has('getResourceTypeIdentifiers')) {
             $getResourceTypeIdentifiers = $viewHelpers->get('getResourceTypeIdentifiers');
-            $itemSetsIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
+            $itemSetIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
         } else {
             $getResourceTypeIdentifiers = $this->getViewHelperRTI($serviceLocator);
-            $itemSetsIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
+            $itemSetIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
         }
 
         // To avoid issues with identifiers that contain another identifier,
         // for example "item_set_bis" contains "item_set", they are ordered
         // by reversed length.
         array_multisort(
-            array_map('strlen', $itemSetsIdentifiers),
-            $itemSetsIdentifiers
+            array_map('strlen', $itemSetIdentifiers),
+            $itemSetIdentifiers
         );
-        $itemSetsIdentifiers = array_reverse($itemSetsIdentifiers);
+        $itemSetIdentifiers = array_reverse($itemSetIdentifiers);
 
-        $itemSetsRegex = array_map('preg_quote', $itemSetsIdentifiers);
+        $itemSetsRegex = array_map('preg_quote', $itemSetIdentifiers);
         // To avoid a bug with identifiers that contain a "/", that is not
         // escaped with preg_quote().
         $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
