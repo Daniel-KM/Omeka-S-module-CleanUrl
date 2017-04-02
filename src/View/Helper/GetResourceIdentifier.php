@@ -2,7 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
-/**
+/*
  * Clean Url Get Record Identifier
  */
 
@@ -29,7 +29,7 @@ class GetResourceIdentifier extends AbstractHelper
      * Return the identifier of a record, if any. It can be sanitized.
      *
      * @param AbstractResourceRepresentation $resource
-     * @param boolean $rawEncoded Sanitize the identifier for http or not.
+     * @param bool $rawEncoded Sanitize the identifier for http or not.
      * @return string Identifier of the record, if any, else empty string.
      */
     public function __invoke(AbstractResourceRepresentation $resource, $rawEncoded = true)
@@ -37,17 +37,17 @@ class GetResourceIdentifier extends AbstractHelper
         // Use a direct query in order to improve speed.
         $apiAdapter = $this->apiAdapterManager->get($resource->resourceName());
         $resourceType = $apiAdapter->getEntityClass();
-        $bind = array(
+        $bind = [
             $resourceType,
             $resource->id(),
-        );
+        ];
 
         $prefix = $this->view->setting('clean_url_identifier_prefix');
         $checkUnspace = false;
         if ($prefix) {
             $bind[] = $prefix . '%';
             // Check prefix with a space and a no-break space.
-            $unspace = str_replace(array(' ', ' '), '', $prefix);
+            $unspace = str_replace([' ', ' '], '', $prefix);
             if ($prefix != $unspace && $this->view->setting('clean_url_identifier_unspace')) {
                 $checkUnspace = true;
                 $sqlWhereText = 'AND (value.value LIKE ? OR value.value LIKE ?)';

@@ -2,8 +2,6 @@
 
 namespace CleanUrlTest\Controller;
 
-use CleanUrlTest\Controller\CleanUrlControllerTestCase;
-
 class IndexControllerRouteMediaTest extends CleanUrlControllerTestCase
 {
     protected function getSettings()

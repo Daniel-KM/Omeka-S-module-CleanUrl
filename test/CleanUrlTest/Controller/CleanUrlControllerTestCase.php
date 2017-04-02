@@ -29,14 +29,14 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
                     'type' => 'literal',
                     'property_id' => '10',
                     '@value' => 'is1',
-                ]
+                ],
             ],
             'dcterms:title' => [
                 [
                     'type' => 'literal',
                     'property_id' => '1',
                     '@value' => 'Item Set 1',
-                ]
+                ],
             ],
         ]);
         $this->item_set = $response->getContent();

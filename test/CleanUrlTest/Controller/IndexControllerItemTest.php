@@ -2,8 +2,6 @@
 
 namespace CleanUrlTest\Controller;
 
-use CleanUrlTest\Controller\CleanUrlControllerTestCase;
-
 class IndexControllerItemTest extends CleanUrlControllerTestCase
 {
     protected function getSettings()

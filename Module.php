@@ -1,7 +1,8 @@
 <?php
 namespace CleanUrl;
+
 use Omeka\Module\AbstractModule;
-/**
+/*
  * Clean Url
  *
  * Allows to have URL like http://example.com/my_item_set/dc:identifier.
@@ -26,7 +27,7 @@ class Module extends AbstractModule
     /**
      * @var array This plugin's options.
      */
-    protected $settings = array(
+    protected $settings = [
         // 10 is the hard set id of "dcterms:identifier" in default install.
         'clean_url_identifier_property' => 10,
         'clean_url_identifier_prefix' => 'document:',
@@ -41,7 +42,7 @@ class Module extends AbstractModule
         'clean_url_media_allowed' => ['generic', 'item_set_item'],
         'clean_url_media_generic' => 'media/',
         'clean_url_display_admin_show_identifier' => true,
-    );
+    ];
 
     /**
      * Installs the plugin.
@@ -124,8 +125,7 @@ class Module extends AbstractModule
                 'clean_url_item_set_generic',
                 'clean_url_item_generic',
                 'clean_url_media_generic',
-            ] as $posted)
-        {
+            ] as $posted) {
             $value = trim($post[$posted], ' /');
             $post[$posted] = empty($value) ? '' : trim($value) . '/';
         }

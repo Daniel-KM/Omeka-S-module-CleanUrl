@@ -2,7 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
-/**
+/*
  * Clean Url Get Resource From Identifier
  *
  * @copyright Copyright 2007-2012 Roy Rosenzweig Center for History and New Media
@@ -34,7 +34,7 @@ class GetResourceFromIdentifier extends AbstractHelper
      * Get resource from identifier
      *
      * @param string $identifier The identifier of the resource to find.
-     * @param boolean $withPrefix Optional. If identifier begins with prefix.
+     * @param bool $withPrefix Optional. If identifier begins with prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
      * @return Omeka\Api\Representation\AbstractResourceRepresentation The resource.
      */
@@ -56,8 +56,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             $sqlResourceType = "AND resource.resource_type = ?";
             $bind[] = $resourceType;
             $sqlOrder = 'ORDER BY value.resource_id, value.id';
-        }
-        else {
+        } else {
             $sqlResourceType = '';
             $sqlOrder = "ORDER BY FIELD(resource.resource_type, 'Omeka\Entity\ItemSet', 'Omeka\Entity\Item', 'Omeka\Entity\Media'), value.resource_id, value.id";
         }
@@ -79,8 +78,7 @@ class GetResourceFromIdentifier extends AbstractHelper
                 $bind[] = $identifier;
                 $sqlWhereText = 'AND value.value = ?';
             }
-        }
-        else {
+        } else {
             $prefix = $this->view->setting('clean_url_identifier_prefix');
             $identifiers = [
                 $prefix . $identifier,
@@ -88,7 +86,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             ];
             // Check prefix with a space and a no-break space.
             if ($this->view->setting('clean_url_identifier_unspace')) {
-                $unspace = str_replace(array(' ', ' '), '', $prefix);
+                $unspace = str_replace([' ', ' '], '', $prefix);
                 if ($prefix != $unspace) {
                     // Check with a space between prefix and identifier too.
                     $identifiers[] = $unspace . $identifier;

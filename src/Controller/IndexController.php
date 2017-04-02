@@ -245,17 +245,17 @@ class IndexController extends AbstractActionController
         $sqlFrom = 'FROM resource';
 
         // Use of ordered placeholders.
-        $bind = array();
+        $bind = [];
 
         // Check the dublin core identifier of the record.
         $prefix = $this->settings()->get('clean_url_identifier_prefix');
-        $identifiers = array();
+        $identifiers = [];
         $identifiers[] = $prefix . $this->_resource_identifier;
         // Check with a space between prefix and identifier too.
         $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
         // Check prefix with a space and a no-break space.
         if ($this->settings()->get('clean_url_identifier_unspace')) {
-            $unspace = str_replace(array(' ', ' '), '', $prefix);
+            $unspace = str_replace([' ', ' '], '', $prefix);
             if ($prefix != $unspace) {
                 $identifiers[] = $unspace . $this->_resource_identifier;
                 $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
@@ -335,7 +335,7 @@ class IndexController extends AbstractActionController
      *
      * @param MediaRepresentation $media Media to check.
      *
-     * @return boolean
+     * @return bool
      */
     protected function _checkItemSetMedia(MediaRepresentation $media)
     {
@@ -344,7 +344,7 @@ class IndexController extends AbstractActionController
 
         // Check if the found file belongs to the item set.
         if (!empty($this->_item_set_id)) {
-            $itemSetsIds = array_map(function($itemSet) {
+            $itemSetsIds = array_map(function ($itemSet) {
                 return $itemSet->id();
             }, $item->itemSets());
             if (!in_array($this->_item_set_id, $itemSetsIds)) {
@@ -360,7 +360,7 @@ class IndexController extends AbstractActionController
      *
      * @param MediaRepresentation $media Media to check.
      *
-     * @return boolean
+     * @return bool
      */
     protected function _checkItemMedia($media)
     {
@@ -374,8 +374,7 @@ class IndexController extends AbstractActionController
             $item_identifier = $getResourceIdentifier($item, false);
             // Check identifier and id of item.
             if (strtolower($this->_item_identifier) != strtolower($item_identifier)
-                    && $this->_item_identifier != $item->id())
-            {
+                    && $this->_item_identifier != $item->id()) {
                 return false;
             }
         }
@@ -389,7 +388,7 @@ class IndexController extends AbstractActionController
             return;
         }
 
-        $itemSetsIds = array_map(function($itemSet) {
+        $itemSetsIds = array_map(function ($itemSet) {
             return $itemSet->id();
         }, $item->itemSets());
 

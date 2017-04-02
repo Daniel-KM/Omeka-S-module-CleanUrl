@@ -2,7 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
-/**
+/*
  * Clean Url Get Record Full Identifier
  *
  * @todo Use a route name?
@@ -28,10 +28,10 @@ class GetResourceFullIdentifier extends AbstractHelper
      * Get clean url path of a record in the default or specified format.
      *
      * @param AbstractResourceRepresentation $resource
-     * @param boolean $withMainPath
+     * @param bool $withMainPath
      * @param string $withBasePath Can be empty, 'admin', 'public' or
      * 'current'. If any, implies main path.
-     * @param boolean $absoluteUrl If true, implies current / admin or public
+     * @param bool $absoluteUrl If true, implies current / admin or public
      * path and main path.
      * @param string $format Format of the identifier (default one if empty).
      * @return string
@@ -168,8 +168,8 @@ class GetResourceFullIdentifier extends AbstractHelper
     /**
      * Return beginning of the record name if needed.
      *
-     * @param boolean $withMainPath
-     * @param boolean $withBasePath Implies main path.
+     * @param bool $withMainPath
+     * @param bool $withBasePath Implies main path.
      * @return string
      * The string ends with '/'.
      */
@@ -180,8 +180,7 @@ class GetResourceFullIdentifier extends AbstractHelper
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
             $withMainPath = true;
-        }
-        elseif ($withBasePath) {
+        } elseif ($withBasePath) {
             $withMainPath = true;
         }
 
@@ -222,7 +221,7 @@ class GetResourceFullIdentifier extends AbstractHelper
      *
      * @param string $format
      * @param string $resourceName
-     * @return boolean|null True if allowed, false if not, null if no format.
+     * @return bool|null True if allowed, false if not, null if no format.
      */
     protected function _isFormatAllowed($format, $resourceName)
     {

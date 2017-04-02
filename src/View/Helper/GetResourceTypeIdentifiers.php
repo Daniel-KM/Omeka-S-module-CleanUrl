@@ -2,7 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
-/**
+/*
  * Clean Url Get Record Type Identifiers
  */
 
@@ -28,18 +28,18 @@ class GetResourceTypeIdentifiers extends AbstractHelper
      * Return identifiers for a record type, if any. It can be sanitized.
      *
      * @param string $resourceName Should be "item_sets", "items" or "media".
-     * @param boolean $rawEncoded Sanitize the identifier for http or not.
+     * @param bool $rawEncoded Sanitize the identifier for http or not.
      * @return array Associative array of record id and identifiers.
      */
     public function __invoke($resourceName, $rawEncoded = true)
     {
-        if (!in_array($resourceName, array('item_sets', 'items', 'media'))) {
-            return array();
+        if (!in_array($resourceName, ['item_sets', 'items', 'media'])) {
+            return [];
         }
 
         // Use a direct query in order to improve speed.
         $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
-        $bind = array();
+        $bind = [];
 
         $prefix = $this->view->setting('clean_url_identifier_prefix');
         if ($prefix) {
@@ -48,8 +48,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             $sqlSelect = 'SELECT value.resource_id, TRIM(SUBSTR(value.value, ' . $prefixLenght . '))';
             $sqlWereText = 'AND value.value LIKE ?';
             $bind[] = $prefix . '%';
-        }
-        else {
+        } else {
             $sqlSelect = 'SELECT value.resource_id, value.value';
             $sqlWereText = '';
         }
