@@ -35,10 +35,10 @@ class Module extends AbstractModule
         'clean_url_main_path' => '',
         'clean_url_item_set_generic' => '',
         'clean_url_item_default' => 'generic',
-        'clean_url_item_allowed' => 'a:2:{i:0;s:7:"generic";i:1;s:8:"item_set";}',
+        'clean_url_item_allowed' => ['generic', 'item_set'],
         'clean_url_item_generic' => 'document/',
         'clean_url_media_default' => 'generic',
-        'clean_url_media_allowed' => 'a:2:{i:0;s:7:"generic";i:1;s:13:"item_set_item";}',
+        'clean_url_media_allowed' => ['generic', 'item_set_item'],
         'clean_url_media_generic' => 'media/',
         'clean_url_display_admin_show_identifier' => true,
     );
@@ -62,6 +62,18 @@ class Module extends AbstractModule
         $settings = $serviceLocator->get('Omeka\Settings');
         foreach ($this->settings as $name => $value) {
             $settings->delete($name);
+        }
+    }
+
+    public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
+    {
+        if (version_compare($oldVersion, '3.14', '<')) {
+            $settings = $serviceLocator->get('Omeka\Settings');
+
+            $settings->set('clean_url_item_allowed',
+                unserialize($settings->get('clean_url_item_allowed')));
+            $settings->set('clean_url_media_allowed',
+                unserialize($settings->get('clean_url_media_allowed')));
         }
     }
 
@@ -122,15 +134,6 @@ class Module extends AbstractModule
         $post['clean_url_media_allowed'] = array_values(array_unique($post['clean_url_media_allowed']));
 
         foreach ($this->settings as $settingKey => $settingValue) {
-            if (in_array($settingKey, [
-                    'clean_url_item_allowed',
-                    'clean_url_media_allowed',
-                ]))
-            {
-                $post[$settingKey] = empty($post[$settingKey])
-                    ? serialize([])
-                    : serialize($post[$settingKey]);
-            }
             if (isset($post[$settingKey])) {
                 $settings->set($settingKey, $post[$settingKey]);
             }
@@ -205,8 +208,8 @@ class Module extends AbstractModule
         $itemGeneric = $settings->get('clean_url_item_generic');
         $mediaGeneric = $settings->get('clean_url_media_generic');
 
-        $allowedForItems = unserialize($settings->get('clean_url_item_allowed'));
-        $allowedForMedia = unserialize($settings->get('clean_url_media_allowed'));
+        $allowedForItems = $settings->get('clean_url_item_allowed');
+        $allowedForMedia = $settings->get('clean_url_media_allowed');
 
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).

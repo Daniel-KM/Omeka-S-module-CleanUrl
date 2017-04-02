@@ -14,8 +14,8 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
             'clean_url_main_path' => '',
             'clean_url_item_set_generic' => 'collection/',
             'clean_url_media_generic' => 'media/',
-            'clean_url_media_allowed' => serialize(['generic', 'generic_item', 'item_set', 'item_set_item']),
-            'clean_url_item_allowed' => serialize(['generic']),
+            'clean_url_media_allowed' => ['generic', 'generic_item', 'item_set', 'item_set_item'],
+            'clean_url_item_allowed' => ['generic'],
         ];
     }
 

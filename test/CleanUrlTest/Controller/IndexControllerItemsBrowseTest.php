@@ -13,8 +13,8 @@ class IndexControllerItemsBrowseTest extends CleanUrlControllerTestCase
             'clean_url_identifier_prefix' => '',
             'clean_url_main_path' => '',
             'clean_url_item_set_generic' => '',
-            'clean_url_media_allowed' => serialize([]),
-            'clean_url_item_allowed' => serialize(['generic']),
+            'clean_url_media_allowed' => [],
+            'clean_url_item_allowed' => ['generic'],
             'clean_url_media_generic' => '',
             'clean_url_item_generic' => 'document/',
         ];

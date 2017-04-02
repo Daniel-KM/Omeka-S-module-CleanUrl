@@ -13,8 +13,8 @@ class IndexControllerRouteItemMediaTest extends CleanUrlControllerTestCase
             'clean_url_identifier_prefix' => '',
             'clean_url_main_path' => '',
             'clean_url_item_set_generic' => '',
-            'clean_url_media_allowed' => serialize(['generic_item']),
-            'clean_url_item_allowed' => serialize(['item_set']),
+            'clean_url_media_allowed' => ['generic_item'],
+            'clean_url_item_allowed' => ['item_set'],
             'clean_url_media_generic' => '',
             'clean_url_item_generic' => '',
         ];

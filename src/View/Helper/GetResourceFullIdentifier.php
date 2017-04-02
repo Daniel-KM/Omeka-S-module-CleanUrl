@@ -234,11 +234,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($this->view->setting('clean_url_item_allowed'));
+                $allowedForItems = $this->view->setting('clean_url_item_allowed');
                 return in_array($format, $allowedForItems);
 
             case 'media':
-                $allowedForMedia = unserialize($this->view->setting('clean_url_media_allowed'));
+                $allowedForMedia = $this->view->setting('clean_url_media_allowed');
                 return in_array($format, $allowedForMedia);
         }
     }
@@ -255,14 +255,14 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = unserialize($this->view->setting('clean_url_item_allowed'));
+                $allowedForItems = $this->view->setting('clean_url_item_allowed');
                 if (in_array('generic', $allowedForItems)) {
                     return 'generic';
                 }
                 break;
 
             case 'media':
-                $allowedForMedia = unserialize($this->view->setting('clean_url_media_allowed'));
+                $allowedForMedia = $this->view->setting('clean_url_media_allowed');
                 if (in_array('generic_item', $allowedForMedia)) {
                     return 'generic_item';
                 }
