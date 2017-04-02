@@ -214,27 +214,22 @@ class GetResourceFullIdentifier extends AbstractHelper
             $withMainPath = true;
         }
 
-        $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
-
-        $site_slug = $routeMatch->getParam('site-slug');
-        $publicBasePath = $this->view->basePath("s/$site_slug");
-        $adminBasePath = $this->view->basePath('admin');
+        if ($withBasePath == 'current') {
+            $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
+            $withBasePath = $routeMatch->getParam('__ADMIN__') ? 'admin' : 'public';
+        }
 
         switch ($withBasePath) {
             case 'public':
-                $basePath = $publicBasePath;
+                if (empty($routeMatch)) {
+                    $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
+                }
+                $site_slug = $routeMatch->getParam('site-slug');
+                $basePath = $this->view->basePath("s/$site_slug");
                 break;
 
             case 'admin':
-                $basePath = $adminBasePath;
-                break;
-
-            case 'current':
-                if ($routeMatch->getParam('__ADMIN__')) {
-                    $basePath = $adminBasePath;
-                } else {
-                    $basePath = $publicBasePath;
-                }
+                $basePath = $this->view->basePath('admin');
                 break;
 
             default:

@@ -13,6 +13,8 @@ class GetResourceFullIdentifierFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-        return new GetResourceFullIdentifier($services->get('Application'));
+        return new GetResourceFullIdentifier(
+            $services->get('Application')
+        );
     }
 }
