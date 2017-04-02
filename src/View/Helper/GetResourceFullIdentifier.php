@@ -109,11 +109,12 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                     case 'item_set':
                         $itemSets = $resource->itemSets();
+                        $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
                             $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
                         }
-                        if (!isset($itemSetIdentifier)) {
+                        if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('items');
                             if ($genericFormat) {
                                 return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
@@ -157,11 +158,12 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'item_set':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
+                        $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
                             $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
                         }
-                        if (!isset($itemSetIdentifier)) {
+                        if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
                             if ($genericFormat) {
                                 return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
@@ -173,11 +175,12 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'item_set_item':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
+                        $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
                             $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
                         }
-                        if (!isset($itemSetIdentifier)) {
+                        if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
                             if ($genericFormat) {
                                 return $view->getResourceFullIdentifier($resource, $withMainPath, $withBasePath, $absolute, $genericFormat);
