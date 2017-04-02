@@ -8,20 +8,20 @@ namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
 use Zend\View\Helper\AbstractHelper;
-use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 use Omeka\Api\Representation\AbstractResourceRepresentation;
+use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Representation\ItemSetRepresentation;
+use Omeka\Api\Representation\MediaRepresentation;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
 class GetResourceIdentifier extends AbstractHelper
 {
-    protected $apiAdapterManager;
     protected $connection;
 
-    public function __construct(ApiAdapterManager $apiAdapterManager, Connection $connection)
+    public function __construct(Connection $connection)
     {
-        $this->apiAdapterManager = $apiAdapterManager;
         $this->connection = $connection;
     }
 
@@ -29,20 +29,30 @@ class GetResourceIdentifier extends AbstractHelper
      * Return the identifier of a record, if any. It can be sanitized.
      *
      * @param AbstractResourceRepresentation $resource
-     * @param bool $rawEncoded Sanitize the identifier for http or not.
+     * @param bool $rawUrlEncode Sanitize the identifier for http or not.
      * @return string Identifier of the record, if any, else empty string.
      */
-    public function __invoke(AbstractResourceRepresentation $resource, $rawEncoded = true)
+    public function __invoke(AbstractResourceRepresentation $resource, $rawUrlEncode = true)
     {
+        $resourceTypes = [
+            ItemSetRepresentation::class => 'Omeka\Entity\ItemSet',
+            ItemRepresentation::class => 'Omeka\Entity\Item',
+            MediaRepresentation::class => 'Omeka\Entity\Media',
+        ];
+        $resourceType = get_class($resource);
+        if (!isset($resourceTypes[$resourceType])) {
+            return '';
+        }
+
+        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
+        $prefix = $this->view->setting('clean_url_identifier_prefix');
+
         // Use a direct query in order to improve speed.
-        $apiAdapter = $this->apiAdapterManager->get($resource->resourceName());
-        $resourceType = $apiAdapter->getEntityClass();
         $bind = [
-            $resourceType,
+            $resourceTypes[$resourceType],
             $resource->id(),
         ];
 
-        $prefix = $this->view->setting('clean_url_identifier_prefix');
         $checkUnspace = false;
         if ($prefix) {
             $bind[] = $prefix . '%';
@@ -63,7 +73,6 @@ class GetResourceIdentifier extends AbstractHelper
             $sqlWhereText = '';
         }
 
-        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
         $sql = "
             SELECT value.value
             FROM value
@@ -87,7 +96,7 @@ class GetResourceIdentifier extends AbstractHelper
                     : strlen($prefix);
                 $identifier = trim(substr($identifier, $length));
             }
-            return $rawEncoded
+            return $rawUrlEncode
                 ? rawurlencode($identifier)
                 : $identifier;
         }
