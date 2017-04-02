@@ -14,7 +14,6 @@ class GetResourceTypeIdentifiersFactory implements FactoryInterface
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
         return new GetResourceTypeIdentifiers(
-            $services->get('Omeka\ApiAdapterManager'),
             $services->get('Omeka\Connection')
         );
     }

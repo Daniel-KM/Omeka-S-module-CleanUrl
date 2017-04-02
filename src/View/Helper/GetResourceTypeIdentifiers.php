@@ -8,58 +8,60 @@ namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
 use Zend\View\Helper\AbstractHelper;
-use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
-    protected $apiAdapterManager;
     protected $connection;
 
-    public function __construct(ApiAdapterManager $apiAdapterManager, Connection $connection)
+    public function __construct(Connection $connection)
     {
-        $this->apiAdapterManager = $apiAdapterManager;
         $this->connection = $connection;
     }
 
     /**
      * Return identifiers for a record type, if any. It can be sanitized.
      *
-     * @param string $resourceName Should be "item_sets", "items" or "media".
+     * @param string $resourceName Should be "item_sets", "items" or "media"
+     * or equivalent resource type.
      * @param bool $rawEncoded Sanitize the identifier for http or not.
-     * @return array Associative array of record id and identifiers.
+     * @return array List of identifiers.
      */
     public function __invoke($resourceName, $rawEncoded = true)
     {
-        if (!in_array($resourceName, ['item_sets', 'items', 'media'])) {
+        $resourceTypes = [
+            'item_sets' => 'Omeka\Entity\ItemSet',
+            'item' => 'Omeka\Entity\Item',
+            'media' => 'Omeka\Entity\Media',
+            // Be more flexible.
+            'Omeka\Entity\ItemSet' => 'Omeka\Entity\ItemSet',
+            'Omeka\Entity\Item' => 'Omeka\Entity\Item',
+            'Omeka\Entity\Media' => 'Omeka\Entity\Media',
+        ];
+        if (!isset($resourceTypes[$resourceName])) {
             return [];
         }
 
-        // Use a direct query in order to improve speed.
-        $apiAdapter = $this->apiAdapterManager->get($resourceName);
-        $resourceType = $apiAdapter->getEntityClass();
+        $resourceType = $resourceTypes[$resourceName];
         $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
+        $prefix = $this->view->setting('clean_url_identifier_prefix');
 
         $bind = [];
         $bind[] = $resourceType;
 
-        $prefix = $this->view->setting('clean_url_identifier_prefix');
         if ($prefix) {
             // Keep only the identifier without the configured prefix.
             $prefixLength = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT value.resource_id, TRIM(SUBSTR(value.value, ' . $prefixLength . '))';
+            $sqlSelect = 'SELECT TRIM(SUBSTR(value.value, ' . $prefixLength . '))';
             $sqlWereText = 'AND value.value LIKE ?';
             $bind[] = $prefix . '%';
         } else {
-            $sqlSelect = 'SELECT value.resource_id, value.value';
+            $sqlSelect = 'SELECT value.value';
             $sqlWereText = '';
         }
 
-        // The "order by id DESC" allows to get automatically the first row in
-        // php result and avoids a useless subselect in sql (useless because in
-        // almost all cases, there is only one identifier).
         $sql = "
             $sqlSelect
             FROM value
@@ -67,11 +69,10 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             WHERE value.property_id = '$propertyId'
                 AND resource.resource_type = ?
                 $sqlWereText
-            ORDER BY value.resource_id, value.id DESC
+            ORDER BY value.resource_id ASC, value.id ASC
         ";
-
         $sth = $this->connection->executeQuery($sql, $bind);
-        $result = $sth->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $result = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         return $rawEncoded
             ? array_map('rawurlencode', $result)
