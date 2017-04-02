@@ -2,17 +2,8 @@
 
 namespace CleanUrl\View\Helper;
 
-/*
- * Clean Url Get Resource From Identifier
- *
- * @copyright Copyright 2007-2012 Roy Rosenzweig Center for History and New Media
- * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
- */
-
 use Doctrine\DBAL\Connection;
-use Zend\Authentication\AuthenticationService;
 use Zend\View\Helper\AbstractHelper;
-use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 
 /**
  * @package Omeka\Plugins\CleanUrl\View\Helper
@@ -20,14 +11,10 @@ use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 class GetResourceFromIdentifier extends AbstractHelper
 {
     protected $connection;
-    protected $apiAdapterManager;
-    protected $authenticationService;
 
-    public function __construct(Connection $connection, ApiAdapterManager $apiAdapterManager, AuthenticationService $authenticationService)
+    public function __construct(Connection $connection)
     {
         $this->connection = $connection;
-        $this->apiAdapterManager = $apiAdapterManager;
-        $this->authenticationService = $authenticationService;
     }
 
     /**
@@ -50,20 +37,31 @@ class GetResourceFromIdentifier extends AbstractHelper
         $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
 
         if ($resourceName) {
-            $apiAdapter = $this->apiAdapterManager->get($resourceName);
-            $resourceType = $apiAdapter->getEntityClass();
+            // Check and normalize the resource type.
+            $resourceTypes = [
+                'item_sets' => 'Omeka\Entity\ItemSet',
+                'items' => 'Omeka\Entity\Item',
+                'media' => 'Omeka\Entity\Media',
+                // Avoid a check.
+                'Omeka\Entity\ItemSet' => 'Omeka\Entity\ItemSet',
+                'Omeka\Entity\Item' => 'Omeka\Entity\Item',
+                'Omeka\Entity\Media' => 'Omeka\Entity\Media',
+            ];
+            if (!isset($resourceTypes[$resourceName])) {
+                return;
+            }
 
             $sqlResourceType = "AND resource.resource_type = ?";
-            $bind[] = $resourceType;
+            $bind[] = $resourceTypes[$resourceName];
             $sqlOrder = 'ORDER BY value.resource_id, value.id';
         } else {
             $sqlResourceType = '';
             $sqlOrder = "ORDER BY FIELD(resource.resource_type, 'Omeka\Entity\ItemSet', 'Omeka\Entity\Item', 'Omeka\Entity\Media'), value.resource_id, value.id";
         }
 
-        $identity = $this->authenticationService->getIdentity();
+        $identity = $this->view->identity();
         $sqlWhereIsPublic = '';
-        if (!$identity) {
+        if (empty($identity)) {
             $sqlWhereIsPublic = 'AND resource.is_public = 1';
         }
 

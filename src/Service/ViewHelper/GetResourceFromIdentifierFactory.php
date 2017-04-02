@@ -14,9 +14,7 @@ class GetResourceFromIdentifierFactory implements FactoryInterface
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
         return new GetResourceFromIdentifier(
-            $services->get('Omeka\Connection'),
-            $services->get('Omeka\ApiAdapterManager'),
-            $services->get('Omeka\AuthenticationService')
+            $services->get('Omeka\Connection')
         );
     }
 }
