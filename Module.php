@@ -44,6 +44,17 @@ class Module extends AbstractModule
         'clean_url_display_admin_show_identifier' => true,
     ];
 
+    public function getConfig()
+    {
+        return include __DIR__ . '/config/module.config.php';
+    }
+
+    public function onBootstrap(MvcEvent $event)
+    {
+        parent::onBootstrap($event);
+        $this->addRoutes();
+    }
+
     /**
      * Installs the plugin.
      */
@@ -79,17 +90,6 @@ class Module extends AbstractModule
             $settings->set('clean_url_media_allowed',
                 unserialize($settings->get('clean_url_media_allowed')));
         }
-    }
-
-    public function getConfig()
-    {
-        return include __DIR__ . '/config/module.config.php';
-    }
-
-    public function onBootstrap(MvcEvent $event)
-    {
-        parent::onBootstrap($event);
-        $this->addRoutes();
     }
 
     /**
@@ -229,7 +229,7 @@ class Module extends AbstractModule
             $itemSetsRegex = array_map('preg_quote', $itemSetsIdentifiers);
             // To avoid a bug with identifiers that contain a "/", that is not
             // escaped with preg_quote().
-            $itemSetsRegex = '(' . str_replace('/', '\/', implode('|', $itemSetsRegex)) . ')';
+            $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
 
             // Add an item set route.
             $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
@@ -249,7 +249,7 @@ class Module extends AbstractModule
                 ],
             ]);
 
-            // Add a item set route for media.
+            // Add an item set route for media.
             if (in_array('item_set', $allowedForMedia)) {
                 $router->addRoute('cleanUrl_item_sets_media', [
                     'type' => 'segment',
@@ -268,7 +268,7 @@ class Module extends AbstractModule
                 ]);
             }
 
-            // Add a item set / item route for media.
+            // Add an item set / item route for media.
             if (in_array('item_set_item', $allowedForMedia)) {
                 $router->addRoute('cleanUrl_item_sets_item_media', [
                     'type' => 'segment',
@@ -287,7 +287,7 @@ class Module extends AbstractModule
                 ]);
             }
 
-            // Add a item set route for items.
+            // Add an item set route for items.
             if (in_array('item_set', $allowedForItems)) {
                 $router->addRoute('cleanUrl_item_sets_item', [
                     'type' => 'segment',
