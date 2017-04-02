@@ -38,23 +38,24 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         }
 
         // Use a direct query in order to improve speed.
+        $apiAdapter = $this->apiAdapterManager->get($resourceName);
+        $resourceType = $apiAdapter->getEntityClass();
         $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
+
         $bind = [];
+        $bind[] = $resourceType;
 
         $prefix = $this->view->setting('clean_url_identifier_prefix');
         if ($prefix) {
             // Keep only the identifier without the configured prefix.
-            $prefixLenght = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT value.resource_id, TRIM(SUBSTR(value.value, ' . $prefixLenght . '))';
+            $prefixLength = strlen($prefix) + 1;
+            $sqlSelect = 'SELECT value.resource_id, TRIM(SUBSTR(value.value, ' . $prefixLength . '))';
             $sqlWereText = 'AND value.value LIKE ?';
             $bind[] = $prefix . '%';
         } else {
             $sqlSelect = 'SELECT value.resource_id, value.value';
             $sqlWereText = '';
         }
-
-        $apiAdapter = $this->apiAdapterManager->get($resourceName);
-        $resourceType = $apiAdapter->getEntityClass();
 
         // The "order by id DESC" allows to get automatically the first row in
         // php result and avoids a useless subselect in sql (useless because in
@@ -68,7 +69,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
                 $sqlWereText
             ORDER BY value.resource_id, value.id DESC
         ";
-        $bind[] = $resourceType;
+
         $sth = $this->connection->executeQuery($sql, $bind);
         $result = $sth->fetchAll(\PDO::FETCH_KEY_PAIR);
 
