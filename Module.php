@@ -87,8 +87,6 @@ class Module extends AbstractModule
         $moduleManager = $serviceLocator->get('Omeka\ModuleManager');
         $translator = $serviceLocator->get('MvcTranslator');
 
-        $eventManager->setIdentifiers('CleanUrl');
-
         return $renderer->render('clean-url/config-form');
     }
 
