@@ -1,8 +1,6 @@
 <?php
 namespace CleanUrl;
 
-use Omeka\Module\AbstractModule;
-
 /*
  * Clean Url
  *
@@ -13,6 +11,7 @@ use Omeka\Module\AbstractModule;
  */
 
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
+use Omeka\Module\AbstractModule;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\Controller\AbstractController;
@@ -55,6 +54,7 @@ class Module extends AbstractModule
     public function onBootstrap(MvcEvent $event)
     {
         parent::onBootstrap($event);
+        $this->addAclRules();
         $this->addRoutes();
     }
 
@@ -154,6 +154,17 @@ class Module extends AbstractModule
         $this->cacheItemSetsRegex($this->getServiceLocator());
     }
 
+    /**
+     * Add ACL rules for this module.
+     */
+    protected function addAclRules()
+    {
+        // Allow all access to the controller, because there will be a forward.
+        $services = $this->getServiceLocator();
+        $acl = $services->get('Omeka\Acl');
+        $acl->allow(null, ['CleanUrl\Controller\Index']);
+    }
+
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
         $serviceLocator = $this->getServiceLocator();
@@ -226,7 +237,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Helepr to display an identifier.
+     * Helper to display an identifier.
      *
      * @param AbstractResourceRepresentation|Resource $resource
      */
