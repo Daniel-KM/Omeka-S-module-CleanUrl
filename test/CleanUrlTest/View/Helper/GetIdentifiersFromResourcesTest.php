@@ -32,7 +32,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
             'Zend\View\Renderer\PhpRenderer',
             [
                 'api',
-                'setting'
+                'setting',
             ]
         );
         $view->expects($this->any())

@@ -1,8 +1,10 @@
 <?php
+namespace CleanUrl;
+
 return [
     'controllers' => [
         'factories' => [
-            'CleanUrl\Controller\Index' => 'CleanUrl\Service\Controller\IndexControllerFactory',
+            Controller\Index::class => Service\Controller\IndexControllerFactory::class,
         ],
     ],
     'view_manager' => [
@@ -12,14 +14,14 @@ return [
     ],
     'view_helpers' => [
         'invokables' => [
-            'Url' => 'CleanUrl\View\Helper\CleanUrl',
+            'Url' => View\Helper\CleanUrl::class,
         ],
         'factories' => [
-            'getIdentifiersFromResources' => 'CleanUrl\Service\ViewHelper\GetIdentifiersFromResourcesFactory',
-            'getResourceFromIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFromIdentifierFactory',
-            'getResourceFullIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceFullIdentifierFactory',
-            'getResourceTypeIdentifiers' => 'CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory',
-            'getResourceIdentifier' => 'CleanUrl\Service\ViewHelper\GetResourceIdentifierFactory',
+            'getIdentifiersFromResources' => Service\ViewHelper\GetIdentifiersFromResourcesFactory::class,
+            'getResourceFromIdentifier' => Service\ViewHelper\GetResourceFromIdentifierFactory::class,
+            'getResourceFullIdentifier' => Service\ViewHelper\GetResourceFullIdentifierFactory::class,
+            'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
+            'getResourceIdentifier' => Service\ViewHelper\GetResourceIdentifierFactory::class,
         ],
     ],
 ];
