@@ -172,17 +172,17 @@ class Module extends AbstractModule
         if ($settings->get('clean_url_display_admin_show_identifier')) {
             $sharedEventManager->attach(
                 'Omeka\Controller\Admin\ItemSet',
-                'view.show.after',
+                'view.show.sidebar',
                 [$this, 'displayViewResourceIdentifier']
             );
             $sharedEventManager->attach(
                 'Omeka\Controller\Admin\Item',
-                'view.show.after',
+                'view.show.sidebar',
                 [$this, 'displayViewResourceIdentifier']
             );
             $sharedEventManager->attach(
                 'Omeka\Controller\Admin\Media',
-                'view.show.after',
+                'view.show.sidebar',
                 [$this, 'displayViewResourceIdentifier']
             );
         }
