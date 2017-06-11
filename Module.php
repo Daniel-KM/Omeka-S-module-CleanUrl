@@ -110,7 +110,7 @@ class Module extends AbstractModule
         $moduleManager = $serviceLocator->get('Omeka\ModuleManager');
         $translator = $serviceLocator->get('MvcTranslator');
 
-        return $renderer->render('clean-url/config-form');
+        return $renderer->render('clean-url/module/config');
     }
 
     /**
