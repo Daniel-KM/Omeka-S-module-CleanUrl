@@ -28,13 +28,13 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         $settings->set('cleanurl_identifier_prefix', $this->prefix);
 
         $setting = new Setting($settings);
-        $view = $this->getMock(
-            'Zend\View\Renderer\PhpRenderer',
-            [
+        $view = $this->getMockBuilder('Zend\View\Renderer\PhpRenderer')
+            ->setMethods([
                 'api',
                 'setting',
-            ]
-        );
+            ])
+            ->getMock();
+
         $view->expects($this->any())
             ->method('api')
             ->willReturn($api);
