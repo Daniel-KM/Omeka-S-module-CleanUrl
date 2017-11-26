@@ -39,12 +39,15 @@ class GetResourceIdentifier extends AbstractHelper
     public function __invoke($resource, $rawUrlEncode = true)
     {
         $resourceTypes = [
-            ItemSetRepresentation::class => 'Omeka\Entity\ItemSet',
-            ItemRepresentation::class => 'Omeka\Entity\Item',
-            MediaRepresentation::class => 'Omeka\Entity\Media',
-            ItemSet::class => 'Omeka\Entity\ItemSet',
-            Item::class => 'Omeka\Entity\Item',
-            Media::class => 'Omeka\Entity\Media',
+            ItemSetRepresentation::class => ItemSet::class,
+            ItemRepresentation::class => Item::class,
+            MediaRepresentation::class => Media::class,
+            ItemSet::class => ItemSet::class,
+            Item::class => Item::class,
+            Media::class => Media::class,
+            \DoctrineProxies\__CG__\Omeka\Entity\ItemSet::class => ItemSet::class,
+            \DoctrineProxies\__CG__\Omeka\Entity\Item::class => Item::class,
+            \DoctrineProxies\__CG__\Omeka\Entity\Media::class => Media::class,
         ];
         $resourceType = get_class($resource);
         if (!isset($resourceTypes[$resourceType])) {

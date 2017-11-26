@@ -20,9 +20,9 @@ class CleanUrl extends Url
     /**
      * Generates a clean or a standard url given the name of a route.
      *
-     * @uses Zend\View\Helper\Url
-     * @see Zend\Mvc\Router\RouteInterface::assemble()
-     * @see Zend\Router\RouteInterface::assemble()
+     * @uses \Zend\View\Helper\Url
+     * @see \Zend\Mvc\Router\RouteInterface::assemble()
+     * @see \Zend\Router\RouteInterface::assemble()
      * @param  string $name Name of the route
      * @param  array $params Parameters for the link
      * @param  array|Traversable $options Options for the route
@@ -133,8 +133,8 @@ class CleanUrl extends Url
     /**
      * Get clean url path of a record.
      *
-     * @param AbstractRecord $record
-     * @param string|null $action
+     * @param string $context "public" or "admin"
+     * @param array $params
      * @return string|null  Identifier of the record, if any, else empty string.
      */
     protected function getCleanUrl($context, $params, $options)
@@ -154,7 +154,7 @@ class CleanUrl extends Url
     }
 
     /**
-     * @see Zend\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
+     * @see \Zend\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
      */
     protected function prepareRouter()
     {

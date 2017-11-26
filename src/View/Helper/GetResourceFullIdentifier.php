@@ -27,7 +27,7 @@ class GetResourceFullIdentifier extends AbstractHelper
     /**
      * Get clean url path of a record in the default or specified format.
      *
-     * @param AbstractResourceRepresentation|array $resource
+     * @param \Omeka\Api\Representation\AbstractResourceRepresentation|array $resource
      * @param bool $withMainPath
      * @param string $withBasePath Can be empty, 'admin', 'public' or
      * 'current'. If any, implies main path.
@@ -47,11 +47,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         if (is_array($resource)) {
             $resourceNames = [
-                // Manage controller names.
-                'item-set' => 'item_sets',
-                'item' => 'items',
-                'media' => 'media',
-                // Manage api names too.
+                // Manage api names.
                 'item_sets' => 'item_sets',
                 'items' => 'items',
                 'medias' => 'media',
@@ -59,6 +55,10 @@ class GetResourceFullIdentifier extends AbstractHelper
                 'o:ItemSet' => 'item_sets',
                 'o:Item' => 'items',
                 'o:Media' => 'media',
+                // Manage controller names too.
+                'item-set' => 'item_sets',
+                'item' => 'items',
+                'media' => 'media',
             ];
             if (!isset($resource['type'])
                 || !isset($resource['id'])

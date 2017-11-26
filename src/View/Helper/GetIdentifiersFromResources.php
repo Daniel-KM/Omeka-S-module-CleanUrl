@@ -82,13 +82,13 @@ class GetIdentifiersFromResources extends AbstractHelper
 
         // Check and normalize the resource type.
         $resourceTypes = [
-            'item_sets' => 'Omeka\Entity\ItemSet',
-            'items' => 'Omeka\Entity\Item',
-            'media' => 'Omeka\Entity\Media',
+            'item_sets' => \Omeka\Entity\ItemSet::class,
+            'items' => \Omeka\Entity\Item::class,
+            'media' => \Omeka\Entity\Media::class,
             // Avoid a check.
-            'Omeka\Entity\ItemSet' => 'Omeka\Entity\ItemSet',
-            'Omeka\Entity\Item' => 'Omeka\Entity\Item',
-            'Omeka\Entity\Media' => 'Omeka\Entity\Media',
+            \Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
+            \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
+            \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
         ];
         if (!isset($resourceTypes[$resourceType])) {
             return;

@@ -23,7 +23,7 @@ class GetResourceFromIdentifier extends AbstractHelper
      * @param string $identifier The identifier of the resource to find.
      * @param bool $withPrefix Optional. If identifier begins with prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
-     * @return Omeka\Api\Representation\AbstractResourceRepresentation The resource.
+     * @return \Omeka\Api\Representation\AbstractResourceRepresentation The resource.
      */
     public function __invoke($identifier, $withPrefix = false, $resourceName = null)
     {
@@ -39,13 +39,13 @@ class GetResourceFromIdentifier extends AbstractHelper
         if ($resourceName) {
             // Check and normalize the resource type.
             $resourceTypes = [
-                'item_sets' => 'Omeka\Entity\ItemSet',
-                'items' => 'Omeka\Entity\Item',
-                'media' => 'Omeka\Entity\Media',
+                'item_sets' => \Omeka\Entity\ItemSet::class,
+                'items' => \Omeka\Entity\Item::class,
+                'media' => \Omeka\Entity\Media::class,
                 // Avoid a check.
-                'Omeka\Entity\ItemSet' => 'Omeka\Entity\ItemSet',
-                'Omeka\Entity\Item' => 'Omeka\Entity\Item',
-                'Omeka\Entity\Media' => 'Omeka\Entity\Media',
+                \Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
+                \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
+                \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
             ];
             if (!isset($resourceTypes[$resourceName])) {
                 return;
