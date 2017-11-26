@@ -117,7 +117,7 @@ class CleanUrl extends Url
                 break;
 
             // case 'admin/id':
-            //     if ($this->view->setting('clean_url_use_admin')) {
+            //     if ($this->view->setting('cleanurl_use_admin')) {
             //         $cleanUrl = $this->getCleanUrl('admin', $params, $options);
             //         if ($cleanUrl) {
             //             return $cleanUrl;

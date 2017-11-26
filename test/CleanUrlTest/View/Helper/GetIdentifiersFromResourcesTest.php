@@ -24,8 +24,8 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
 
         $this->api = $api;
         $this->settings = $settings;
-        $settings->set('clean_url_identifier_property', $this->propertyId);
-        $settings->set('clean_url_identifier_prefix', $this->prefix);
+        $settings->set('cleanurl_identifier_property', $this->propertyId);
+        $settings->set('cleanurl_identifier_prefix', $this->prefix);
 
         $setting = new Setting($settings);
         $view = $this->getMock(

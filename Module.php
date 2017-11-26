@@ -7,9 +7,11 @@ namespace CleanUrl;
  * Allows to have URL like http://example.com/my_item_set/dc:identifier.
  *
  * @copyright Daniel Berthereau, 2012-2017
+ * @copyright BibLibre, 2016-2017
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
+use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
 use Omeka\Module\AbstractModule;
 use Zend\EventManager\Event;
@@ -19,33 +21,8 @@ use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\View\Renderer\PhpRenderer;
 
-/**
- * The Clean Url plugin.
- * @package Omeka\Plugins\CleanUrl
- */
 class Module extends AbstractModule
 {
-    /**
-     * @var array This plugin's options.
-     */
-    protected $settings = [
-        // 10 is the hard set id of "dcterms:identifier" in default install.
-        'clean_url_identifier_property' => 10,
-        'clean_url_identifier_prefix' => 'document:',
-        'clean_url_identifier_unspace' => false,
-        'clean_url_case_insensitive' => false,
-        'clean_url_main_path' => '',
-        'clean_url_item_set_regex' => '',
-        'clean_url_item_set_generic' => '',
-        'clean_url_item_default' => 'generic',
-        'clean_url_item_allowed' => ['generic', 'item_set'],
-        'clean_url_item_generic' => 'document/',
-        'clean_url_media_default' => 'generic',
-        'clean_url_media_allowed' => ['generic', 'item_set_item'],
-        'clean_url_media_generic' => 'media/',
-        'clean_url_display_admin_show_identifier' => true,
-    ];
-
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
@@ -58,28 +35,15 @@ class Module extends AbstractModule
         $this->addRoutes();
     }
 
-    /**
-     * Installs the plugin.
-     */
     public function install(ServiceLocatorInterface $serviceLocator)
     {
-        $settings = $serviceLocator->get('Omeka\Settings');
-        foreach ($this->settings as $name => $value) {
-            $settings->set($name, $value);
-        }
-
+        $this->manageSettings($serviceLocator->get('Omeka\Settings'), 'install');
         $this->cacheItemSetsRegex($serviceLocator);
     }
 
-    /**
-     * Uninstalls the plugin.
-     */
     public function uninstall(ServiceLocatorInterface $serviceLocator)
     {
-        $settings = $serviceLocator->get('Omeka\Settings');
-        foreach ($this->settings as $name => $value) {
-            $settings->delete($name);
-        }
+        $this->manageSettings($serviceLocator->get('Omeka\Settings'), 'uninstall');
     }
 
     public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
@@ -97,57 +61,113 @@ class Module extends AbstractModule
 
             $this->cacheItemSetsRegex($serviceLocator);
         }
+
+        if (version_compare($oldVersion, '3.15.3', '<')) {
+            $settings = $serviceLocator->get('Omeka\Settings');
+            $config = include __DIR__ . '/config/module.config.php';
+            foreach ($config['cleanurl']['settings'] as $name => $value) {
+                $oldName = str_replace('cleanurl_', 'clean_url_', $name);
+                $settings->set($name, $settings->get($oldName, $value));
+                $settings->delete($oldName);
+            }
+        }
     }
 
-    /**
-     * Shows plugin configuration page.
-     */
+    protected function manageSettings($settings, $process, $key = 'settings')
+    {
+        $config = require __DIR__ . '/config/module.config.php';
+        $defaultSettings = $config[strtolower(__NAMESPACE__)][$key];
+        foreach ($defaultSettings as $name => $value) {
+            switch ($process) {
+                case 'install':
+                    $settings->set($name, $value);
+                    break;
+                case 'uninstall':
+                    $settings->delete($name);
+                    break;
+            }
+        }
+    }
+
     public function getConfigForm(PhpRenderer $renderer)
     {
-        $serviceLocator = $this->getServiceLocator();
-        $api = $serviceLocator->get('Omeka\ApiManager');
-        $eventManager = $serviceLocator->get('EventManager');
-        $moduleManager = $serviceLocator->get('Omeka\ModuleManager');
-        $translator = $serviceLocator->get('MvcTranslator');
+        $services = $this->getServiceLocator();
+        $config = $services->get('Config');
+        $settings = $services->get('Omeka\Settings');
+        $formElementManager = $services->get('FormElementManager');
 
-        return $renderer->render('clean-url/module/config');
-    }
-
-    /**
-     * Saves plugin configuration page.
-     *
-     * @param array Options set in the config form.
-     */
-    public function handleConfigForm(AbstractController $controller)
-    {
-        $serviceLocator = $this->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
-
-        $post = $controller->getRequest()->getPost()->toArray();
-
-        // Sanitize first.
-        $post['clean_url_identifier_prefix'] = trim($post['clean_url_identifier_prefix']);
-        foreach ([
-                'clean_url_main_path',
-                'clean_url_item_set_generic',
-                'clean_url_item_generic',
-                'clean_url_media_generic',
-            ] as $posted) {
-            $value = trim($post[$posted], ' /');
-            $post[$posted] = empty($value) ? '' : trim($value) . '/';
+        $data = [];
+        $defaultSettings = $config[strtolower(__NAMESPACE__)]['settings'];
+        foreach ($defaultSettings as $name => $value) {
+            $data['clean_url_identifiers'][$name] = $settings->get($name);
+            $data['clean_url_main_path'][$name] = $settings->get($name);
+            $data['clean_url_item_sets'][$name] = $settings->get($name);
+            $data['clean_url_items'][$name] = $settings->get($name);
+            $data['clean_url_medias'][$name] = $settings->get($name);
+            $data['clean_url_admin'][$name] = $settings->get($name);
         }
 
-        $post['clean_url_identifier_property'] = (integer) $post['clean_url_identifier_property'];
+        $form = $formElementManager->get(ConfigForm::class);
+        $form->init();
+        $form->setData($data);
+
+        return $renderer->render('clean-url/module/config', [
+            'form' => $form,
+        ]);
+    }
+
+    public function handleConfigForm(AbstractController $controller)
+    {
+        $services = $this->getServiceLocator();
+        $config = $services->get('Config');
+        $settings = $services->get('Omeka\Settings');
+
+        $params = $controller->getRequest()->getPost();
+
+        $form = $this->getServiceLocator()->get('FormElementManager')
+            ->get(ConfigForm::class);
+        $form->init();
+        $form->setData($params);
+        if (!$form->isValid()) {
+            $controller->messenger()->addErrors($form->getMessages());
+            return false;
+        }
+
+        $params = array_merge(
+            $params['clean_url_identifiers'],
+            $params['clean_url_main_path'],
+            $params['clean_url_item_sets'],
+            $params['clean_url_items'],
+            $params['clean_url_medias'],
+            $params['clean_url_admin']
+        );
+
+        // TODO Move the post-checks into the form.
+
+        // Sanitize first.
+        $params['cleanurl_identifier_prefix'] = trim($params['cleanurl_identifier_prefix']);
+        foreach ([
+            'cleanurl_main_path',
+            'cleanurl_item_set_generic',
+            'cleanurl_item_generic',
+            'cleanurl_media_generic',
+        ] as $posted) {
+            $value = trim(trim($params[$posted]), ' /');
+            $params[$posted] = empty($value) ? '' : trim($value) . '/';
+        }
+
+        $params['cleanurl_identifier_property'] = (integer) $params['cleanurl_identifier_property'];
 
         // The default url should be allowed for items and media.
-        $post['clean_url_item_allowed'][] = $post['clean_url_item_default'];
-        $post['clean_url_item_allowed'] = array_values(array_unique($post['clean_url_item_allowed']));
-        $post['clean_url_media_allowed'][] = $post['clean_url_media_default'];
-        $post['clean_url_media_allowed'] = array_values(array_unique($post['clean_url_media_allowed']));
+        $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];
+        $params['cleanurl_item_allowed'] = array_values(array_unique($params['cleanurl_item_allowed']));
+        $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
+        $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
-        foreach ($this->settings as $settingKey => $settingValue) {
-            if (isset($post[$settingKey])) {
-                $settings->set($settingKey, $post[$settingKey]);
+        $defaultSettings = $config[strtolower(__NAMESPACE__)]['settings'];
+        foreach ($params as $name => $value) {
+            if (isset($defaultSettings[$name])) {
+                $settings->set($name, $value);
             }
         }
 
@@ -169,7 +189,7 @@ class Module extends AbstractModule
     {
         $serviceLocator = $this->getServiceLocator();
         $settings = $serviceLocator->get('Omeka\Settings');
-        if ($settings->get('clean_url_display_admin_show_identifier')) {
+        if ($settings->get('cleanurl_display_admin_show_identifier')) {
             $sharedEventManager->attach(
                 'Omeka\Controller\Admin\ItemSet',
                 'view.show.sidebar',
@@ -239,7 +259,7 @@ class Module extends AbstractModule
     /**
      * Helper to display an identifier.
      *
-     * @param AbstractResourceRepresentation|Resource $resource
+     * @param \Omeka\Api\Representation\AbstractResourceRepresentation|Resource $resource
      */
     protected function displayResourceIdentifier($resource)
     {
@@ -292,18 +312,18 @@ class Module extends AbstractModule
 
         $routes = [];
 
-        $mainPath = $settings->get('clean_url_main_path');
-        $itemSetGeneric = $settings->get('clean_url_item_set_generic');
-        $itemGeneric = $settings->get('clean_url_item_generic');
-        $mediaGeneric = $settings->get('clean_url_media_generic');
+        $mainPath = $settings->get('cleanurl_main_path');
+        $itemSetGeneric = $settings->get('cleanurl_item_set_generic');
+        $itemGeneric = $settings->get('cleanurl_item_generic');
+        $mediaGeneric = $settings->get('cleanurl_media_generic');
 
-        $allowedForItems = $settings->get('clean_url_item_allowed');
-        $allowedForMedia = $settings->get('clean_url_media_allowed');
+        $allowedForItems = $settings->get('cleanurl_item_allowed');
+        $allowedForMedia = $settings->get('cleanurl_media_allowed');
 
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-        $itemSetsRegex = $settings->get('clean_url_item_set_regex');
+        $itemSetsRegex = $settings->get('cleanurl_item_set_regex');
         if (!empty($itemSetsRegex)) {
             // Add an item set route.
             $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
@@ -492,7 +512,7 @@ class Module extends AbstractModule
         $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
 
         $settings = $serviceLocator->get('Omeka\Settings');
-        $settings->set('clean_url_item_set_regex', $itemSetsRegex);
+        $settings->set('cleanurl_item_set_regex', $itemSetsRegex);
     }
 
     /**
@@ -516,8 +536,8 @@ class Module extends AbstractModule
             . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiers.php';
 
         $settings = $serviceLocator->get('Omeka\Settings');
-        $propertyId = (integer) $settings->get('clean_url_identifier_property');
-        $prefix = $settings->get('clean_url_identifier_prefix');
+        $propertyId = (integer) $settings->get('cleanurl_identifier_property');
+        $prefix = $settings->get('cleanurl_identifier_prefix');
 
         $factory = new GetResourceTypeIdentifiersFactory();
         $helper = $factory(

@@ -85,7 +85,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $generic = $view->setting('clean_url_item_set_generic');
+                $generic = $view->setting('cleanurl_item_set_generic');
                 return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
@@ -95,7 +95,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $view->setting('clean_url_item_default');
+                    $format = $view->setting('cleanurl_item_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'items')) {
@@ -104,7 +104,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $view->setting('clean_url_item_generic');
+                        $generic = $view->setting('cleanurl_item_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'item_set':
@@ -133,7 +133,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 if (empty($format)) {
-                    $format = $view->setting('clean_url_media_default');
+                    $format = $view->setting('cleanurl_media_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
@@ -142,11 +142,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 switch ($format) {
                     case 'generic':
-                        $generic = $view->setting('clean_url_media_generic');
+                        $generic = $view->setting('cleanurl_media_generic');
                         return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item':
-                        $generic = $view->setting('clean_url_media_generic');
+                        $generic = $view->setting('cleanurl_media_generic');
 
                         $item = $resource->item();
                         $item_identifier = $view->getResourceIdentifier($item);
@@ -239,7 +239,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 $basePath = '';
         }
 
-        $mainPath = $withMainPath ? $this->view->setting('clean_url_main_path') : '';
+        $mainPath = $withMainPath ? $this->view->setting('cleanurl_main_path') : '';
 
         return ($absolute ? $this->view->serverUrl() : '') . $basePath . '/' . $mainPath;
     }
@@ -259,11 +259,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = $this->view->setting('clean_url_item_allowed');
+                $allowedForItems = $this->view->setting('cleanurl_item_allowed');
                 return in_array($format, $allowedForItems);
 
             case 'media':
-                $allowedForMedia = $this->view->setting('clean_url_media_allowed');
+                $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
                 return in_array($format, $allowedForMedia);
         }
     }
@@ -278,14 +278,14 @@ class GetResourceFullIdentifier extends AbstractHelper
     {
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = $this->view->setting('clean_url_item_allowed');
+                $allowedForItems = $this->view->setting('cleanurl_item_allowed');
                 if (in_array('generic', $allowedForItems)) {
                     return 'generic';
                 }
                 break;
 
             case 'media':
-                $allowedForMedia = $this->view->setting('clean_url_media_allowed');
+                $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
                 if (in_array('generic_item', $allowedForMedia)) {
                     return 'generic_item';
                 }

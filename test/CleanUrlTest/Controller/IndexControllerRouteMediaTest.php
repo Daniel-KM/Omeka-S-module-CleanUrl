@@ -7,13 +7,13 @@ class IndexControllerRouteMediaTest extends CleanUrlControllerTestCase
     protected function getSettings()
     {
         return [
-            'clean_url_identifier_property' => 10,
-            'clean_url_identifier_prefix' => '',
-            'clean_url_main_path' => '',
-            'clean_url_item_set_generic' => '',
-            'clean_url_media_allowed' => ['generic'],
-            'clean_url_item_allowed' => ['item_set'],
-            'clean_url_media_generic' => '',
+            'cleanurl_identifier_property' => 10,
+            'cleanurl_identifier_prefix' => '',
+            'cleanurl_main_path' => '',
+            'cleanurl_item_set_generic' => '',
+            'cleanurl_media_allowed' => ['generic'],
+            'cleanurl_item_allowed' => ['item_set'],
+            'cleanurl_media_generic' => '',
         ];
     }
 

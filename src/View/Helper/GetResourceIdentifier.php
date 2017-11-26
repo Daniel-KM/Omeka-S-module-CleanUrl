@@ -54,8 +54,8 @@ class GetResourceIdentifier extends AbstractHelper
             return '';
         }
 
-        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
-        $prefix = $this->view->setting('clean_url_identifier_prefix');
+        $propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
+        $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
         // Use a direct query in order to improve speed.
         $bind = [
@@ -68,7 +68,7 @@ class GetResourceIdentifier extends AbstractHelper
             $bind[] = $prefix . '%';
             // Check prefix with a space and a no-break space.
             $unspace = str_replace([' ', ' '], '', $prefix);
-            if ($prefix != $unspace && $this->view->setting('clean_url_identifier_unspace')) {
+            if ($prefix != $unspace && $this->view->setting('cleanurl_identifier_unspace')) {
                 $checkUnspace = true;
                 $sqlWhereText = 'AND (value.value LIKE ? OR value.value LIKE ?)';
                 $bind[] = $unspace . '%';

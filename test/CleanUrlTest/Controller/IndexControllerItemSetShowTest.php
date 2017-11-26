@@ -7,13 +7,13 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
     protected function getSettings()
     {
         return [
-            'clean_url_identifier_property' => 10,
-            'clean_url_identifier_prefix' => '',
-            'clean_url_main_path' => '',
-            'clean_url_item_set_generic' => 'collection/',
-            'clean_url_media_generic' => 'media/',
-            'clean_url_media_allowed' => ['generic', 'generic_item', 'item_set', 'item_set_item'],
-            'clean_url_item_allowed' => ['generic'],
+            'cleanurl_identifier_property' => 10,
+            'cleanurl_identifier_prefix' => '',
+            'cleanurl_main_path' => '',
+            'cleanurl_item_set_generic' => 'collection/',
+            'cleanurl_media_generic' => 'media/',
+            'cleanurl_media_allowed' => ['generic', 'generic_item', 'item_set', 'item_set_item'],
+            'cleanurl_item_allowed' => ['generic'],
         ];
     }
 

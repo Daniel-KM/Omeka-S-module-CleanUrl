@@ -34,7 +34,7 @@ class GetResourceFromIdentifier extends AbstractHelper
 
         $bind = [];
 
-        $propertyId = (integer) $this->view->setting('clean_url_identifier_property');
+        $propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
 
         if ($resourceName) {
             // Check and normalize the resource type.
@@ -67,7 +67,7 @@ class GetResourceFromIdentifier extends AbstractHelper
 
         if ($withPrefix) {
             // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('clean_url_case_insensitive')) {
+            if ($this->view->setting('cleanurl_case_insensitive')) {
                 $bind[] = strtolower($identifier);
                 $sqlWhereText = 'AND LOWER(value.value) = ?';
             }
@@ -77,13 +77,13 @@ class GetResourceFromIdentifier extends AbstractHelper
                 $sqlWhereText = 'AND value.value = ?';
             }
         } else {
-            $prefix = $this->view->setting('clean_url_identifier_prefix');
+            $prefix = $this->view->setting('cleanurl_identifier_prefix');
             $identifiers = [
                 $prefix . $identifier,
                 $prefix . ' ' . $identifier, // Check with a space between prefix and identifier too.
             ];
             // Check prefix with a space and a no-break space.
-            if ($this->view->setting('clean_url_identifier_unspace')) {
+            if ($this->view->setting('cleanurl_identifier_unspace')) {
                 $unspace = str_replace([' ', ' '], '', $prefix);
                 if ($prefix != $unspace) {
                     // Check with a space between prefix and identifier too.
@@ -94,7 +94,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             $in = implode(',', array_fill(0, count($identifiers), '?'));
 
             // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('clean_url_case_insensitive')) {
+            if ($this->view->setting('cleanurl_case_insensitive')) {
                 $identifiers = array_map('strtolower', $identifiers);
                 $sqlWhereText = "AND LOWER(value.value) IN ($in)";
             }
