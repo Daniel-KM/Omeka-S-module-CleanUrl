@@ -106,6 +106,7 @@ class CleanUrl extends Url
                 if (!empty($params['item-set-id'])) {
                     $cleanUrl = $this->view->getResourceFullIdentifier(
                         ['type' => 'item_sets', 'id' => $params['item-set-id']],
+                        isset($params['site-slug']) ? $params['site-slug'] : null,
                         true,
                         'public',
                         !empty($options['force_canonical'])
@@ -146,6 +147,7 @@ class CleanUrl extends Url
         ) {
             return $this->view->getResourceFullIdentifier(
                 ['type' => $params['controller'], 'id' => $params['id']],
+                isset($params['site-slug']) ? $params['site-slug'] : null,
                 true,
                 $context,
                 !empty($options['force_canonical'])
