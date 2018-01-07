@@ -159,7 +159,7 @@ Omeka S has been built for [Paris Sciences et Lettres (PSL)].
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2017
+* Copyright Daniel Berthereau, 2012-2018
 * Copyright BibLibre, 2016-2017
 
 

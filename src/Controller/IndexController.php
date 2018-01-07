@@ -97,7 +97,7 @@ class IndexController extends AbstractActionController
 
         return $this->forward()->dispatch('Omeka\Controller\Site\Item', [
             '__NAMESPACE__' => 'Omeka\Controller\Site',
-            '__SITE__', true,
+            '__SITE__' => true,
             'controller' => 'Omeka\Controller\Site\Item',
             'action' => 'show',
             'site-slug' => $this->params('site-slug'),
@@ -230,8 +230,7 @@ class IndexController extends AbstractActionController
      *
      * Item sets are managed directly in itemSetShowAction().
      *
-     * @return id
-     *   Id of the record.
+     * @return int Id of the record.
      */
     protected function _routeResource()
     {
