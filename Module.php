@@ -65,7 +65,7 @@ class Module extends AbstractModule
         if (version_compare($oldVersion, '3.15.3', '<')) {
             $settings = $serviceLocator->get('Omeka\Settings');
             $config = include __DIR__ . '/config/module.config.php';
-            foreach ($config['cleanurl']['settings'] as $name => $value) {
+            foreach ($config[strtolower(__NAMESPACE__)]['config'] as $name => $value) {
                 $oldName = str_replace('cleanurl_', 'clean_url_', $name);
                 $settings->set($name, $settings->get($oldName, $value));
                 $settings->delete($oldName);
@@ -73,7 +73,7 @@ class Module extends AbstractModule
         }
     }
 
-    protected function manageSettings($settings, $process, $key = 'settings')
+    protected function manageSettings($settings, $process, $key = 'config')
     {
         $config = require __DIR__ . '/config/module.config.php';
         $defaultSettings = $config[strtolower(__NAMESPACE__)][$key];
@@ -97,7 +97,7 @@ class Module extends AbstractModule
         $formElementManager = $services->get('FormElementManager');
 
         $data = [];
-        $defaultSettings = $config[strtolower(__NAMESPACE__)]['settings'];
+        $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
         foreach ($defaultSettings as $name => $value) {
             $data['clean_url_identifiers'][$name] = $settings->get($name);
             $data['clean_url_main_path'][$name] = $settings->get($name);
@@ -164,7 +164,7 @@ class Module extends AbstractModule
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
-        $defaultSettings = $config[strtolower(__NAMESPACE__)]['settings'];
+        $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
         foreach ($params as $name => $value) {
             if (isset($defaultSettings[$name])) {
                 $settings->set($name, $value);
@@ -303,15 +303,12 @@ class Module extends AbstractModule
     protected function addRoutes()
     {
         $serviceLocator = $this->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
         $router = $serviceLocator->get('Router');
-
         if (!$router instanceof \Zend\Router\Http\TreeRouteStack) {
             return;
         }
 
-        $routes = [];
-
+        $settings = $serviceLocator->get('Omeka\Settings');
         $mainPath = $settings->get('cleanurl_main_path');
         $itemSetGeneric = $settings->get('cleanurl_item_set_generic');
         $itemGeneric = $settings->get('cleanurl_item_generic');
