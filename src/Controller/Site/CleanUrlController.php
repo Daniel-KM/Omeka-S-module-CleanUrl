@@ -2,17 +2,20 @@
 
 namespace CleanUrl\Controller\Site;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Omeka\Mvc\Exception\NotFoundException;
+use Doctrine\DBAL\Connection;
+use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\MediaRepresentation;
+use Omeka\Mvc\Exception\NotFoundException;
+use Zend\Mvc\Controller\AbstractActionController;
+
 
 /**
  * The plugin controller for index pages.
  *
  * @package CleanUrl
  */
-class IndexController extends AbstractActionController
+class CleanUrlController extends AbstractActionController
 {
     // The type and id of record to get.
     private $_resource_identifier = '';
@@ -27,8 +30,25 @@ class IndexController extends AbstractActionController
     private $_item_id = 0;
     private $_file_id = 0;
 
+    /**
+     * @var Connection
+     */
     protected $connection;
+
+    /**
+     * @var ApiAdapterManager
+     */
     protected $apiAdapterManager;
+
+    /**
+     * @param Connection $connection
+     * @param ApiAdapterManager $apiAdapterManager
+     */
+    public function __construct(Connection $connection, ApiAdapterManager $apiAdapterManager)
+    {
+        $this->connection = $connection;
+        $this->apiAdapterManager = $apiAdapterManager;
+    }
 
     public function itemSetShowAction()
     {
@@ -205,26 +225,6 @@ class IndexController extends AbstractActionController
         ]);
     }
 
-    public function setConnection($connection)
-    {
-        $this->connection = $connection;
-    }
-
-    public function getConnection()
-    {
-        return $this->connection;
-    }
-
-    public function setApiAdapterManager($apiAdapterManager)
-    {
-        $this->apiAdapterManager = $apiAdapterManager;
-    }
-
-    public function getApiAdapterManager()
-    {
-        return $this->apiAdapterManager;
-    }
-
     /**
      * Routes a clean url of an item or a media to the default url.
      *
@@ -234,9 +234,6 @@ class IndexController extends AbstractActionController
      */
     protected function _routeResource()
     {
-        $db = $this->getConnection();
-        $apiAdapterManager = $this->getApiAdapterManager();
-
         $propertyId = (integer) $this->settings()->get('cleanurl_identifier_property');
 
         $this->_resource_identifier = rawurldecode($this->params('resource_identifier'));
@@ -298,7 +295,7 @@ class IndexController extends AbstractActionController
             }
         }
 
-        $apiAdapter = $apiAdapterManager->get($this->_resource_name);
+        $apiAdapter = $this->apiAdapterManager->get($this->_resource_name);
         $resourceType = $apiAdapter->getEntityClass();
         $sqlWhereResourceType = 'AND resource.resource_type = ?';
         $bind[] = $resourceType;
@@ -313,7 +310,7 @@ class IndexController extends AbstractActionController
                 $sqlWhereResourceType
             LIMIT 1
         ";
-        $id = $db->fetchColumn($sql, $bind);
+        $id = $this->connection->fetchColumn($sql, $bind);
 
         // Additional check for item identifier: the media should belong to item.
         // TODO Include this in the query.

@@ -182,7 +182,7 @@ class Module extends AbstractModule
         // Allow all access to the controller, because there will be a forward.
         $services = $this->getServiceLocator();
         $acl = $services->get('Omeka\Acl');
-        $acl->allow(null, [Controller\Site\IndexController::class]);
+        $acl->allow(null, [Controller\Site\CleanUrlController::class]);
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
@@ -335,7 +335,7 @@ class Module extends AbstractModule
                     'defaults' => [
                         '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
-                        'controller' => 'IndexController',
+                        'controller' => 'CleanUrlController',
                         'action' => 'item-set-show',
                     ],
                 ],
@@ -353,7 +353,7 @@ class Module extends AbstractModule
                         'defaults' => [
                             '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
-                            'controller' => 'IndexController',
+                            'controller' => 'CleanUrlController',
                             'action' => 'route-item-set-media',
                         ],
                     ],
@@ -372,7 +372,7 @@ class Module extends AbstractModule
                         'defaults' => [
                             '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
-                            'controller' => 'IndexController',
+                            'controller' => 'CleanUrlController',
                             'action' => 'route-item-set-item-media',
                         ],
                     ],
@@ -391,7 +391,7 @@ class Module extends AbstractModule
                         'defaults' => [
                             '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
-                            'controller' => 'IndexController',
+                            'controller' => 'CleanUrlController',
                             'action' => 'route-item-set-item',
                         ],
                     ],
@@ -409,7 +409,7 @@ class Module extends AbstractModule
                     'defaults' => [
                         '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
-                        'controller' => 'IndexController',
+                        'controller' => 'CleanUrlController',
                         'action' => 'route-media',
                         'item_set_id' => null,
                     ],
@@ -427,7 +427,7 @@ class Module extends AbstractModule
                     'defaults' => [
                         '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
-                        'controller' => 'IndexController',
+                        'controller' => 'CleanUrlController',
                         'action' => 'route-item-media',
                         'item_set_id' => null,
                     ],
@@ -445,7 +445,7 @@ class Module extends AbstractModule
                     'defaults' => [
                         '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
-                        'controller' => 'IndexController',
+                        'controller' => 'CleanUrlController',
                         'action' => 'items-browse',
                     ],
                 ],
@@ -457,7 +457,7 @@ class Module extends AbstractModule
                     'defaults' => [
                         '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
-                        'controller' => 'IndexController',
+                        'controller' => 'CleanUrlController',
                         'action' => 'route-item',
                         'item_set_id' => null,
                     ],
