@@ -25,7 +25,7 @@ class IndexControllerRouteItemSetItemTest extends CleanUrlControllerTestCase
         $this->dispatch($path);
 
         $this->assertResponseStatusCode(200);
-        $this->assertControllerName('CleanUrl\Controller\Index');
+        $this->assertControllerName('CleanUrl\Controller\Site\Index');
         $this->assertActionName('route-item-set-item');
 
         $this->assertQueryContentContains('#content > h2', 'Item 1');

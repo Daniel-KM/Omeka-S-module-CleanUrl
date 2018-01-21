@@ -1,6 +1,6 @@
 <?php
 
-namespace CleanUrl\Controller;
+namespace CleanUrl\Controller\Site;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Omeka\Mvc\Exception\NotFoundException;

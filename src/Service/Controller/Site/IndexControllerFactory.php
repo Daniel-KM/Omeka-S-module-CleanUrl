@@ -1,10 +1,10 @@
 <?php
 
-namespace CleanUrl\Service\Controller;
+namespace CleanUrl\Service\Controller\Site;
 
+use CleanUrl\Controller\Site\IndexController;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
-use CleanUrl\Controller\IndexController;
 
 class IndexControllerFactory implements FactoryInterface
 {

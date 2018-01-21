@@ -26,7 +26,7 @@ return [
     ],
     'controllers' => [
         'factories' => [
-            'CleanUrl\Controller\Index' => Service\Controller\IndexControllerFactory::class,
+            'CleanUrl\Controller\Site\Index' => Service\Controller\Site\IndexControllerFactory::class,
         ],
     ],
     'cleanurl' => [

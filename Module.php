@@ -182,7 +182,7 @@ class Module extends AbstractModule
         // Allow all access to the controller, because there will be a forward.
         $services = $this->getServiceLocator();
         $acl = $services->get('Omeka\Acl');
-        $acl->allow(null, ['CleanUrl\Controller\Index']);
+        $acl->allow(null, ['CleanUrl\Controller\Site\Index']);
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
@@ -217,22 +217,22 @@ class Module extends AbstractModule
             [$this, 'displayViewEntityIdentifier']
         );
         $sharedEventManager->attach(
-            'Omeka\Api\Representation\ValueRepresentation',
+            \Omeka\Api\Representation\ValueRepresentation::class,
             'rep.value.html',
             [$this, 'repValueHtml']
         );
         $sharedEventManager->attach(
-            'Omeka\Api\Adapter\ItemSetAdapter',
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.create.post',
             [$this, 'afterSaveItemSet']
         );
         $sharedEventManager->attach(
-            'Omeka\Api\Adapter\ItemSetAdapter',
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.update.post',
             [$this, 'afterSaveItemSet']
         );
         $sharedEventManager->attach(
-            'Omeka\Api\Adapter\ItemSetAdapter',
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.delete.post',
             [$this, 'afterSaveItemSet']
         );
@@ -296,7 +296,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Defines public routes "main_path / my_item_set | generic / dc:identifier".
+     * Defines public routes "main_path / my_item_set | generic / dcterms:identifier".
      *
      * @todo Rechecks performance of routes definition.
      */
@@ -333,7 +333,7 @@ class Module extends AbstractModule
                         'resource_identifier' => $itemSetsRegex,
                     ],
                     'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
                         'controller' => 'Index',
                         'action' => 'item-set-show',
@@ -351,7 +351,7 @@ class Module extends AbstractModule
                             'item_set_identifier' => $itemSetsRegex,
                         ],
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller',
+                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
                             'controller' => 'Index',
                             'action' => 'route-item-set-media',
@@ -370,7 +370,7 @@ class Module extends AbstractModule
                             'item_set_identifier' => $itemSetsRegex,
                         ],
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller',
+                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
                             'controller' => 'Index',
                             'action' => 'route-item-set-item-media',
@@ -389,7 +389,7 @@ class Module extends AbstractModule
                             'item_set_identifier' => $itemSetsRegex,
                         ],
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller',
+                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                             '__SITE__' => true,
                             'controller' => 'Index',
                             'action' => 'route-item-set-item',
@@ -407,7 +407,7 @@ class Module extends AbstractModule
                 'options' => [
                     'route' => $route . ':resource_identifier',
                     'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
                         'controller' => 'Index',
                         'action' => 'route-media',
@@ -425,7 +425,7 @@ class Module extends AbstractModule
                 'options' => [
                     'route' => $route . ':item_identifier/:resource_identifier',
                     'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
                         'controller' => 'Index',
                         'action' => 'route-item-media',
@@ -443,7 +443,7 @@ class Module extends AbstractModule
                 'options' => [
                     'route' => $route,
                     'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
                         'controller' => 'Index',
                         'action' => 'items-browse',
@@ -455,7 +455,7 @@ class Module extends AbstractModule
                 'options' => [
                     'route' => $route . '/:resource_identifier',
                     'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
                         '__SITE__' => true,
                         'controller' => 'Index',
                         'action' => 'route-item',

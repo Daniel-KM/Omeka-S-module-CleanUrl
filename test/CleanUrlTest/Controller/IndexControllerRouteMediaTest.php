@@ -26,7 +26,7 @@ class IndexControllerRouteMediaTest extends CleanUrlControllerTestCase
         $this->dispatch($path);
 
         $this->assertResponseStatusCode(200);
-        $this->assertControllerName('CleanUrl\Controller\Index');
+        $this->assertControllerName('CleanUrl\Controller\Site\Index');
         $this->assertActionName('route-media');
 
         $this->assertQueryContentContains('#content > h2', $this->media_url);

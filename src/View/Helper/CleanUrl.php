@@ -4,7 +4,6 @@ namespace CleanUrl\View\Helper;
 use Traversable;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Router\RouteMatch;
-use Zend\Router\RouteStackInterface;
 use Zend\View\Exception;
 use Zend\View\Helper\Url;
 
@@ -21,7 +20,6 @@ class CleanUrl extends Url
      * Generates a clean or a standard url given the name of a route.
      *
      * @uses \Zend\View\Helper\Url
-     * @see \Zend\Mvc\Router\RouteInterface::assemble()
      * @see \Zend\Router\RouteInterface::assemble()
      * @param  string $name Name of the route
      * @param  array $params Parameters for the link
