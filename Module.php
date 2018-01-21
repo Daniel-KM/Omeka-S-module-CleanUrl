@@ -223,11 +223,6 @@ class Module extends AbstractModule
             [$this, 'displayViewEntityIdentifier']
         );
         $sharedEventManager->attach(
-            \Omeka\Api\Representation\ValueRepresentation::class,
-            'rep.value.html',
-            [$this, 'repValueHtml']
-        );
-        $sharedEventManager->attach(
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.create.post',
             [$this, 'afterSaveItemSet']
@@ -280,34 +275,6 @@ class Module extends AbstractModule
             . '</h4><div class="value">'
             . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
             . '</div></div>';
-    }
-
-    public function repValueHtml(Event $event)
-    {
-        $services = $this->getServiceLocator();
-        $routeMatch = $services->get('Application')->getMvcEvent()->getRouteMatch();
-        $isAdmin = $routeMatch->getParam('__ADMIN__');
-        if ($isAdmin) {
-            if (!$services->get('Omeka\Settings')->get('cleanurl_use_admin')) {
-                return;
-            }
-        }
-
-        $value = $event->getTarget();
-        $params = $event->getParams();
-
-        if ($value->type() == 'resource') {
-            $resource = $value->valueResource();
-            $viewHelperManager = $services->get('ViewHelperManager');
-            $getResourceFullIdentifier = $viewHelperManager->get('getResourceFullIdentifier');
-
-            $url = $getResourceFullIdentifier($resource);
-            if ($url) {
-                $escapeHtml = $viewHelperManager->get('escapeHtml');
-                $title = $escapeHtml($resource->displayTitle());
-                $params['html'] = '<a href="' . $url . '">' . $title . '</a>';
-            }
-        }
     }
 
     /**
