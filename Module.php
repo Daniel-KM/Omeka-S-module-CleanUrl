@@ -48,9 +48,10 @@ class Module extends AbstractModule
 
     public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
     {
-        if (version_compare($oldVersion, '3.14', '<')) {
-            $settings = $serviceLocator->get('Omeka\Settings');
+        $settings = $serviceLocator->get('Omeka\Settings');
+        $config = include __DIR__ . '/config/module.config.php';
 
+        if (version_compare($oldVersion, '3.14', '<')) {
             $settings->set('clean_url_identifier_property',
                 (integer) $settings->get('clean_url_identifier_property'));
 
@@ -63,13 +64,16 @@ class Module extends AbstractModule
         }
 
         if (version_compare($oldVersion, '3.15.3', '<')) {
-            $settings = $serviceLocator->get('Omeka\Settings');
-            $config = include __DIR__ . '/config/module.config.php';
             foreach ($config[strtolower(__NAMESPACE__)]['config'] as $name => $value) {
                 $oldName = str_replace('cleanurl_', 'clean_url_', $name);
                 $settings->set($name, $settings->get($oldName, $value));
                 $settings->delete($oldName);
             }
+        }
+
+        if (version_compare($oldVersion, '3.15.5', '<')) {
+            $settings->set('cleanurl_use_admin',
+                $config[strtolower(__NAMESPACE__)]['config']['cleanurl_use_admin']);
         }
     }
 
@@ -183,6 +187,8 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $acl = $services->get('Omeka\Acl');
         $acl->allow(null, [Controller\Site\CleanUrlController::class]);
+        $roles = $acl->getRoles();
+        $acl->allow($roles, [Controller\Admin\CleanUrlController::class]);
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
@@ -278,12 +284,21 @@ class Module extends AbstractModule
 
     public function repValueHtml(Event $event)
     {
+        $services = $this->getServiceLocator();
+        $routeMatch = $services->get('Application')->getMvcEvent()->getRouteMatch();
+        $isAdmin = $routeMatch->getParam('__ADMIN__');
+        if ($isAdmin) {
+            if (!$services->get('Omeka\Settings')->get('cleanurl_use_admin')) {
+                return;
+            }
+        }
+
         $value = $event->getTarget();
         $params = $event->getParams();
 
         if ($value->type() == 'resource') {
             $resource = $value->valueResource();
-            $viewHelperManager = $this->getServiceLocator()->get('ViewHelperManager');
+            $viewHelperManager = $services->get('ViewHelperManager');
             $getResourceFullIdentifier = $viewHelperManager->get('getResourceFullIdentifier');
 
             $url = $getResourceFullIdentifier($resource);
@@ -317,152 +332,169 @@ class Module extends AbstractModule
         $allowedForItems = $settings->get('cleanurl_item_allowed');
         $allowedForMedia = $settings->get('cleanurl_media_allowed');
 
+        $itemSetsRegex = $settings->get('cleanurl_item_set_regex');
+
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-        $itemSetsRegex = $settings->get('cleanurl_item_set_regex');
-        if (!empty($itemSetsRegex)) {
-            // Add an item set route.
-            $route = '/s/:site-slug/' . $mainPath . $itemSetGeneric;
-            // Use one regex for all item sets. Default is case insensitve.
-            $router->addRoute('cleanUrl_item_sets', [
-                'type' => 'segment',
-                'options' => [
-                    'route' => $route . ':resource_identifier',
-                    'constraints' => [
-                        'resource_identifier' => $itemSetsRegex,
-                    ],
-                    'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                        '__SITE__' => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'item-set-show',
-                    ],
-                ],
-            ]);
+        $baseRoutes['_public'] = [
+            '/s/:site-slug/',
+            '__SITE__',
+            'CleanUrl\Controller\Site',
+        ];
+        if ($settings->get('cleanurl_use_admin')) {
+            $baseRoutes['_admin'] = [
+                '/admin/',
+                '__ADMIN__',
+                'CleanUrl\Controller\Admin',
+            ];
+        }
 
-            // Add an item set route for media.
-            if (in_array('item_set', $allowedForMedia)) {
-                $router->addRoute('cleanUrl_item_sets_media', [
+        foreach ($baseRoutes as $routeExt => $array) {
+            list($baseRoute, $space, $namespaceController) = $array;
+            if (!empty($itemSetsRegex)) {
+                // Add an item set route.
+                $route = $baseRoute . $mainPath . $itemSetGeneric;
+                // Use one regex for all item sets. Default is case insensitve.
+                $router->addRoute('cleanUrl_item_sets' . $routeExt, [
                     'type' => 'segment',
                     'options' => [
-                        'route' => $route . ':item_set_identifier/:resource_identifier',
+                        'route' => $route . ':resource_identifier',
                         'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
+                            'resource_identifier' => $itemSetsRegex,
                         ],
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                            '__SITE__' => true,
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
                             'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-media',
+                            'action' => 'item-set-show',
+                        ],
+                    ],
+                ]);
+
+                // Add an item set route for media.
+                if (in_array('item_set', $allowedForMedia)) {
+                    $router->addRoute('cleanUrl_item_sets_media' . $routeExt, [
+                        'type' => 'segment',
+                        'options' => [
+                            'route' => $route . ':item_set_identifier/:resource_identifier',
+                            'constraints' => [
+                                'item_set_identifier' => $itemSetsRegex,
+                            ],
+                            'defaults' => [
+                                '__NAMESPACE__' => $namespaceController,
+                                $space => true,
+                                'controller' => 'CleanUrlController',
+                                'action' => 'route-item-set-media',
+                            ],
+                        ],
+                    ]);
+                }
+
+                // Add an item set / item route for media.
+                if (in_array('item_set_item', $allowedForMedia)) {
+                    $router->addRoute('cleanUrl_item_sets_item_media' . $routeExt, [
+                        'type' => 'segment',
+                        'options' => [
+                            'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
+                            'constraints' => [
+                                'item_set_identifier' => $itemSetsRegex,
+                            ],
+                            'defaults' => [
+                                '__NAMESPACE__' => $namespaceController,
+                                $space => true,
+                                'controller' => 'CleanUrlController',
+                                'action' => 'route-item-set-item-media',
+                            ],
+                        ],
+                    ]);
+                }
+
+                // Add an item set route for items.
+                if (in_array('item_set', $allowedForItems)) {
+                    $router->addRoute('cleanUrl_item_sets_item' . $routeExt, [
+                        'type' => 'segment',
+                        'options' => [
+                            'route' => $route . ':item_set_identifier/:resource_identifier',
+                            'constraints' => [
+                                'item_set_identifier' => $itemSetsRegex,
+                            ],
+                            'defaults' => [
+                                '__NAMESPACE__' => $namespaceController,
+                                $space => true,
+                                'controller' => 'CleanUrlController',
+                                'action' => 'route-item-set-item',
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // Add a generic route for media.
+            if (in_array('generic', $allowedForMedia)) {
+                $route = $baseRoute . $mainPath . $mediaGeneric;
+                $router->addRoute('cleanUrl_generic_media' . $routeExt, [
+                    'type' => 'segment',
+                    'options' => [
+                        'route' => $route . ':resource_identifier',
+                        'defaults' => [
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
+                            'controller' => 'CleanUrlController',
+                            'action' => 'route-media',
+                            'item_set_id' => null,
                         ],
                     ],
                 ]);
             }
 
-            // Add an item set / item route for media.
-            if (in_array('item_set_item', $allowedForMedia)) {
-                $router->addRoute('cleanUrl_item_sets_item_media', [
+            // Add a generic / item route for media.
+            if (in_array('generic_item', $allowedForMedia)) {
+                $route = $baseRoute . $mainPath . $mediaGeneric;
+                $router->addRoute('cleanUrl_generic_item_media' . $routeExt, [
                     'type' => 'segment',
                     'options' => [
-                        'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
+                        'route' => $route . ':item_identifier/:resource_identifier',
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                            '__SITE__' => true,
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
                             'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-item-media',
+                            'action' => 'route-item-media',
+                            'item_set_id' => null,
                         ],
                     ],
                 ]);
             }
 
-            // Add an item set route for items.
-            if (in_array('item_set', $allowedForItems)) {
-                $router->addRoute('cleanUrl_item_sets_item', [
+            // Add a generic route for items.
+            if (in_array('generic', $allowedForItems)) {
+                $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
+                $router->addRoute('cleanUrl_generic_items_browse' . $routeExt, [
                     'type' => 'segment',
                     'options' => [
-                        'route' => $route . ':item_set_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
+                        'route' => $route,
                         'defaults' => [
-                            '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                            '__SITE__' => true,
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
                             'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-item',
+                            'action' => 'items-browse',
+                        ],
+                    ],
+                ]);
+                $router->addRoute('cleanUrl_generic_item' . $routeExt, [
+                    'type' => 'segment',
+                    'options' => [
+                        'route' => $route . '/:resource_identifier',
+                        'defaults' => [
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
+                            'controller' => 'CleanUrlController',
+                            'action' => 'route-item',
+                            'item_set_id' => null,
                         ],
                     ],
                 ]);
             }
-        }
-
-        // Add a generic route for media.
-        if (in_array('generic', $allowedForMedia)) {
-            $route = '/s/:site-slug/' . $mainPath . $mediaGeneric;
-            $router->addRoute('cleanUrl_generic_media', [
-                'type' => 'segment',
-                'options' => [
-                    'route' => $route . ':resource_identifier',
-                    'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                        '__SITE__' => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-media',
-                        'item_set_id' => null,
-                    ],
-                ],
-            ]);
-        }
-
-        // Add a generic / item route for media.
-        if (in_array('generic_item', $allowedForMedia)) {
-            $route = '/s/:site-slug/' . $mainPath . $mediaGeneric;
-            $router->addRoute('cleanUrl_generic_item_media', [
-                'type' => 'segment',
-                'options' => [
-                    'route' => $route . ':item_identifier/:resource_identifier',
-                    'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                        '__SITE__' => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-item-media',
-                        'item_set_id' => null,
-                    ],
-                ],
-            ]);
-        }
-
-        // Add a generic route for items.
-        if (in_array('generic', $allowedForItems)) {
-            $route = '/s/:site-slug/' . $mainPath . trim($itemGeneric, '/');
-            $router->addRoute('cleanUrl_generic_items_browse', [
-                'type' => 'segment',
-                'options' => [
-                    'route' => $route,
-                    'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                        '__SITE__' => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'items-browse',
-                    ],
-                ],
-            ]);
-            $router->addRoute('cleanUrl_generic_item', [
-                'type' => 'segment',
-                'options' => [
-                    'route' => $route . '/:resource_identifier',
-                    'defaults' => [
-                        '__NAMESPACE__' => 'CleanUrl\Controller\Site',
-                        '__SITE__' => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-item',
-                        'item_set_id' => null,
-                    ],
-                ],
-            ]);
         }
     }
 

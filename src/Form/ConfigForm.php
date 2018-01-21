@@ -221,6 +221,15 @@ class ConfigForm extends Form implements TranslatorAwareInterface
         $adminFieldset = $this->get('clean_url_admin');
 
         $adminFieldset->add([
+            'name' => 'cleanurl_use_admin',
+            'type' => Checkbox::class,
+            'options' => [
+                'label' => 'Use in admin board', // @translate
+                'info' => 'If checked, the clean url will be used in the admin board.', // @translate
+            ],
+        ]);
+
+        $adminFieldset->add([
             'name' => 'cleanurl_display_admin_show_identifier',
             'type' => Checkbox::class,
             'options' => [
