@@ -25,7 +25,7 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
         $this->dispatch($path);
 
         $this->assertResponseStatusCode(200);
-        $this->assertControllerName('CleanUrl\Controller\Site\Index');
+        $this->assertControllerName(\CleanUrl\Controller\Site\IndexController::class);
         $this->assertActionName('item-set-show');
         $this->assertQueryContentContains('#content > h2', 'Item Set 1');
     }
@@ -38,7 +38,7 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
         $this->dispatch($path);
 
         $this->assertResponseStatusCode(200);
-        $this->assertControllerName('CleanUrl\Controller\Site\Index');
+        $this->assertControllerName(\CleanUrl\Controller\Site\IndexController::class);
         $this->assertActionName('item-set-show');
         $this->assertQueryContentContains('#content > h2', 'Item Set 2');
     }
