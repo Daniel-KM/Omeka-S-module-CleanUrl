@@ -25,7 +25,7 @@ class IndexControllerItemsBrowseTest extends CleanUrlControllerTestCase
         $this->dispatch($path);
 
         $this->assertResponseStatusCode(200);
-        $this->assertControllerName(\CleanUrl\Controller\Site\IndexController::class);
+        $this->assertControllerName(\CleanUrl\Controller\Site\CleanUrlController::class);
         $this->assertActionName('items-browse');
 
         $this->assertQueryContentContains('#content > h2', 'Items');
