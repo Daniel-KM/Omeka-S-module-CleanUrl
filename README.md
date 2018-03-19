@@ -163,12 +163,12 @@ Copyright
 * Copyright BibLibre, 2016-2017
 
 
-[Clean Url]: https://github.com/biblibre/omeka-s-module-CleanUrl
-[Omeka S]: https://github.com/omeka/omeka-s
-[Clean Url plugin]: https://github.com/Daniel-KM/CleanUrl
-[Omeka]: https://omeka.org
+[Clean Url]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
+[Omeka S]: https://omeka.org/s
+[Clean Url plugin]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl
+[Omeka]: https://omeka.org/classic
 [BibLibre]: https://github.com/biblibre
-[module issues]: https://github.com/biblibre/omeka-s-module-CleanUrl/issues
+[module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
