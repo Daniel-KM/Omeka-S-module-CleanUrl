@@ -45,7 +45,7 @@ return [
             'cleanurl_item_generic' => 'document/',
             'cleanurl_media_default' => 'generic',
             'cleanurl_media_allowed' => ['generic', 'item_set_item'],
-            'cleanurl_media_generic' => 'media/',
+            'cleanurl_media_generic' => 'medium/',
             'cleanurl_use_admin' => true,
             'cleanurl_display_admin_show_identifier' => true,
         ],
