@@ -266,9 +266,9 @@ class Module extends AbstractModule
         $translator = $services->get('MvcTranslator');
         $getResourceIdentifier = $services->get('ViewHelperManager')
             ->get('getResourceIdentifier');
-        $identifier = $getResourceIdentifier($resource);
+        $identifier = $getResourceIdentifier($resource, false);
 
-        echo '<div class="property meta-group"><h4>'
+        echo '<div class="meta-group"><h4>'
             . $translator->translate('CleanUrl identifier') // @translate
             . '</h4><div class="value">'
             . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
