@@ -7,7 +7,6 @@ namespace CleanUrl\View\Helper;
  */
 
 use Doctrine\DBAL\Connection;
-use Zend\View\Helper\AbstractHelper;
 use Omeka\Api\Representation\AbstractResourceRepresentation;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\ItemSetRepresentation;
@@ -16,6 +15,7 @@ use Omeka\Entity\Item;
 use Omeka\Entity\ItemSet;
 use Omeka\Entity\Media;
 use Omeka\Entity\Resource;
+use Zend\View\Helper\AbstractHelper;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers

@@ -98,7 +98,7 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $config = $services->get('Config');
         $settings = $services->get('Omeka\Settings');
-        $formElementManager = $services->get('FormElementManager');
+        $form = $services->get('FormElementManager')->get(ConfigForm::class);
 
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
@@ -111,7 +111,6 @@ class Module extends AbstractModule
             $data['clean_url_admin'][$name] = $settings->get($name);
         }
 
-        $form = $formElementManager->get(ConfigForm::class);
         $form->init();
         $form->setData($data);
 
@@ -128,8 +127,7 @@ class Module extends AbstractModule
 
         $params = $controller->getRequest()->getPost();
 
-        $form = $this->getServiceLocator()->get('FormElementManager')
-            ->get(ConfigForm::class);
+        $form = $services->get('FormElementManager')->get(ConfigForm::class);
         $form->init();
         $form->setData($params);
         if (!$form->isValid()) {
@@ -271,7 +269,7 @@ class Module extends AbstractModule
         $identifier = $getResourceIdentifier($resource);
 
         echo '<div class="property meta-group"><h4>'
-            . $translator->translate('CleanUrl identifier')
+            . $translator->translate('CleanUrl identifier') // @translate
             . '</h4><div class="value">'
             . ($identifier ?: '<em>' . $translator->translate('[none]') . '</em>')
             . '</div></div>';
@@ -323,8 +321,8 @@ class Module extends AbstractModule
                 // Add an item set route.
                 $route = $baseRoute . $mainPath . $itemSetGeneric;
                 // Use one regex for all item sets. Default is case insensitve.
-                $router->addRoute('cleanUrl_item_sets' . $routeExt, [
-                    'type' => 'segment',
+                $router->addRoute('cleanurl_item_sets' . $routeExt, [
+                    'type' => \Zend\Router\Http\Segment::class,
                     'options' => [
                         'route' => $route . ':resource_identifier',
                         'constraints' => [
@@ -341,8 +339,8 @@ class Module extends AbstractModule
 
                 // Add an item set route for media.
                 if (in_array('item_set', $allowedForMedia)) {
-                    $router->addRoute('cleanUrl_item_sets_media' . $routeExt, [
-                        'type' => 'segment',
+                    $router->addRoute('cleanurl_item_sets_media' . $routeExt, [
+                        'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
                             'route' => $route . ':item_set_identifier/:resource_identifier',
                             'constraints' => [
@@ -360,8 +358,8 @@ class Module extends AbstractModule
 
                 // Add an item set / item route for media.
                 if (in_array('item_set_item', $allowedForMedia)) {
-                    $router->addRoute('cleanUrl_item_sets_item_media' . $routeExt, [
-                        'type' => 'segment',
+                    $router->addRoute('cleanurl_item_sets_item_media' . $routeExt, [
+                        'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
                             'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
                             'constraints' => [
@@ -379,8 +377,8 @@ class Module extends AbstractModule
 
                 // Add an item set route for items.
                 if (in_array('item_set', $allowedForItems)) {
-                    $router->addRoute('cleanUrl_item_sets_item' . $routeExt, [
-                        'type' => 'segment',
+                    $router->addRoute('cleanurl_item_sets_item' . $routeExt, [
+                        'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
                             'route' => $route . ':item_set_identifier/:resource_identifier',
                             'constraints' => [
@@ -400,8 +398,8 @@ class Module extends AbstractModule
             // Add a generic route for media.
             if (in_array('generic', $allowedForMedia)) {
                 $route = $baseRoute . $mainPath . $mediaGeneric;
-                $router->addRoute('cleanUrl_generic_media' . $routeExt, [
-                    'type' => 'segment',
+                $router->addRoute('cleanurl_generic_media' . $routeExt, [
+                    'type' => \Zend\Router\Http\Segment::class,
                     'options' => [
                         'route' => $route . ':resource_identifier',
                         'defaults' => [
@@ -418,8 +416,8 @@ class Module extends AbstractModule
             // Add a generic / item route for media.
             if (in_array('generic_item', $allowedForMedia)) {
                 $route = $baseRoute . $mainPath . $mediaGeneric;
-                $router->addRoute('cleanUrl_generic_item_media' . $routeExt, [
-                    'type' => 'segment',
+                $router->addRoute('cleanurl_generic_item_media' . $routeExt, [
+                    'type' => \Zend\Router\Http\Segment::class,
                     'options' => [
                         'route' => $route . ':item_identifier/:resource_identifier',
                         'defaults' => [
@@ -436,8 +434,8 @@ class Module extends AbstractModule
             // Add a generic route for items.
             if (in_array('generic', $allowedForItems)) {
                 $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
-                $router->addRoute('cleanUrl_generic_items_browse' . $routeExt, [
-                    'type' => 'segment',
+                $router->addRoute('cleanurl_generic_items_browse' . $routeExt, [
+                    'type' => \Zend\Router\Http\Segment::class,
                     'options' => [
                         'route' => $route,
                         'defaults' => [
@@ -448,8 +446,8 @@ class Module extends AbstractModule
                         ],
                     ],
                 ]);
-                $router->addRoute('cleanUrl_generic_item' . $routeExt, [
-                    'type' => 'segment',
+                $router->addRoute('cleanurl_generic_item' . $routeExt, [
+                    'type' => \Zend\Router\Http\Segment::class,
                     'options' => [
                         'route' => $route . '/:resource_identifier',
                         'defaults' => [
