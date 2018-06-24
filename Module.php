@@ -53,7 +53,7 @@ class Module extends AbstractModule
 
         if (version_compare($oldVersion, '3.14', '<')) {
             $settings->set('clean_url_identifier_property',
-                (integer) $settings->get('clean_url_identifier_property'));
+                (int) $settings->get('clean_url_identifier_property'));
 
             $settings->set('clean_url_item_allowed',
                 unserialize($settings->get('clean_url_item_allowed')));
@@ -158,7 +158,7 @@ class Module extends AbstractModule
             $params[$posted] = empty($value) ? '' : trim($value) . '/';
         }
 
-        $params['cleanurl_identifier_property'] = (integer) $params['cleanurl_identifier_property'];
+        $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];
@@ -530,7 +530,7 @@ class Module extends AbstractModule
             . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiers.php';
 
         $settings = $serviceLocator->get('Omeka\Settings');
-        $propertyId = (integer) $settings->get('cleanurl_identifier_property');
+        $propertyId = (int) $settings->get('cleanurl_identifier_property');
         $prefix = $settings->get('cleanurl_identifier_prefix');
 
         $factory = new GetResourceTypeIdentifiersFactory();

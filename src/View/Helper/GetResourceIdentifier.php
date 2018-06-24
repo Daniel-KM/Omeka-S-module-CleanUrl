@@ -54,7 +54,7 @@ class GetResourceIdentifier extends AbstractHelper
             return '';
         }
 
-        $propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
+        $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
         $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
         // Use a direct query in order to improve speed.

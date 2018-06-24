@@ -95,7 +95,7 @@ class GetIdentifiersFromResources extends AbstractHelper
         }
 
         $resourceType = $resourceTypes[$resourceType];
-        $propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
+        $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
         $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
         // Get the list of identifiers.

@@ -34,7 +34,7 @@ class GetResourceFromIdentifier extends AbstractHelper
 
         $bind = [];
 
-        $propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
+        $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
 
         if ($resourceName) {
             // Check and normalize the resource type.
@@ -123,7 +123,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             $resource = $this->view->api()->read($resourceName, $result['resource_id'])->getContent();
         } elseif ($resourceName) {
             // Return the resource via the Omeka id.
-            $id = (integer) $identifier;
+            $id = (int) $identifier;
             if ($id !== 0) {
                 $resource = $this->view->api()->read($resourceName, $id)->getContent();
             }

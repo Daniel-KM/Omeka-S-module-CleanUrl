@@ -52,7 +52,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         $resourceType = $resourceTypes[$resourceName];
 
         if (empty($this->propertyId)) {
-            $this->propertyId = (integer) $this->view->setting('cleanurl_identifier_property');
+            $this->propertyId = (int) $this->view->setting('cleanurl_identifier_property');
             $this->prefix = $this->view->setting('cleanurl_identifier_prefix');
         }
         $propertyId = $this->propertyId;
