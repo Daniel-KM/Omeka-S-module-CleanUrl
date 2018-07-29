@@ -2,10 +2,7 @@
 namespace CleanUrl\Form;
 
 use Omeka\Form\Element\PropertySelect;
-use Zend\Form\Element\Text;
-use Zend\Form\Element\Checkbox;
-use Zend\Form\Element\MultiCheckbox;
-use Zend\Form\Element\Radio;
+use Zend\Form\Element;
 use Zend\Form\Fieldset;
 use Zend\Form\Form;
 use Zend\I18n\Translator\TranslatorAwareInterface;
@@ -36,6 +33,7 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                     . ' ' . $this->translate('Default is to use "dcterms:identifier".'), // @translate
             ],
             'attributes' => [
+                'id' => 'cleanurl_identifier_property',
                 'required' => true,
                 'class' => 'chosen-select',
                 'data-placeholder' => 'Select a property', // @translate
@@ -44,31 +42,40 @@ class ConfigForm extends Form implements TranslatorAwareInterface
 
         $identifiersFieldset->add([
             'name' => 'cleanurl_identifier_prefix',
-            'type' => Text::class,
+            'type' => Element\Text::class,
             'options' => [
                 'label' => 'Prefix of identifiers to use', // @translate
                 'info' => $this->translate('Urls are built with the sanitized Dublin Core identifier with the selected prefix, for example "item:", "record:" or "doc =". Let empty to use simply the first identifier.') // @translate
                     . ' ' . $this->translate('If this identifier does not exists, the Omeka item id will be used.'), // @translate
             ],
+            'attributes' => [
+                'id' => 'cleanurl_identifier_prefix',
+            ],
         ]);
 
         $identifiersFieldset->add([
             'name' => 'cleanurl_identifier_unspace',
-            'type' => Checkbox::class,
+            'type' => Element\Checkbox::class,
             'options' => [
                 'label' => 'Check the prefix without space', // @translate
                 'info' => $this->translate('If checked, the prefix will be checked without space inside it too.') // @translate
                     . ' ' . $this->translate('This may be useful if the prefix is like "record =", but some records use "record=".'), // @translate
             ],
+            'attributes' => [
+                'id' => 'cleanurl_identifier_unspace',
+            ],
         ]);
 
         $identifiersFieldset->add([
             'name' => 'cleanurl_case_insensitive',
-            'type' => Checkbox::class,
+            'type' => Element\Checkbox::class,
             'options' => [
                 'label' => 'Allow case insensitive identifier', // @translate
                 'info' => $this->translate('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.') // @translate
                     . ' ' . $this->translate('Furthermore, it can slow server responses, unless you add an index for lower texts.'), // @translate
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_case_insensitive',
             ],
         ]);
 
@@ -83,11 +90,14 @@ class ConfigForm extends Form implements TranslatorAwareInterface
 
         $mainPathFieldset->add([
             'name' => 'cleanurl_main_path',
-            'type' => Text::class,
+            'type' => Element\Text::class,
             'options' => [
                 'label' => 'Main path to add', // @translate
                 'info' => $this->translate('The main path to add in the beginning of the url, for example "library/" or "archives/".') // @translate
                     . ' ' . $this->translate('Let empty if you do not want any.'), // @translate
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_main_path',
             ],
         ]);
 
@@ -102,11 +112,14 @@ class ConfigForm extends Form implements TranslatorAwareInterface
 
         $itemSetsFieldset->add([
             'name' => 'cleanurl_item_set_generic',
-            'type' => Text::class,
+            'type' => Element\Text::class,
             'options' => [
                 'label' => 'Generic name to add before item set identifier', // @translate
                 'info' => $this->translate('This main path is added before the item set name, for example "/ my_item_sets / item set identifier".') // @translate
                 . ' ' . $this->translate('Let empty if you do not want any, so path will be "/ item set identifier".'), // @translate
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_item_set_generic',
             ],
         ]);
 
@@ -116,12 +129,15 @@ class ConfigForm extends Form implements TranslatorAwareInterface
             'options' => [
                 'label' => 'Items', // @translate
             ],
+            'attributes' => [
+                'id' => '',
+            ],
         ]);
         $itemsFieldset = $this->get('clean_url_items');
 
         $itemsFieldset->add([
             'name' => 'cleanurl_item_default',
-            'type' => Radio::class,
+            'type' => Element\Radio::class,
             'options' => [
                 'label' => 'Default url of items', // @translate
                 'info' => 'Select the default format of the url for items.', // @translate
@@ -131,13 +147,14 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                 ],
             ],
             'attributes' => [
+                'id' => 'cleanurl_item_default',
                 'required' => true,
             ],
         ]);
 
         $itemsFieldset->add([
             'name' => 'cleanurl_item_allowed',
-            'type' => MultiCheckbox::class,
+            'type' => Element\MultiCheckbox::class,
             'options' => [
                 'label' => 'Allowed urls for items', // @translate
                 'info' => $this->translate('Select the allowed formats for urls of items.') // @translate
@@ -147,14 +164,20 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                     'item_set' => '/ item set identifier / item identifier', // @translate
                 ],
             ],
+            'attributes' => [
+                'id' => 'cleanurl_item_allowed',
+            ],
         ]);
 
         $itemsFieldset->add([
             'name' => 'cleanurl_item_generic',
-            'type' => Text::class,
+            'type' => Element\Text::class,
             'options' => [
                 'label' => 'Generic name to add before item identifier', // @translate
                 'info' => 'The generic name to use if generic identifier is selected above, for example "item/", "record/" or "doc/".', // @translate
+            ],
+            'attributes' => [
+                'id' => '',
             ],
         ]);
 
@@ -169,7 +192,7 @@ class ConfigForm extends Form implements TranslatorAwareInterface
 
         $mediaFieldset->add([
             'name' => 'cleanurl_media_default',
-            'type' => Radio::class,
+            'type' => Element\Radio::class,
             'options' => [
                 'label' => 'Default url of medias', // @translate
                 'info' => 'Select the default format of the url for medias.', // @translate
@@ -181,13 +204,14 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                 ],
             ],
             'attributes' => [
+                'id' => 'cleanurl_media_default',
                 'required' => true,
             ],
         ]);
 
         $mediaFieldset->add([
             'name' => 'cleanurl_media_allowed',
-            'type' => MultiCheckbox::class,
+            'type' => Element\MultiCheckbox::class,
             'options' => [
                 'label' => 'Allowed urls for medias', // @translate
                 'info' => $this->translate('Select the allowed formats for urls of files.') // @translate
@@ -199,16 +223,23 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                     'item_set_item' => '/ item set identifier / item identifier / media identifier', // @translate
                 ],
             ],
+            'attributes' => [
+                'id' => 'cleanurl_media_allowed',
+                'required' => true,
+            ],
         ]);
 
         $mediaFieldset->add([
             'name' => 'cleanurl_media_generic',
-            'type' => Text::class,
+            'type' => Element\Text::class,
             'options' => [
                 'label' => 'Generic name to add before item identifier', // @translate
                 'info' => $this->translate('The generic name to use if generic identifier is selected above, for example "file/", "record/" or "image/".') // @translate
                     . ' ' . $this->translate('In the first case, currently, it should be different from the name used for items.'), // @translate
-                ],
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_media_generic',
+            ],
         ]);
 
         $this->add([
@@ -222,19 +253,25 @@ class ConfigForm extends Form implements TranslatorAwareInterface
 
         $adminFieldset->add([
             'name' => 'cleanurl_use_admin',
-            'type' => Checkbox::class,
+            'type' => Element\Checkbox::class,
             'options' => [
                 'label' => 'Use in admin board', // @translate
                 'info' => 'If checked, the clean url will be used in the admin board.', // @translate
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_use_admin',
             ],
         ]);
 
         $adminFieldset->add([
             'name' => 'cleanurl_display_admin_show_identifier',
-            'type' => Checkbox::class,
+            'type' => Element\Checkbox::class,
             'options' => [
                 'label' => 'Display identifier in admin resources', // @translate
                 'info' => 'If checked, the identifier of each item will be displayed in the admin item show page.', // @translate
+            ],
+            'attributes' => [
+                'id' => 'cleanurl_display_admin_show_identifier',
             ],
         ]);
 
