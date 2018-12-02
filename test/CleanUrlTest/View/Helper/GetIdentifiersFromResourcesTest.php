@@ -27,7 +27,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         $settings->set('cleanurl_identifier_property', $this->propertyId);
         $settings->set('cleanurl_identifier_prefix', $this->prefix);
 
-        $setting = new Setting($settings);
+        // $setting = new Setting($settings);
         $view = $this->getMockBuilder('Zend\View\Renderer\PhpRenderer')
             ->setMethods([
                 'api',
@@ -97,6 +97,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         $items[] = $this->createResource('document: my_item_2', 'items');
         $items[] = $this->api->create('items', [])->getContent();
         $item = $this->createResource('document: my_item_5', 'items');
+        unset($item);
         $items[] = $this->createResource('document: my_item_6', 'items');
         $items[] = $this->createResource('other_prefix: my_item_7', 'items');
 

@@ -1,13 +1,15 @@
-<?php $this->headStyle()->appendStyle('.inputs label { display: block; }'); ?>
-
-<?php $form->prepare(); ?>
+<?php
+$translate = $this->plugin('translate');
+$this->headStyle()->appendStyle('.inputs label { display: block; }');
+$form->prepare();
+?>
 
 <?php
-    echo $this->translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.');
+    echo $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.');
     echo '<br />';
-    echo sprintf($this->translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>');
+    echo sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>');
     echo '<br />';
-    echo sprintf($this->translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>');
+    echo sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>');
 ?>
 
 <?php echo $this->formCollection($form); ?>

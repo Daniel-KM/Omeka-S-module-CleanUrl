@@ -9,7 +9,6 @@ use Omeka\Api\Representation\MediaRepresentation;
 use Omeka\Mvc\Exception\NotFoundException;
 use Zend\Mvc\Controller\AbstractActionController;
 
-
 /**
  * The plugin controller for index pages.
  *

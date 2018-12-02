@@ -103,12 +103,12 @@ class Module extends AbstractModule
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
         foreach ($defaultSettings as $name => $value) {
-            $data['clean_url_identifiers'][$name] = $settings->get($name);
-            $data['clean_url_main_path'][$name] = $settings->get($name);
-            $data['clean_url_item_sets'][$name] = $settings->get($name);
-            $data['clean_url_items'][$name] = $settings->get($name);
-            $data['clean_url_medias'][$name] = $settings->get($name);
-            $data['clean_url_admin'][$name] = $settings->get($name);
+            $data['clean_url_identifiers'][$name] = $settings->get($name, $value);
+            $data['clean_url_main_path'][$name] = $settings->get($name, $value);
+            $data['clean_url_item_sets'][$name] = $settings->get($name, $value);
+            $data['clean_url_items'][$name] = $settings->get($name, $value);
+            $data['clean_url_medias'][$name] = $settings->get($name, $value);
+            $data['clean_url_admin'][$name] = $settings->get($name, $value);
         }
 
         $form->init();
@@ -302,6 +302,7 @@ class Module extends AbstractModule
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
+        $baseRoutes = [];
         $baseRoutes['_public'] = [
             '/s/:site-slug/',
             '__SITE__',

@@ -153,13 +153,13 @@ class GetIdentifiersFromResources extends AbstractHelper
                 $stmt = $connection->query($query);
             }
             $qb
+                // No where condition.
                 ->innerJoin(
                     'value',
                     'temp_resources',
                     'temp_resources',
                     'temp_resources.id = value.resource_id'
                 );
-            // No where condition.
         }
         // The number of resources is reasonable.
         else {
