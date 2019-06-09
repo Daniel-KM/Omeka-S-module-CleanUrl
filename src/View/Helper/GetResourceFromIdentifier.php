@@ -23,7 +23,8 @@ class GetResourceFromIdentifier extends AbstractHelper
      * @param string $identifier The identifier of the resource to find.
      * @param bool $withPrefix Optional. If identifier begins with prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
-     * @return \Omeka\Api\Representation\AbstractResourceRepresentation The resource.
+     * @return \Omeka\Api\Representation\AbstractResourceRepresentation|null The
+     * resource.
      */
     public function __invoke($identifier, $withPrefix = false, $resourceName = null)
     {

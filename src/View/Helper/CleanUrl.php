@@ -25,7 +25,7 @@ class CleanUrl extends Url
      * @param  array $params Parameters for the link
      * @param  array|Traversable $options Options for the route
      * @param  bool $reuseMatchedParams Whether to reuse matched parameters
-     * @return string Url For the link href attribute
+     * @return string Url
      * @throws Exception\RuntimeException If no RouteStackInterface was
      *     provided
      * @throws Exception\RuntimeException If no RouteMatch was provided
@@ -130,11 +130,11 @@ class CleanUrl extends Url
     }
 
     /**
-     * Get clean url path of a record.
+     * Get clean url path of a resource.
      *
      * @param string $context "public" or "admin"
      * @param array $params
-     * @return string|null  Identifier of the record, if any, else empty string.
+     * @return string Identifier of the resource if any, else empty string.
      */
     protected function getCleanUrl($context, $params, $options)
     {
@@ -151,6 +151,7 @@ class CleanUrl extends Url
                 !empty($options['force_canonical'])
             );
         }
+        return '';
     }
 
     /**

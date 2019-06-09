@@ -3,10 +3,10 @@
 namespace CleanUrl\View\Helper;
 
 /*
- * Clean Url Get Record Full Identifier
+ * Get resource full identifier
  *
  * @todo Use a route name?
- * @see Omeka\View\Helper\RecordUrl.php
+ * @see Omeka\View\Helper\CleanUrl.php
  */
 
 use Zend\Mvc\Application;
@@ -25,7 +25,7 @@ class GetResourceFullIdentifier extends AbstractHelper
     }
 
     /**
-     * Get clean url path of a record in the default or specified format.
+     * Get clean url path of a resource in the default or specified format.
      *
      * @param \Omeka\Api\Representation\AbstractResourceRepresentation|array $resource
      * @param string $siteSlug May be required on main public pages.
@@ -35,7 +35,7 @@ class GetResourceFullIdentifier extends AbstractHelper
      * @param bool $absoluteUrl If true, implies current / admin or public
      * path and main path.
      * @param string $format Format of the identifier (default one if empty).
-     * @return string Full identifier of the record, if any, else empty string.
+     * @return string Full identifier of the resource if any, else empty string.
      */
     public function __invoke(
         $resource,
@@ -203,7 +203,7 @@ class GetResourceFullIdentifier extends AbstractHelper
     }
 
     /**
-     * Return beginning of the record name if needed.
+     * Return beginning of the resource name if needed.
      *
      * @param string $siteSlug
      * @param bool $withMainPath
@@ -251,7 +251,7 @@ class GetResourceFullIdentifier extends AbstractHelper
     }
 
     /**
-     * Check if a format is allowed for a record type.
+     * Check if a format is allowed for a resource type.
      *
      * @param string $format
      * @param string $resourceName

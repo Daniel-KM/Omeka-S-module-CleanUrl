@@ -146,6 +146,8 @@ class GetIdentifiersFromResources extends AbstractHelper
         if ($tempTable) {
             $query = 'DROP TABLE IF EXISTS temp_resources;';
             $stmt = $connection->query($query);
+            // TODO Check if the id may be unique.
+            // $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL, PRIMARY KEY(id));';
             $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL);';
             $stmt = $connection->query($query);
             foreach (array_chunk($resources, self::CHUNK_RECORDS) as $chunk) {
