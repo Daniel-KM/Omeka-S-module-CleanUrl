@@ -1,21 +1,21 @@
 <?php
 namespace CleanUrl;
 
-require_once __DIR__ . '/src/Module/AbstractGenericModule.php';
-
 /*
  * Clean Url
  *
  * Allows to have URL like http://example.com/my_item_set/dc:identifier.
  *
- * @copyright Daniel Berthereau, 2012-2017
+ * @copyright Daniel Berthereau, 2012-2019
  * @copyright BibLibre, 2016-2017
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
-use CleanUrl\Module\AbstractGenericModule;
+require_once dirname(__DIR__) . '/Generic/AbstractModule.php';
+
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
+use Generic\AbstractModule;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\Controller\AbstractController;
@@ -23,8 +23,10 @@ use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\View\Renderer\PhpRenderer;
 
-class Module extends AbstractGenericModule
+class Module extends AbstractModule
 {
+    const NAMESPACE = __NAMESPACE__;
+
     public function onBootstrap(MvcEvent $event)
     {
         parent::onBootstrap($event);
