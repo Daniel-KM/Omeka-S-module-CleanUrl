@@ -225,7 +225,6 @@ class ConfigForm extends Form implements TranslatorAwareInterface
             ],
             'attributes' => [
                 'id' => 'cleanurl_media_allowed',
-                'required' => true,
             ],
         ]);
 

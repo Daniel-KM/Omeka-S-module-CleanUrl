@@ -2,11 +2,6 @@
 namespace CleanUrl;
 
 return [
-    'view_manager' => [
-        'template_path_stack' => [
-            dirname(__DIR__) . '/view',
-        ],
-    ],
     'view_helpers' => [
         'invokables' => [
             'url' => View\Helper\CleanUrl::class,

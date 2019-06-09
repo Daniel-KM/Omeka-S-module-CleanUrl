@@ -1,6 +1,8 @@
 <?php
 namespace CleanUrl;
 
+require_once __DIR__ . '/src/Module/AbstractGenericModule.php';
+
 /*
  * Clean Url
  *
@@ -11,9 +13,9 @@ namespace CleanUrl;
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
+use CleanUrl\Module\AbstractGenericModule;
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
-use Omeka\Module\AbstractModule;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\Controller\AbstractController;
@@ -21,13 +23,8 @@ use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\View\Renderer\PhpRenderer;
 
-class Module extends AbstractModule
+class Module extends AbstractGenericModule
 {
-    public function getConfig()
-    {
-        return include __DIR__ . '/config/module.config.php';
-    }
-
     public function onBootstrap(MvcEvent $event)
     {
         parent::onBootstrap($event);
@@ -37,68 +34,16 @@ class Module extends AbstractModule
 
     public function install(ServiceLocatorInterface $serviceLocator)
     {
-        $this->manageSettings($serviceLocator->get('Omeka\Settings'), 'install');
+        parent::install($serviceLocator);
         $this->cacheItemSetsRegex($serviceLocator);
-    }
-
-    public function uninstall(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->manageSettings($serviceLocator->get('Omeka\Settings'), 'uninstall');
-    }
-
-    public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
-    {
-        $settings = $serviceLocator->get('Omeka\Settings');
-        $config = include __DIR__ . '/config/module.config.php';
-
-        if (version_compare($oldVersion, '3.14', '<')) {
-            $settings->set('clean_url_identifier_property',
-                (int) $settings->get('clean_url_identifier_property'));
-
-            $settings->set('clean_url_item_allowed',
-                unserialize($settings->get('clean_url_item_allowed')));
-            $settings->set('clean_url_media_allowed',
-                unserialize($settings->get('clean_url_media_allowed')));
-
-            $this->cacheItemSetsRegex($serviceLocator);
-        }
-
-        if (version_compare($oldVersion, '3.15.3', '<')) {
-            foreach ($config[strtolower(__NAMESPACE__)]['config'] as $name => $value) {
-                $oldName = str_replace('cleanurl_', 'clean_url_', $name);
-                $settings->set($name, $settings->get($oldName, $value));
-                $settings->delete($oldName);
-            }
-        }
-
-        if (version_compare($oldVersion, '3.15.5', '<')) {
-            $settings->set('cleanurl_use_admin',
-                $config[strtolower(__NAMESPACE__)]['config']['cleanurl_use_admin']);
-        }
-    }
-
-    protected function manageSettings($settings, $process, $key = 'config')
-    {
-        $config = require __DIR__ . '/config/module.config.php';
-        $defaultSettings = $config[strtolower(__NAMESPACE__)][$key];
-        foreach ($defaultSettings as $name => $value) {
-            switch ($process) {
-                case 'install':
-                    $settings->set($name, $value);
-                    break;
-                case 'uninstall':
-                    $settings->delete($name);
-                    break;
-            }
-        }
     }
 
     public function getConfigForm(PhpRenderer $renderer)
     {
         $services = $this->getServiceLocator();
+
         $config = $services->get('Config');
         $settings = $services->get('Omeka\Settings');
-        $form = $services->get('FormElementManager')->get(ConfigForm::class);
 
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
@@ -111,12 +56,22 @@ class Module extends AbstractModule
             $data['clean_url_admin'][$name] = $settings->get($name, $value);
         }
 
+        $form = $services->get('FormElementManager')->get(ConfigForm::class);
         $form->init();
         $form->setData($data);
 
-        return $renderer->render('clean-url/module/config', [
-            'form' => $form,
-        ]);
+        $view = $renderer;
+        $translate = $view->plugin('translate');
+        $view->headStyle()->appendStyle('.inputs label { display: block; }');
+        $form->prepare();
+
+        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.')
+            . '<br />'
+            . sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>')
+            . '<br />'
+            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>')
+            . $view->formCollection($form);
+        return $html;
     }
 
     public function handleConfigForm(AbstractController $controller)
