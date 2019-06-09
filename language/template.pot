@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-10 00:00+0200\n"
+"POT-Creation-Date: 2019-06-11 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Module.php:272
+#: Module.php:70 view/clean-url/module/config.phtml:8
+msgid ""
+"\"CleanUrl\" plugin allows to have clean, readable and search engine "
+"optimized Urls like http://example.com/my_item_set/item_identifier."
+msgstr ""
+
+#: Module.php:72 view/clean-url/module/config.phtml:10
+#, php-format
+msgid "See %s for more information."
+msgstr ""
+
+#: Module.php:74 view/clean-url/module/config.phtml:12
+#, php-format
+msgid ""
+"%sNote%s: identifiers should never contain reserved characters such \"/\" or "
+"\"%%\"."
+msgstr ""
+
+#: Module.php:229
 msgid "CleanUrl identifier"
 msgstr ""
 
-#: Module.php:274
+#: Module.php:231
 msgid "[none]"
 msgstr ""
 
@@ -106,34 +124,16 @@ msgstr ""
 msgid "Select the allowed formats for urls of files."
 msgstr ""
 
-#: src/Form/ConfigForm.php:237
+#: src/Form/ConfigForm.php:236
 msgid ""
 "The generic name to use if generic identifier is selected above, for example "
 "\"file/\", \"record/\" or \"image/\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:238
+#: src/Form/ConfigForm.php:237
 msgid ""
 "In the first case, currently, it should be different from the name used for "
 "items."
-msgstr ""
-
-#: view/clean-url/module/config.phtml:8
-msgid ""
-"\"CleanUrl\" plugin allows to have clean, readable and search engine "
-"optimized Urls like http://example.com/my_item_set/item_identifier."
-msgstr ""
-
-#: view/clean-url/module/config.phtml:10
-#, php-format
-msgid "See %s for more information."
-msgstr ""
-
-#: view/clean-url/module/config.phtml:12
-#, php-format
-msgid ""
-"%sNote%s: identifiers should never contain reserved characters such \"/\" or "
-"\"%%\"."
 msgstr ""
 
 #: src/Form/ConfigForm.php:21
@@ -188,7 +188,7 @@ msgstr ""
 msgid "Allowed urls for items"
 msgstr ""
 
-#: src/Form/ConfigForm.php:176 src/Form/ConfigForm.php:236
+#: src/Form/ConfigForm.php:176 src/Form/ConfigForm.php:235
 msgid "Generic name to add before item identifier"
 msgstr ""
 
@@ -230,23 +230,23 @@ msgstr ""
 msgid "Allowed urls for medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:249
+#: src/Form/ConfigForm.php:248
 msgid "Admin Interface"
 msgstr ""
 
-#: src/Form/ConfigForm.php:258
+#: src/Form/ConfigForm.php:257
 msgid "Use in admin board"
 msgstr ""
 
-#: src/Form/ConfigForm.php:259
+#: src/Form/ConfigForm.php:258
 msgid "If checked, the clean url will be used in the admin board."
 msgstr ""
 
-#: src/Form/ConfigForm.php:270
+#: src/Form/ConfigForm.php:269
 msgid "Display identifier in admin resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:271
+#: src/Form/ConfigForm.php:270
 msgid ""
 "If checked, the identifier of each item will be displayed in the admin item "
 "show page."

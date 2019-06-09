@@ -16,7 +16,11 @@ This [Omeka S] module is a rewrite of the [Clean Url plugin] for [Omeka] by
 Installation
 ------------
 
-Uncompress files and rename module folder "CleanUrl".
+This module require the module [Generic] installed first.
+
+See general end user documentation for [installing a module].
+
+Uncompress files and rename module folder `CleanUrl`.
 
 Then install it like any other Omeka module and follow the config instructions.
 
@@ -143,24 +147,15 @@ This Agreement may be freely reproduced and published, provided it is not
 altered, and that no provisions are either added or removed herefrom.
 
 
-Contact
--------
+Copyright
+---------
 
-Current maintainers:
-
-* BibLibre
-* Daniel Berthereau (see [Daniel-KM] on GitHub)
+* Copyright Daniel Berthereau, 2012-2019 (see [Daniel-KM] on GitHub)
+* Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
 The upgrade for Omeka 2.0 has been built for [Mines ParisTech]. The upgrade for
 Omeka S has been built for [Paris Sciences et Lettres (PSL)].
-
-
-Copyright
----------
-
-* Copyright Daniel Berthereau, 2012-2018
-* Copyright BibLibre, 2016-2017
 
 
 [Clean Url]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
@@ -168,6 +163,8 @@ Copyright
 [Clean Url plugin]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl
 [Omeka]: https://omeka.org/classic
 [BibLibre]: https://github.com/biblibre
+[Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
+[Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
