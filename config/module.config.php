@@ -9,6 +9,7 @@ return [
     ],
     'view_helpers' => [
         'invokables' => [
+            'url' => View\Helper\CleanUrl::class,
             'Url' => View\Helper\CleanUrl::class,
         ],
         'factories' => [

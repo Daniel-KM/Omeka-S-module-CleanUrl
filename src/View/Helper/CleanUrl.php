@@ -123,6 +123,22 @@ class CleanUrl extends Url
                     }
                 }
                 break;
+
+            case 'site/resource':
+                $controller = $this->getControllerBrowse($params);
+                if ($controller) {
+                    $params['controller'] = $controller;
+                }
+                break;
+
+            case 'admin/default':
+                if ($this->view->setting('cleanurl_use_admin')) {
+                    $controller = $this->getControllerBrowse($params);
+                    if ($controller) {
+                        $params['controller'] = $controller;
+                    }
+                }
+                break;
         }
 
         // Use the standard url when no identifier exists (copy from Zend Url).
@@ -140,11 +156,14 @@ class CleanUrl extends Url
     {
         if (isset($params['id'])
             && isset($params['controller'])
-            && (in_array($params['controller'], ['item-set', 'item', 'media']))
-            && (empty($params['action']) || $params['action'] == 'show')
+            && (in_array(
+                $params['controller'],
+                ['item-set', 'item', 'media', 'Omeka\Controller\Site\ItemSet', 'Omeka\Controller\Site\Item', 'Omeka\Controller\Site\Media']
+            ))
+            && (empty($params['action']) || $params['action'] === 'show')
         ) {
             return $this->view->getResourceFullIdentifier(
-                ['type' => $params['controller'], 'id' => $params['id']],
+                ['type' => $this->controllerName($params['controller']), 'id' => $params['id']],
                 isset($params['site-slug']) ? $params['site-slug'] : null,
                 true,
                 $context,
@@ -169,5 +188,67 @@ class CleanUrl extends Url
                 $this->setRouteMatch($match);
             }
         }
+    }
+
+    /**
+     * Get the controller from the params, in all cases.
+     *
+     * @param array $params
+     * @return string Controller value.
+     */
+    protected function getControllerBrowse($params)
+    {
+        if (!isset($params['controller'])
+            || (!empty($params['action']) && $params['action'] !== 'browse')
+        ) {
+            return '';
+        }
+
+        $controller = $this->controllerName($params['controller']);
+        if (in_array($controller, ['item-set', 'item', 'media'])) {
+            return $controller;
+        }
+
+        if ($params['controller'] === 'CleanUrlController'
+            && !empty($params['resource_identifier'])
+        ) {
+            /* @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource*/
+            $resource = $this->view->getResourceFromIdentifier($params['resource_identifier']);
+            if (!$resource) {
+                $resource = $this->view->api()->read('resources', $params['resource_identifier'])->getContent();
+            }
+            if ($resource) {
+                return $resource->getControllerName();
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Normalize the controller name.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function controllerName($name)
+    {
+        $controllers = [
+            'item-set' => 'item-set',
+            'item' => 'item',
+            'media' => 'media',
+            'item_sets' => 'item-set',
+            'items' => 'item',
+            'media' => 'media',
+            'Omeka\Controller\Site\ItemSet' => 'item-set',
+            'Omeka\Controller\Site\Item' => 'item',
+            'Omeka\Controller\Site\Media' => 'media',
+            \Omeka\Entity\ItemSet::class => 'item-set',
+            \Omeka\Entity\Item::class => 'item',
+            \Omeka\Entity\Media::class => 'media',
+        ];
+        return isset($controllers['name'])
+            ? $controllers['name']
+            : null;
     }
 }
