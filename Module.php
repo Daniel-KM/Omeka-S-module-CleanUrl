@@ -11,7 +11,11 @@ namespace CleanUrl;
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
-require_once dirname(__DIR__) . '/Generic/AbstractModule.php';
+if (!class_exists(\Generic\AbstractModule::class)) {
+    require file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
+        ? dirname(__DIR__) . '/Generic/AbstractModule.php'
+        : __DIR__ . '/src/Generic/AbstractModule.php';
+}
 
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;

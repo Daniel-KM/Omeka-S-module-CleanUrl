@@ -16,7 +16,7 @@ This [Omeka S] module is a rewrite of the [Clean Url plugin] for [Omeka] by
 Installation
 ------------
 
-This module require the module [Generic] installed first.
+This module uses the optional module [Generic], that may be installed first.
 
 See general end user documentation for [installing a module].
 
