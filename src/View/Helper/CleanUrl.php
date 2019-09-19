@@ -247,8 +247,8 @@ class CleanUrl extends Url
             \Omeka\Entity\Item::class => 'item',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return isset($controllers['name'])
-            ? $controllers['name']
+        return isset($controllers[$name])
+            ? $controllers[$name]
             : null;
     }
 }
