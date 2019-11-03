@@ -28,7 +28,6 @@
 
 namespace Generic;
 
-// use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Settings\SettingsInterface;
 use Omeka\Stdlib\Message;
@@ -60,6 +59,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
     public function install(ServiceLocatorInterface $serviceLocator)
     {
         $this->setServiceLocator($serviceLocator);
+        $this->preInstall();
         $this->checkDependency();
         $this->checkDependencies();
         $this->execSqlFromFile($this->modulePath() . '/data/install/schema.sql');
@@ -67,17 +67,20 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         $this->manageMainSettings('install');
         $this->manageSiteSettings('install');
         $this->manageUserSettings('install');
+        $this->postInstall();
     }
 
     public function uninstall(ServiceLocatorInterface $serviceLocator)
     {
         $this->setServiceLocator($serviceLocator);
+        $this->preUninstall();
         $this->execSqlFromFile($this->modulePath() . '/data/install/uninstall.sql');
         $this->manageConfig('uninstall');
         $this->manageMainSettings('uninstall');
         $this->manageSiteSettings('uninstall');
         // Don't uninstall user settings, they don't belong to admin.
         // $this->manageUserSettings('uninstall');
+        $this->postUninstall();
     }
 
     public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
@@ -96,8 +99,11 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         $formManager = $services->get('FormElementManager');
         $formClass = static::NAMESPACE . '\Form\ConfigForm';
         if (!$formManager->has($formClass)) {
-            return;
+            return '';
         }
+
+        // Simplify config of modules.
+        $renderer->ckEditor();
 
         $settings = $services->get('Omeka\Settings');
 
@@ -105,14 +111,13 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
 
         $data = $this->prepareDataToPopulate($settings, 'config');
         if (is_null($data)) {
-            return;
+            return '';
         }
 
         $form = $services->get('FormElementManager')->get($formClass);
         $form->init();
         $form->setData($data);
-        $html = $renderer->formCollection($form);
-        return $html;
+        return $renderer->formCollection($form);
     }
 
     public function handleConfigForm(AbstractController $controller)
@@ -174,53 +179,81 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         return OMEKA_PATH . '/modules/' . static::NAMESPACE;
     }
 
+    protected function preInstall()
+    {
+    }
+
+    protected function postInstall()
+    {
+    }
+
+    protected function preUninstall()
+    {
+    }
+
+    protected function postUninstall()
+    {
+    }
+
     /**
      * Execute a sql from a file.
      *
      * @param string $filepath
-     * @return mixed
+     * @return int|null
      */
     protected function execSqlFromFile($filepath)
     {
         if (!file_exists($filepath) || !filesize($filepath) || !is_readable($filepath)) {
-            return;
+            return null;
         }
         $services = $this->getServiceLocator();
+        /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
         $sql = file_get_contents($filepath);
-        return $connection->exec($sql);
+
+        // Use single statements for execution.
+        // See core commit #2689ce92f.
+        $sqls = array_filter(array_map('trim', explode(";\n", $sql)));
+        foreach ($sqls as $sql) {
+            $result = $connection->exec($sql);
+        }
+
+        return $result;
     }
 
     /**
-     * Set or delete settings of the config of a module.
+     * Set, delete or update settings of the config of a module.
      *
      * @param string $process
+     * @param array $values Values to use when process is update.
      */
-    protected function manageConfig($process)
+    protected function manageConfig($process, array $values = [])
     {
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings');
-        $this->manageAnySettings($settings, 'config', $process);
+        $this->manageAnySettings($settings, 'config', $process, $values);
     }
 
     /**
-     * Set or delete main settings.
+     * Set, delete or update main settings.
      *
      * @param string $process
+     * @param array $values Values to use when process is update.
      */
-    protected function manageMainSettings($process)
+    protected function manageMainSettings($process, array $values = [])
     {
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings');
-        $this->manageAnySettings($settings, 'settings', $process);
+        $this->manageAnySettings($settings, 'settings', $process, $values);
     }
 
     /**
-     * Set or delete settings of all sites.
+     * Set, delete or update settings of all sites.
      *
      * @param string $process
+     * @param array $values Values to use when process is update, by site id.
      */
-    protected function manageSiteSettings($process)
+    protected function manageSiteSettings($process, array $values = [])
     {
         $settingsType = 'site_settings';
         $config = $this->getConfig();
@@ -231,19 +264,25 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings\Site');
         $api = $services->get('Omeka\ApiManager');
-        $sites = $api->search('sites')->getContent();
-        foreach ($sites as $site) {
-            $settings->setTargetId($site->id());
-            $this->manageAnySettings($settings, $settingsType, $process);
+        $ids = $api->search('sites', [], ['returnScalar' => 'id'])->getContent();
+        foreach ($ids as $id) {
+            $settings->setTargetId($id);
+            $this->manageAnySettings(
+                $settings,
+                $settingsType,
+                $process,
+                isset($values[$id]) ? $values[$id] : []
+            );
         }
     }
 
     /**
-     * Set or delete settings of all users.
+     * Set, delete or update settings of all users.
      *
      * @param string $process
+     * @param array $values Values to use when process is update, by user id.
      */
-    protected function manageUserSettings($process)
+    protected function manageUserSettings($process, array $values = [])
     {
         $settingsType = 'user_settings';
         $config = $this->getConfig();
@@ -254,21 +293,27 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings\User');
         $api = $services->get('Omeka\ApiManager');
-        $users = $api->search('users')->getContent();
-        foreach ($users as $user) {
-            $settings->setTargetId($user->id());
-            $this->manageAnySettings($settings, $settingsType, $process);
+        $ids = $api->search('users', [], ['returnScalar' => 'id'])->getContent();
+        foreach ($ids as $id) {
+            $settings->setTargetId($id);
+            $this->manageAnySettings(
+                $settings,
+                $settingsType,
+                $process,
+                isset($values[$id]) ? $values[$id] : []
+            );
         }
     }
 
     /**
-     * Set or delete all settings of a specific type.
+     * Set, delete or update all settings of a specific type.
      *
      * @param SettingsInterface $settings
      * @param string $settingsType
      * @param string $process
+     * @param array $values
      */
-    protected function manageAnySettings(SettingsInterface $settings, $settingsType, $process)
+    protected function manageAnySettings(SettingsInterface $settings, $settingsType, $process, array $values = [])
     {
         $config = $this->getConfig();
         $space = strtolower(static::NAMESPACE);
@@ -283,6 +328,11 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
                     break;
                 case 'uninstall':
                     $settings->delete($name);
+                    break;
+                case 'update':
+                    if (array_key_exists($name, $values)) {
+                        $settings->set($name, $values[$name]);
+                    }
                     break;
             }
         }
@@ -349,6 +399,10 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
             return;
         }
 
+        // Simplify config of settings.
+        $ckEditorHelper = $services->get('ViewHelperManager')->get('ckEditor');
+        $ckEditorHelper();
+
         $space = strtolower(static::NAMESPACE);
 
         $fieldset = $services->get('FormElementManager')->get($settingFieldsets[$settingsType]);
@@ -364,6 +418,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
      * To be overridden by module for specific keys.
      *
      * @todo Use form methods to populate.
+     *
      * @param SettingsInterface $settings
      * @param string $settingsType
      * @return array|null
@@ -382,7 +437,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
 
         $data = [];
         foreach ($defaultSettings as $name => $value) {
-            $val = $settings->get($name, $value);
+            $val = $settings->get($name, is_array($value) ? [] : null);
             $data[$name] = $val;
         }
 
@@ -394,7 +449,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
      *
      * If the default settings were never registered, it means an incomplete
      * config, install or upgrade, or a new site or a new user. In all cases,
-     * check it and save defauilt value first.
+     * check it and save default value first.
      *
      * @param SettingsInterface $settings
      * @param string $settingsType
@@ -426,9 +481,19 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
             $sql = sprintf('SELECT id, value FROM %s', $settings->getTableName());
             $stmt = $connection->query($sql);
         }
+
         $currentSettings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         $defaultSettings = $config[$space][$settingsType];
+        // Skip settings that are arrays, because the fields "multi-checkbox"
+        // and "multi-select" are removed when no value are selected, so it's
+        // not possible to determine if it's a new setting or an old empty
+        // setting currently. So fill them via upgrade in that case.
+        // TODO Find a way to save empty multi-checkboxes and multi-selects (core fix).
+        $defaultSettings = array_filter($defaultSettings, function ($v) {
+            return !is_array($v);
+        });
         $missingSettings = array_diff_key($defaultSettings, $currentSettings);
+
         foreach ($missingSettings as $name => $value) {
             $settings->set($name, $value);
         }
@@ -554,7 +619,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
      * @param string $string
      * @return array
      */
-    protected function stringToList($string)
+    public function stringToList($string)
     {
         return array_filter(array_map('trim', explode("\n", $this->fixEndOfLine($string))));
     }
