@@ -239,7 +239,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     protected function _routeResource()
     {
-        $propertyId = (int) $this->settings()->get('cleanurl_identifier_property');
+        $settings = $this->settngsi();
+        $propertyId = (int) $settings->get('cleanurl_identifier_property');
 
         $this->_resource_identifier = rawurldecode($this->params('resource_identifier'));
 
@@ -249,13 +250,13 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $bind = [];
 
         // Check the dublin core identifier of the record.
-        $prefix = $this->settings()->get('cleanurl_identifier_prefix');
+        $prefix = $settings->get('cleanurl_identifier_prefix');
         $identifiers = [];
         $identifiers[] = $prefix . $this->_resource_identifier;
         // Check with a space between prefix and identifier too.
         $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
         // Check prefix with a space and a no-break space.
-        if ($this->settings()->get('cleanurl_identifier_unspace')) {
+        if ($settings->get('cleanurl_identifier_unspace')) {
             $unspace = str_replace([' ', ' '], '', $prefix);
             if ($prefix != $unspace) {
                 $identifiers[] = $unspace . $this->_resource_identifier;
@@ -265,7 +266,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
         // If the table is case sensitive, lower-case the search.
-        if ($this->settings()->get('cleanurl_case_insensitive')) {
+        if ($settings->get('cleanurl_case_insensitive')) {
             $identifiers = array_map('strtolower', $identifiers);
             $sqlWhereValue =
                 "AND LOWER(value.value) IN ($in)";
