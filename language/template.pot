@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-11 00:00+0000\n"
+"POT-Creation-Date: 2019-11-04 00:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,29 +17,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Module.php:70 view/clean-url/module/config.phtml:8
+#: Module.php:74 view/clean-url/module/config.phtml:8
 msgid ""
 "\"CleanUrl\" plugin allows to have clean, readable and search engine "
 "optimized Urls like http://example.com/my_item_set/item_identifier."
 msgstr ""
 
-#: Module.php:72 view/clean-url/module/config.phtml:10
+#: Module.php:76 view/clean-url/module/config.phtml:10
 #, php-format
 msgid "See %s for more information."
 msgstr ""
 
-#: Module.php:74 view/clean-url/module/config.phtml:12
+#: Module.php:78 view/clean-url/module/config.phtml:12
 #, php-format
 msgid ""
 "%sNote%s: identifiers should never contain reserved characters such \"/\" or "
 "\"%%\"."
 msgstr ""
 
-#: Module.php:229
+#: Module.php:233
 msgid "CleanUrl identifier"
 msgstr ""
 
-#: Module.php:231
+#: Module.php:235
 msgid "[none]"
 msgstr ""
 
@@ -134,6 +134,23 @@ msgstr ""
 msgid ""
 "In the first case, currently, it should be different from the name used for "
 "items."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:518
+#, php-format
+msgid "This module requires the module \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:538
+#, php-format
+msgid "This module requires modules \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:606
+#, php-format
+msgid ""
+"The module \"%s\" was automatically deactivated because the dependencies are "
+"unavailable."
 msgstr ""
 
 #: src/Form/ConfigForm.php:21
