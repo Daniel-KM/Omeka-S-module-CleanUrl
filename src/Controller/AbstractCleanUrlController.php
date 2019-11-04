@@ -239,7 +239,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     protected function _routeResource()
     {
-        $settings = $this->settngsi();
+        $settings = $this->settings();
         $propertyId = (int) $settings->get('cleanurl_identifier_property');
 
         $this->_resource_identifier = rawurldecode($this->params('resource_identifier'));
