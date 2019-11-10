@@ -9,6 +9,7 @@ class PageController extends \Omeka\Controller\Site\PageController
 {
     public function showAction()
     {
+        /** @var \Omeka\Api\Representation\SiteRepresentation $site */
         $site = $this->currentSite();
         $pageSlug = $this->params('page-slug');
 
@@ -21,6 +22,12 @@ class PageController extends \Omeka\Controller\Site\PageController
                 $linkedPages = $site->linkedPages();
                 if ($linkedPages) {
                     $page = current($linkedPages);
+                } else {
+                    $view = new ViewModel;
+                    $view
+                        ->setTemplate('omeka/site/index/index')
+                        ->setVariable('site', $site);
+                    return $view;
                 }
             }
         } else {
