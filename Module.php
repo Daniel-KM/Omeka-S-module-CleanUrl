@@ -54,6 +54,7 @@ class Module extends AbstractModule
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
         foreach ($defaultSettings as $name => $value) {
+            $data['clean_url_routing'][$name] = $settings->get($name, $value);
             $data['clean_url_identifiers'][$name] = $settings->get($name, $value);
             $data['clean_url_main_path'][$name] = $settings->get($name, $value);
             $data['clean_url_item_sets'][$name] = $settings->get($name, $value);
@@ -71,11 +72,15 @@ class Module extends AbstractModule
         $view->headStyle()->appendStyle('.inputs label { display: block; }');
         $form->prepare();
 
-        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.')
+        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.') // @translate
             . '<br />'
-            . sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>')
+            . sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>') // @translate
             . '<br />'
-            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>')
+            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>') // @translate
+            . '<br />'
+            . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), '<strong>', '</strong>') // @translate
+            . '<br />'
+            . sprintf($translate('%sNote%s: When the main site option is used, this config page must be saved each time the main site slug is updated.'), '<strong>', '</strong>') // @translate
             . $view->formCollection($form);
         return $html;
     }
@@ -97,6 +102,7 @@ class Module extends AbstractModule
         }
 
         $params = array_merge(
+            $params['clean_url_routing'],
             $params['clean_url_identifiers'],
             $params['clean_url_main_path'],
             $params['clean_url_item_sets'],
@@ -127,12 +133,24 @@ class Module extends AbstractModule
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
-        $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
+        $defaultSettings = $config['cleanurl']['config'];
+        $params = array_intersect_key($params, $defaultSettings);
         foreach ($params as $name => $value) {
-            if (array_key_exists($name, $defaultSettings)) {
-                $settings->set($name, $value);
+            $settings->set($name, $value);
+        }
+
+        // Save the main slug for quicker ckeck of the route.
+        $useMainSite = $settings->get('cleanurl_main_site');
+        $mainSiteSlug = null;
+        if ($useMainSite) {
+            $mainSite = $settings->get('default_site');
+            if ($mainSite) {
+                $api = $services->get('Omeka\ApiManager');
+                $mainSite = $api->read('sites', ['id' => $mainSite])->getContent();
+                $mainSiteSlug = $mainSite ? $mainSite->slug() : null;
             }
         }
+        $settings->set('cleanurl_main_site_slug', $mainSiteSlug);
 
         $this->cacheItemSetsRegex($this->getServiceLocator());
     }
@@ -251,6 +269,7 @@ class Module extends AbstractModule
         }
 
         $settings = $serviceLocator->get('Omeka\Settings');
+
         $mainPath = $settings->get('cleanurl_main_path');
         $itemSetGeneric = $settings->get('cleanurl_item_set_generic');
         $itemGeneric = $settings->get('cleanurl_item_generic');
@@ -263,6 +282,29 @@ class Module extends AbstractModule
 
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
+
+        // It's recommended to set main site directly in config for performance.
+        $mainSiteSlug = $settings->get('cleanurl_main_site_slug');
+        if (!MAIN_SITE && $mainSiteSlug) {
+            $topRoutes = [
+                'top/resource' => 'resource',
+                'top/resource-id' => 'resource-id',
+                'top/item-set' => 'item-set',
+                'top/page-browse' => 'page-browse',
+                'top/page' => 'page',
+            ];
+            // Use the default config, but without notice for constant.
+            $config = @include __DIR__ . '/config/module.config.php';
+            // TODO The new routes should be children of top route.
+            foreach ($topRoutes as $name) {
+                $route = $config['router']['routes']['top']['child_routes'][$name];
+                $route['options']['route'] = '/' . $route['options']['route'];
+                $route['options']['defaults']['site-slug'] = $mainSiteSlug;
+                $router
+                    ->removeRoute($name)
+                    ->addRoute($name, $route);
+            }
+        }
 
         $baseRoutes = [];
         $baseRoutes['_public'] = [
