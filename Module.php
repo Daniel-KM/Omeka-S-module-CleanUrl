@@ -71,11 +71,15 @@ class Module extends AbstractModule
         $view->headStyle()->appendStyle('.inputs label { display: block; }');
         $form->prepare();
 
-        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.')
+        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.') // @translate
             . '<br />'
-            . sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>')
+            . sprintf($translate('See %s for more information.'), '<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">ReadMe</a>') // @translate
             . '<br />'
-            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>')
+            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>') // @translate
+            . '<br />'
+            . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), '<strong>', '</strong>') // @translate
+            . '<br />'
+            . $translate('To keep the original routes, the main site slug must be set in the config file "module.config.php" of the module.') // @translate
             . $view->formCollection($form);
         return $html;
     }
@@ -251,6 +255,7 @@ class Module extends AbstractModule
         }
 
         $settings = $serviceLocator->get('Omeka\Settings');
+
         $mainPath = $settings->get('cleanurl_main_path');
         $itemSetGeneric = $settings->get('cleanurl_item_set_generic');
         $itemGeneric = $settings->get('cleanurl_item_generic');
@@ -264,22 +269,33 @@ class Module extends AbstractModule
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
+
         $baseRoutes = [];
+        if (MAIN_SITE_SLUG) {
+            $baseRoutes['_top'] = [
+                '/',
+                '__SITE__',
+                'CleanUrl\Controller\Site',
+                MAIN_SITE_SLUG
+            ];
+        }
         $baseRoutes['_public'] = [
             '/s/:site-slug/',
             '__SITE__',
             'CleanUrl\Controller\Site',
+            null
         ];
         if ($settings->get('cleanurl_use_admin')) {
             $baseRoutes['_admin'] = [
                 '/admin/',
                 '__ADMIN__',
                 'CleanUrl\Controller\Admin',
+                null
             ];
         }
 
         foreach ($baseRoutes as $routeExt => $array) {
-            list($baseRoute, $space, $namespaceController) = $array;
+            list($baseRoute, $space, $namespaceController, $siteSlug) = $array;
             if (!empty($itemSetsRegex)) {
                 // Add an item set route.
                 $route = $baseRoute . $mainPath . $itemSetGeneric;
@@ -296,6 +312,7 @@ class Module extends AbstractModule
                             $space => true,
                             'controller' => 'CleanUrlController',
                             'action' => 'item-set-show',
+                            'site-slug' => $siteSlug,
                         ],
                     ],
                 ]);
@@ -314,6 +331,7 @@ class Module extends AbstractModule
                                 $space => true,
                                 'controller' => 'CleanUrlController',
                                 'action' => 'route-item-set-media',
+                                'site-slug' => $siteSlug,
                             ],
                         ],
                     ]);
@@ -333,6 +351,7 @@ class Module extends AbstractModule
                                 $space => true,
                                 'controller' => 'CleanUrlController',
                                 'action' => 'route-item-set-item-media',
+                                'site-slug' => $siteSlug,
                             ],
                         ],
                     ]);
@@ -352,6 +371,7 @@ class Module extends AbstractModule
                                 $space => true,
                                 'controller' => 'CleanUrlController',
                                 'action' => 'route-item-set-item',
+                                'site-slug' => $siteSlug,
                             ],
                         ],
                     ]);
@@ -371,6 +391,7 @@ class Module extends AbstractModule
                             'controller' => 'CleanUrlController',
                             'action' => 'route-media',
                             'item_set_id' => null,
+                            'site-slug' => $siteSlug,
                         ],
                     ],
                 ]);
@@ -389,6 +410,7 @@ class Module extends AbstractModule
                             'controller' => 'CleanUrlController',
                             'action' => 'route-item-media',
                             'item_set_id' => null,
+                            'site-slug' => $siteSlug,
                         ],
                     ],
                 ]);
@@ -406,6 +428,7 @@ class Module extends AbstractModule
                             $space => true,
                             'controller' => 'CleanUrlController',
                             'action' => 'items-browse',
+                            'site-slug' => $siteSlug,
                         ],
                     ],
                 ]);
@@ -419,6 +442,7 @@ class Module extends AbstractModule
                             'controller' => 'CleanUrlController',
                             'action' => 'route-item',
                             'item_set_id' => null,
+                            'site-slug' => $siteSlug,
                         ],
                     ],
                 ]);
