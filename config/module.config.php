@@ -1,6 +1,10 @@
 <?php
 namespace CleanUrl;
 
+// In order to have a main site without "/s/site-slug", fill your main site slug here.
+// TODO Use the main default site slug from the settings.
+const MAIN_SITE_SLUG = null;
+
 return [
     'view_helpers' => [
         'invokables' => [
@@ -24,6 +28,91 @@ return [
         'factories' => [
             Controller\Admin\CleanUrlController::class => Service\Controller\Admin\CleanUrlControllerFactory::class,
             Controller\Site\CleanUrlController::class => Service\Controller\Site\CleanUrlControllerFactory::class,
+        ],
+    ],
+    'router' => [
+        'routes' => [
+            'top' => [
+                'may_terminate' => true,
+                // Same routes than "site", except initial "/" and default values.
+                'child_routes' => [
+                    'resource' => [
+                        'type' => \Zend\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => ':controller[/:action]',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Omeka\Controller\Site',
+                                '__SITE__' => true,
+                                'site-slug' => MAIN_SITE_SLUG,
+                                'action' => 'browse',
+                            ],
+                            'constraints' => [
+                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            ],
+                        ],
+                    ],
+                    'resource-id' => [
+                        'type' => \Zend\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => ':controller/:id[/:action]',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Omeka\Controller\Site',
+                                '__SITE__' => true,
+                                'site-slug' => MAIN_SITE_SLUG,
+                                'action' => 'show',
+                            ],
+                            'constraints' => [
+                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'id' => '\d+',
+                            ],
+                        ],
+                    ],
+                    'item-set' => [
+                        'type' => \Zend\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => 'item-set/:item-set-id',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Omeka\Controller\Site',
+                                '__SITE__' => true,
+                                'site-slug' => MAIN_SITE_SLUG,
+                                'controller' => 'Item',
+                                'action' => 'browse',
+                            ],
+                            'constraints' => [
+                                'item-set-id' => '\d+',
+                            ],
+                        ],
+                    ],
+                    'page-browse' => [
+                        'type' => \Zend\Router\Http\Literal::class,
+                        'options' => [
+                            'route' => 'page',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Omeka\Controller\Site',
+                                '__SITE__' => true,
+                                'site-slug' => MAIN_SITE_SLUG,
+                                'controller' => 'Page',
+                                'action' => 'browse',
+                            ],
+                        ],
+                    ],
+                    'page' => [
+                        'type' => \Zend\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => 'page/:page-slug',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Omeka\Controller\Site',
+                                '__SITE__' => true,
+                                'site-slug' => MAIN_SITE_SLUG,
+                                'controller' => 'Page',
+                                'action' => 'show',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ],
     ],
     'cleanurl' => [
