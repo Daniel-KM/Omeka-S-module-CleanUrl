@@ -143,11 +143,12 @@ class Module extends AbstractModule
     protected function addAclRules()
     {
         // Allow all access to the controller, because there will be a forward.
-        $services = $this->getServiceLocator();
-        $acl = $services->get('Omeka\Acl');
-        $acl->allow(null, [Controller\Site\CleanUrlController::class]);
+        $acl = $this->getServiceLocator()->get('Omeka\Acl');
         $roles = $acl->getRoles();
-        $acl->allow($roles, [Controller\Admin\CleanUrlController::class]);
+        $acl
+            ->allow(null, [Controller\Site\CleanUrlController::class])
+            ->allow($roles, [Controller\Admin\CleanUrlController::class])
+        ;
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)

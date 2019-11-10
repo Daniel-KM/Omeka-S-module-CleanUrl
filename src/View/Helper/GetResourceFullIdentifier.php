@@ -125,6 +125,9 @@ class GetResourceFullIdentifier extends AbstractHelper
                         }
 
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
+
+                    default:
+                        break;
                 }
                 break;
 
@@ -194,7 +197,13 @@ class GetResourceFullIdentifier extends AbstractHelper
                             $itemIdentifier = $item->id();
                         }
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
+
+                    default:
+                        break;
                 }
+                break;
+
+            default:
                 break;
         }
 
@@ -260,7 +269,7 @@ class GetResourceFullIdentifier extends AbstractHelper
     protected function _isFormatAllowed($format, $resourceName)
     {
         if (empty($format)) {
-            return;
+            return null;
         }
 
         switch ($resourceName) {
@@ -271,6 +280,9 @@ class GetResourceFullIdentifier extends AbstractHelper
             case 'media':
                 $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
                 return in_array($format, $allowedForMedia);
+
+            default:
+                return null;
         }
     }
 
@@ -285,20 +297,21 @@ class GetResourceFullIdentifier extends AbstractHelper
         switch ($resourceName) {
             case 'items':
                 $allowedForItems = $this->view->setting('cleanurl_item_allowed');
-                if (in_array('generic', $allowedForItems)) {
-                    return 'generic';
-                }
-                break;
+                return in_array('generic', $allowedForItems)
+                    ? 'generic'
+                    : null;
 
             case 'media':
                 $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
                 if (in_array('generic_item', $allowedForMedia)) {
                     return 'generic_item';
                 }
-                if (in_array('generic', $allowedForMedia)) {
-                    return 'generic';
-                }
-                break;
+                return in_array('generic', $allowedForMedia)
+                    ? 'generic'
+                    : null;
+
+            default:
+                return null;
         }
     }
 }
