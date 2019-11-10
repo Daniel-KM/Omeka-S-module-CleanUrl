@@ -9,8 +9,11 @@ instead of `https://example.com/item/internal_code`. Used identifiers come from
 standard Dublin Core metadata, or from a specific field, so they are easy to
 manage.
 
-This [Omeka S] module is a rewrite of the [Clean Url plugin] for [Omeka] by
-[BibLibre] and intends to provide the same features as the original plugin.
+Furthermore, it makes possible to use a main site and additional sites, like in
+Omeka Classic, so the main site won‘t start with "/s/site-slug".
+
+This [Omeka S] module is based on a rewrite of the [Clean Url plugin] for [Omeka]
+by [BibLibre] and intends to provide the same features as the original plugin.
 
 
 Installation
@@ -33,6 +36,17 @@ the admin theme. They are case insensitive.
 
 This module may be used with the module [Archive Repertory] to set similar paths
 for real files (item_set_identifier / item_identifier / true_filename).
+
+### Main site
+
+In some cases, Omeka S is used like in Omeka Classic, with a main site and some
+exhibits or decentralized sites (see omeka/omeka-s#870). In such cases, the
+prefix "/s/site-slug" is useless and not seo and user friendly.
+
+To set the main site:
+- first, set the default site in the main settings of Omeka;
+- second, copy the file [config/routes.main_slug.php] in the Omeka config folder;
+- third, fill the slug of the main site as const `MAIN_SITE_SLUG`.
 
 ### Identifiers ###
 
@@ -165,6 +179,7 @@ Omeka S has been built for [Paris Sciences et Lettres (PSL)].
 [BibLibre]: https://github.com/biblibre
 [Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[config/routes.main_slug.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/routes.main_slug.php#L9
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
