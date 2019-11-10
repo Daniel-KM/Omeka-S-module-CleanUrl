@@ -16,28 +16,6 @@ class ConfigForm extends Form implements TranslatorAwareInterface
     {
         $this->add([
             'type' => Fieldset::class,
-            'name' => 'clean_url_routing',
-            'options' => [
-                'label' => 'Main routing', // @translate
-            ],
-        ]);
-        $mainFieldset = $this->get('clean_url_routing');
-        $mainFieldset
-            ->add([
-                'name' => 'cleanurl_main_site',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Make main site available without "/s/site-slug"', // @translate
-                    'info' => $this->translate('This option can be set directly in the file module.config.php for a slightly better performance.') // @translate
-                        . ' ' . $this->translate('This config page must be saved when the main site slug is updated.'), // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_main_site',
-                ],
-            ]);
-
-        $this->add([
-            'type' => Fieldset::class,
             'name' => 'clean_url_identifiers',
             'options' => [
                 'label' => 'Identifiers', // @translate

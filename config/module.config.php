@@ -117,8 +117,6 @@ return [
     ],
     'cleanurl' => [
         'config' => [
-            'cleanurl_main_site' => false,
-            'cleanurl_main_site_slug' => null,
             // 10 is the hard set id of "dcterms:identifier" in default install.
             'cleanurl_identifier_property' => 10,
             'cleanurl_identifier_prefix' => 'document:',
