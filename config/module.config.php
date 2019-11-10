@@ -34,8 +34,9 @@ return [
         'routes' => [
             'top' => [
                 'may_terminate' => true,
+                // Allows to access main site resources and pages.
                 // Same routes than "site", except initial "/" and default values.
-                'child_routes' => [
+                'child_routes' => MAIN_SITE_SLUG ? [
                     'resource' => [
                         'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
@@ -111,7 +112,11 @@ return [
                             ],
                         ],
                     ],
-                ],
+                ] : [],
+            ],
+            // Override the default config to remove the slug for main site.
+            'site' => [
+                'type' => \CleanUrl\Router\Http\SegmentMain::class,
             ],
         ],
     ],
