@@ -21,6 +21,10 @@ return [
         ],
     ],
     'controllers' => [
+        // Override the page controller used for the root url.
+        'invokables' => [
+            'Omeka\Controller\Site\Page' => Controller\Site\PageController::class,
+        ],
         'factories' => [
             Controller\Admin\CleanUrlController::class => Service\Controller\Admin\CleanUrlControllerFactory::class,
             Controller\Site\CleanUrlController::class => Service\Controller\Site\CleanUrlControllerFactory::class,
@@ -29,6 +33,16 @@ return [
     'router' => [
         'routes' => [
             'top' => [
+                // Override the top controller in order to use the site homepage.
+                'options' => [
+                    'defaults' => [
+                        '__NAMESPACE__' => 'Omeka\Controller\Site',
+                        '__SITE__' => true,
+                        'site-slug' => MAIN_SITE_SLUG,
+                        'controller' => 'Page',
+                        'action' => 'show',
+                    ],
+                ],
                 'may_terminate' => true,
                 // Allows to access main site resources and pages.
                 // Same routes than "site", except initial "/" and default values.
@@ -38,9 +52,6 @@ return [
                         'options' => [
                             'route' => ':controller[/:action]',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Omeka\Controller\Site',
-                                '__SITE__' => true,
-                                'site-slug' => MAIN_SITE_SLUG,
                                 'action' => 'browse',
                             ],
                             'constraints' => [
@@ -54,9 +65,6 @@ return [
                         'options' => [
                             'route' => ':controller/:id[/:action]',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Omeka\Controller\Site',
-                                '__SITE__' => true,
-                                'site-slug' => MAIN_SITE_SLUG,
                                 'action' => 'show',
                             ],
                             'constraints' => [
@@ -71,9 +79,6 @@ return [
                         'options' => [
                             'route' => 'item-set/:item-set-id',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Omeka\Controller\Site',
-                                '__SITE__' => true,
-                                'site-slug' => MAIN_SITE_SLUG,
                                 'controller' => 'Item',
                                 'action' => 'browse',
                             ],
@@ -87,9 +92,6 @@ return [
                         'options' => [
                             'route' => 'page',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Omeka\Controller\Site',
-                                '__SITE__' => true,
-                                'site-slug' => MAIN_SITE_SLUG,
                                 'controller' => 'Page',
                                 'action' => 'browse',
                             ],
@@ -100,9 +102,6 @@ return [
                         'options' => [
                             'route' => 'page/:page-slug',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Omeka\Controller\Site',
-                                '__SITE__' => true,
-                                'site-slug' => MAIN_SITE_SLUG,
                                 'controller' => 'Page',
                                 'action' => 'show',
                             ],
