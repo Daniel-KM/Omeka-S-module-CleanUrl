@@ -40,7 +40,7 @@ for real files (item_set_identifier / item_identifier / true_filename).
 ### Main site
 
 In some cases, Omeka S is used like in Omeka Classic, with a main site and some
-exhibits or decentralized sites (see omeka/omeka-s#870). In such cases, the
+exhibits or decentralized sites (see [omeka/omeka-s#870]). In such cases, the
 prefix "/s/site-slug" is useless and not seo and user friendly.
 
 To set the main site:
@@ -179,6 +179,7 @@ Omeka S has been built for [Paris Sciences et Lettres (PSL)].
 [BibLibre]: https://github.com/biblibre
 [Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
 [config/routes.main_slug.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/routes.main_slug.php#L9
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
