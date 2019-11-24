@@ -96,6 +96,24 @@ class CleanUrl extends Url
                 if ($cleanUrl) {
                     return $cleanUrl;
                 }
+                // Manage the case where the function url() is used with
+                // different existing params.
+                if (isset($params['resource'])) {
+                    $params['controller'] = $this->controllerName($params['resource']);
+                }
+                $actions = [
+                    'item-set-show' => 'show',
+                    'route-item-set-media' => 'show',
+                    'route-item-set-item-media' => 'show',
+                    'route-item-set-item' => 'show',
+                    'route-media' => 'show',
+                    'route-item-media' => 'show',
+                    'items-browse' => 'browse',
+                    'route-item' => 'show',
+                ];
+                if (isset($params['action']) && isset($actions[$params['action']])) {
+                    $params['action'] = $actions[$params['action']];
+                }
                 break;
 
             // The representation of item sets uses a specific route and there
@@ -113,6 +131,15 @@ class CleanUrl extends Url
                         return $cleanUrl;
                     }
                 }
+                $params['controller'] = 'item';
+                $params['action'] = 'browse';
+                break;
+
+            case 'site/resource':
+                $controller = $this->getControllerBrowse($params);
+                if ($controller) {
+                    $params['controller'] = $controller;
+                }
                 break;
 
             case 'admin/id':
@@ -121,13 +148,6 @@ class CleanUrl extends Url
                     if ($cleanUrl) {
                         return $cleanUrl;
                     }
-                }
-                break;
-
-            case 'site/resource':
-                $controller = $this->getControllerBrowse($params);
-                if ($controller) {
-                    $params['controller'] = $controller;
                 }
                 break;
 
