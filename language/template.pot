@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 00:00+0100\n"
+"POT-Creation-Date: 2019-12-30 00:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,29 +17,42 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Module.php:74 view/clean-url/module/config.phtml:8
+#: Module.php:78
 msgid ""
 "\"CleanUrl\" plugin allows to have clean, readable and search engine "
 "optimized Urls like http://example.com/my_item_set/item_identifier."
 msgstr ""
 
-#: Module.php:76 view/clean-url/module/config.phtml:10
+#: Module.php:80
 #, php-format
 msgid "See %s for more information."
 msgstr ""
 
-#: Module.php:78 view/clean-url/module/config.phtml:12
+#: Module.php:83
 #, php-format
 msgid ""
 "%sNote%s: identifiers should never contain reserved characters such \"/\" or "
 "\"%%\"."
 msgstr ""
 
-#: Module.php:233
+#: Module.php:85
+#, php-format
+msgid ""
+"%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the "
+"same resource."
+msgstr ""
+
+#: Module.php:87
+msgid ""
+"To keep the original routes, the main site slug must be set in the file "
+"\"routes.main_slug.php\"."
+msgstr ""
+
+#: Module.php:243
 msgid "CleanUrl identifier"
 msgstr ""
 
-#: Module.php:235
+#: Module.php:245
 msgid "[none]"
 msgstr ""
 
@@ -57,80 +70,80 @@ msgstr ""
 msgid "Default is to use \"dcterms:identifier\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:48
+#: src/Form/ConfigForm.php:47
 msgid ""
 "Urls are built with the sanitized Dublin Core identifier with the selected "
 "prefix, for example \"item:\", \"record:\" or \"doc =\". Let empty to use "
 "simply the first identifier."
 msgstr ""
 
-#: src/Form/ConfigForm.php:49
+#: src/Form/ConfigForm.php:48
 msgid "If this identifier does not exists, the Omeka item id will be used."
 msgstr ""
 
-#: src/Form/ConfigForm.php:61
+#: src/Form/ConfigForm.php:59
 msgid "If checked, the prefix will be checked without space inside it too."
 msgstr ""
 
-#: src/Form/ConfigForm.php:62
+#: src/Form/ConfigForm.php:60
 msgid ""
 "This may be useful if the prefix is like \"record =\", but some records use "
 "\"record=\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:74
+#: src/Form/ConfigForm.php:71
 msgid ""
 "If checked, all items will be available via an insensitive url too. This "
 "option is generally useless, because searches in database are generally case "
 "insensitive by default."
 msgstr ""
 
-#: src/Form/ConfigForm.php:75
+#: src/Form/ConfigForm.php:72
 msgid ""
 "Furthermore, it can slow server responses, unless you add an index for lower "
 "texts."
 msgstr ""
 
-#: src/Form/ConfigForm.php:96
+#: src/Form/ConfigForm.php:93
 msgid ""
 "The main path to add in the beginning of the url, for example \"library/\" "
 "or \"archives/\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:97
+#: src/Form/ConfigForm.php:94
 msgid "Let empty if you do not want any."
 msgstr ""
 
-#: src/Form/ConfigForm.php:118
+#: src/Form/ConfigForm.php:115
 msgid ""
 "This main path is added before the item set name, for example \"/ "
 "my_item_sets / item set identifier\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:119
+#: src/Form/ConfigForm.php:116
 msgid ""
 "Let empty if you do not want any, so path will be \"/ item set identifier\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:160
+#: src/Form/ConfigForm.php:156
 msgid "Select the allowed formats for urls of items."
 msgstr ""
 
-#: src/Form/ConfigForm.php:161 src/Form/ConfigForm.php:218
+#: src/Form/ConfigForm.php:157 src/Form/ConfigForm.php:212
 msgid "This is useful to allow a permalink and a search engine optimized link."
 msgstr ""
 
-#: src/Form/ConfigForm.php:217
+#: src/Form/ConfigForm.php:211
 msgid "Select the allowed formats for urls of files."
 msgstr ""
 
-#: src/Form/ConfigForm.php:236
+#: src/Form/ConfigForm.php:229
 msgid ""
 "The generic name to use if generic identifier is selected above, for example "
 "\"file/\", \"record/\" or \"image/\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:237
+#: src/Form/ConfigForm.php:230
 msgid ""
 "In the first case, currently, it should be different from the name used for "
 "items."
@@ -153,6 +166,10 @@ msgid ""
 "unavailable."
 msgstr ""
 
+#: Module.php:83 Module.php:85
+msgid "</strong>"
+msgstr ""
+
 #: src/Form/ConfigForm.php:21
 msgid "Identifiers"
 msgstr ""
@@ -161,109 +178,109 @@ msgstr ""
 msgid "Field where identifier is saved"
 msgstr ""
 
-#: src/Form/ConfigForm.php:47
+#: src/Form/ConfigForm.php:46
 msgid "Prefix of identifiers to use"
 msgstr ""
 
-#: src/Form/ConfigForm.php:60
+#: src/Form/ConfigForm.php:58
 msgid "Check the prefix without space"
 msgstr ""
 
-#: src/Form/ConfigForm.php:73
+#: src/Form/ConfigForm.php:70
 msgid "Allow case insensitive identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:86
+#: src/Form/ConfigForm.php:83
 msgid "Main base path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:95
+#: src/Form/ConfigForm.php:92
 msgid "Main path to add"
 msgstr ""
 
-#: src/Form/ConfigForm.php:117
+#: src/Form/ConfigForm.php:114
 msgid "Generic name to add before item set identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:142
+#: src/Form/ConfigForm.php:139
 msgid "Default url of items"
 msgstr ""
 
-#: src/Form/ConfigForm.php:143
+#: src/Form/ConfigForm.php:140
 msgid "Select the default format of the url for items."
 msgstr ""
 
-#: src/Form/ConfigForm.php:145 src/Form/ConfigForm.php:163
+#: src/Form/ConfigForm.php:142 src/Form/ConfigForm.php:159
 msgid "/ generic / item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:146 src/Form/ConfigForm.php:164
+#: src/Form/ConfigForm.php:143 src/Form/ConfigForm.php:160
 msgid "/ item set identifier / item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:159
+#: src/Form/ConfigForm.php:155
 msgid "Allowed urls for items"
 msgstr ""
 
-#: src/Form/ConfigForm.php:176 src/Form/ConfigForm.php:235
+#: src/Form/ConfigForm.php:171 src/Form/ConfigForm.php:228
 msgid "Generic name to add before item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:177
+#: src/Form/ConfigForm.php:172
 msgid ""
 "The generic name to use if generic identifier is selected above, for example "
 "\"item/\", \"record/\" or \"doc/\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:188
+#: src/Form/ConfigForm.php:183
 msgid "Medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:197
+#: src/Form/ConfigForm.php:192
 msgid "Default url of medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:198
+#: src/Form/ConfigForm.php:193
 msgid "Select the default format of the url for medias."
 msgstr ""
 
-#: src/Form/ConfigForm.php:200 src/Form/ConfigForm.php:220
+#: src/Form/ConfigForm.php:195 src/Form/ConfigForm.php:214
 msgid "/ generic / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:201 src/Form/ConfigForm.php:221
+#: src/Form/ConfigForm.php:196 src/Form/ConfigForm.php:215
 msgid "/ generic / item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:202 src/Form/ConfigForm.php:222
+#: src/Form/ConfigForm.php:197 src/Form/ConfigForm.php:216
 msgid "/ item_set identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:203 src/Form/ConfigForm.php:223
+#: src/Form/ConfigForm.php:198 src/Form/ConfigForm.php:217
 msgid "/ item set identifier / item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:216
+#: src/Form/ConfigForm.php:210
 msgid "Allowed urls for medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:248
+#: src/Form/ConfigForm.php:241
 msgid "Admin Interface"
 msgstr ""
 
-#: src/Form/ConfigForm.php:257
+#: src/Form/ConfigForm.php:250
 msgid "Use in admin board"
 msgstr ""
 
-#: src/Form/ConfigForm.php:258
+#: src/Form/ConfigForm.php:251
 msgid "If checked, the clean url will be used in the admin board."
 msgstr ""
 
-#: src/Form/ConfigForm.php:269
+#: src/Form/ConfigForm.php:261
 msgid "Display identifier in admin resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:270
+#: src/Form/ConfigForm.php:262
 msgid ""
 "If checked, the identifier of each item will be displayed in the admin item "
 "show page."
