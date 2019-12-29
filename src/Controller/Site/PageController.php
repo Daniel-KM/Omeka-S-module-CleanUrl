@@ -32,7 +32,7 @@ class PageController extends \Omeka\Controller\Site\PageController
             }
         } else {
             $page = $this->api()->read('site_pages', [
-                'slug' => $this->params('page-slug'),
+                'slug' => $pageSlug,
                 'site' => $site->id(),
             ])->getContent();
         }
