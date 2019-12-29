@@ -71,13 +71,14 @@ class GetResourceFullIdentifier extends AbstractHelper
                 return '';
             }
 
-            $resource = $this->view->api()
-                ->read(
-                    $resourceNames[$resource['type']],
-                    $resource['id']
-                )
-                ->getContent();
-            if (empty($resource)) {
+            try {
+                $resource = $this->view->api()
+                    ->read(
+                        $resourceNames[$resource['type']],
+                        ['id' => $resource['id']]
+                    )
+                    ->getContent();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
                 return '';
             }
         }
