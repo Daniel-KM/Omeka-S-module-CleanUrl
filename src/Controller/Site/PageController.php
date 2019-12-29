@@ -7,6 +7,12 @@ use Zend\View\Model\ViewModel;
 
 class PageController extends \Omeka\Controller\Site\PageController
 {
+    public function browseAction()
+    {
+        return parent::browseAction()
+            ->setTemplate('omeka/site/page/browse');
+    }
+
     public function showAction()
     {
         /** @var \Omeka\Api\Representation\SiteRepresentation $site */
