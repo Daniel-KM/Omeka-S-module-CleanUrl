@@ -273,28 +273,27 @@ class Module extends AbstractModule
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-
         $baseRoutes = [];
         if (MAIN_SITE_SLUG) {
             $baseRoutes['_top'] = [
                 '/',
                 '__SITE__',
                 'CleanUrl\Controller\Site',
-                MAIN_SITE_SLUG
+                MAIN_SITE_SLUG,
             ];
         }
         $baseRoutes['_public'] = [
             '/s/:site-slug/',
             '__SITE__',
             'CleanUrl\Controller\Site',
-            null
+            null,
         ];
         if ($settings->get('cleanurl_use_admin')) {
             $baseRoutes['_admin'] = [
                 '/admin/',
                 '__ADMIN__',
                 'CleanUrl\Controller\Admin',
-                null
+                null,
             ];
         }
 
