@@ -22,7 +22,7 @@ class PageController extends \Omeka\Controller\Site\PageController
         // @see \Omeka\Controller\Site\IndexController::indexAction()
         else {
             // Redirect to the configured homepage, if it exists.
-            $page = $site->homepage();
+            $page = method_exists($site, 'homepage') ? $site->homepage() : null;
             if (!$page) {
                 // Redirect to the first linked page, if it exists.
                 $linkedPages = $site->linkedPages();
