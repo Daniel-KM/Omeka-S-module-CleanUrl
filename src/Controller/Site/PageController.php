@@ -1,30 +1,30 @@
 <?php
 namespace CleanUrl\Controller\Site;
 
-use const CleanUrl\MAIN_SITE_SLUG;
-
 use Zend\View\Model\ViewModel;
 
 class PageController extends \Omeka\Controller\Site\PageController
 {
-    public function browseAction()
-    {
-        return parent::browseAction()
-            ->setTemplate('omeka/site/page/browse');
-    }
-
     public function showAction()
     {
         /** @var \Omeka\Api\Representation\SiteRepresentation $site */
         $site = $this->currentSite();
-        $pageSlug = $this->params('page-slug');
 
-        if (MAIN_SITE_SLUG && !$pageSlug) {
-            // @see \Omeka\Controller\Site\IndexController::indexAction()
-            // Display the configured homepage, if it exists.
+        // @see \Omeka\Controller\Site\PageController::indexAction()
+        $pageSlug = $this->params('page-slug');
+        if ($pageSlug) {
+            $page = $this->api()->read('site_pages', [
+                'slug' => $pageSlug,
+                'site' => $site->id(),
+            ])->getContent();
+        }
+
+        // @see \Omeka\Controller\Site\IndexController::indexAction()
+        else {
+            // Redirect to the configured homepage, if it exists.
             $page = $site->homepage();
             if (!$page) {
-                // Display the first linked page, if it exists.
+                // Redirect to the first linked page, if it exists.
                 $linkedPages = $site->linkedPages();
                 if ($linkedPages) {
                     $page = current($linkedPages);
@@ -36,18 +36,14 @@ class PageController extends \Omeka\Controller\Site\PageController
                     return $view;
                 }
             }
-        } else {
-            $page = $this->api()->read('site_pages', [
-                'slug' => $pageSlug,
-                'site' => $site->id(),
-            ])->getContent();
         }
+
+        // Copy of parent method.
 
         $this->viewHelpers()->get('sitePagePagination')->setPage($page);
 
         $view = new ViewModel;
         $view
-            ->setTemplate('omeka/site/page/show')
             ->setVariable('site', $site)
             ->setVariable('page', $page)
             ->setVariable('displayNavigation', true);
