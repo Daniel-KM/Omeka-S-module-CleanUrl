@@ -2,6 +2,11 @@
 namespace CleanUrl;
 
 return [
+    'view_manager' => [
+        'controller_map' => [
+            Controller\Site\PageController::class => 'omeka/site/page',
+        ],
+    ],
     'view_helpers' => [
         'invokables' => [
             'url' => View\Helper\CleanUrl::class,
