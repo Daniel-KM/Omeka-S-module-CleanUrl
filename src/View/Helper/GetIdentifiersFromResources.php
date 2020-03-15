@@ -117,8 +117,8 @@ class GetIdentifiersFromResources extends AbstractHelper
                 ->select([
                     // Should be the first column.
                     'id' => 'value.resource_id',
-                    // 'identifier' => $qb->expr()->trim($qb->expr()->substring('value.text', strlen($prefix) + 1)),
-                    'identifier' => '(TRIM(SUBSTR(value.value, ' . (strlen($prefix) + 1) . ')))',
+                    // 'identifier' => $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($prefix) + 1)),
+                    'identifier' => '(TRIM(SUBSTR(value.value, ' . (mb_strlen($prefix) + 1) . ')))',
                 ])
                 ->andWhere('value.value LIKE :value_value')
                 ->setParameter('value_value', $prefix . '%');
