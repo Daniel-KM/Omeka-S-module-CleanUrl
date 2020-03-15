@@ -99,12 +99,12 @@ class GetResourceIdentifier extends AbstractHelper
         // Keep only the identifier without the configured prefix.
         if ($identifier) {
             if ($prefix) {
-                $length = $checkUnspace && strpos($identifier, $unspace) === 0
+                $length = $checkUnspace && mb_strpos($identifier, $unspace) === 0
                     // May be a prefix with space.
-                    ? strlen($unspace)
+                    ? mb_strlen($unspace)
                     // Normal prefix.
-                    : strlen($prefix);
-                $identifier = trim(substr($identifier, $length));
+                    : mb_strlen($prefix);
+                $identifier = trim(mb_substr($identifier, $length));
             }
             return $rawUrlEncode
                 ? rawurlencode($identifier)

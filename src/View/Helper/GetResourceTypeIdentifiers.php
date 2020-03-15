@@ -73,8 +73,8 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         if ($prefix) {
             $qb
                 ->select([
-                    // $qb->expr()->trim($qb->expr()->substring('value.text', strlen($this->prefix) + 1)),
-                    '(TRIM(SUBSTR(value.value, ' . (strlen($prefix) + 1) . ')))',
+                    // $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($this->prefix) + 1)),
+                    '(TRIM(SUBSTR(value.value, ' . (mb_strlen($prefix) + 1) . ')))',
                 ])
                 ->andWhere('value.value LIKE :value_value')
                 ->setParameter('value_value', $prefix . '%');

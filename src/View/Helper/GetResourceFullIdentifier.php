@@ -251,7 +251,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $siteSlug = '';
                     }
                 }
-                $basePath = strlen($siteSlug)
+                $basePath = mb_strlen($siteSlug)
                     ? $this->view->basePath('s/' . $siteSlug)
                     : $this->view->basePath();
                 break;
