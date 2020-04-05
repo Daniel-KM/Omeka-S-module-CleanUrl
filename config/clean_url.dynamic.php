@@ -9,8 +9,9 @@ namespace CleanUrl;
 
 /**
  * @todo Remove the "s", that is not required, but kept for now for modules and themes that don't use helper url(). Anyway it's not working.
+ * @todo Create the list dynamically from the routes.
  */
-const SLUGS_CORE = 'item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install|files|s';
+const SLUGS_CORE = 'item|item-set|media|page|api|api-context|admin|asset|login|logout|create-password|forgot-password|maintenance|migrate|install|files|s|index|job|log|module|property|resource|resource-class|resource-template|setting|site|system-info|task|user|value|vocabulary';
 
 /**
  * Allows to have a main site url without "/s/site-slug".

@@ -3,6 +3,8 @@ namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
 use const CleanUrl\SLUG_SITE;
+use const CleanUrl\SLUGS_CORE;
+use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
 
 use Traversable;
@@ -364,7 +366,6 @@ class CleanRoute implements RouteInterface
             // }
 
             if ($result) {
-                $matchedLength = mb_strlen($matches[0]);
                 $params = [];
                 foreach ($matches as $key => $value) {
                     if (is_numeric($key) || is_int($key) || $value === '') {
@@ -373,6 +374,16 @@ class CleanRoute implements RouteInterface
                         $params[$key] = rawurldecode($value);
                     }
                 }
+
+                // Check if the resource identifiers is a reserved word.
+                // They are managed here currently for simplicity.
+                foreach ($params as $key => $value) {
+                    if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . $value . '|') !== false) {
+                        continue 2;
+                    }
+                }
+
+                $matchedLength = mb_strlen($matches[0]);
 
                 if (isset($params['site_slug'])) {
                     $params['site-slug'] = $params['site_slug'];
