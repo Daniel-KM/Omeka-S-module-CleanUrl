@@ -135,16 +135,25 @@ class CleanRoute implements RouteInterface
         $regexItemIdentifier = '(?P<item_identifier>[^/]+)';
         // $regexMediaIdentifier = '(?P<media_identifier>[^/]+)';
 
+        // Prepare only needed routes, but sometime status is not yet known.
+        // $isUnknown = !$this->settings['is_public'] && !$this->settings['is_admin'];
+        // $isPublic = $this->settings['is_public'] || $isUnknown;
+        // $isAdmin = ($this->settings['admin_use'] && $this->settings['is_admin']) || $isUnknown;
+        $isPublic = true;
+        $isAdmin = $this->settings['admin_use'];
+
         $baseRoutes = [];
-        $baseRoutes['_public'] = [
-            '/' . SLUG_SITE . ':site-slug/',
-            '__SITE__',
-            'CleanUrl\Controller\Site',
-            null,
-            '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
-            '/' . SLUG_SITE . '/%site-slug%/',
-        ];
-        if ($this->settings['admin_use']) {
+        if ($isPublic) {
+            $baseRoutes['_public'] = [
+                '/' . SLUG_SITE . ':site-slug/',
+                '__SITE__',
+                'CleanUrl\Controller\Site',
+                null,
+                '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
+                '/' . SLUG_SITE . '/%site-slug%/',
+            ];
+        }
+        if ($isAdmin) {
             $baseRoutes['_admin'] = [
                 '/admin/',
                 '__ADMIN__',
@@ -154,7 +163,7 @@ class CleanRoute implements RouteInterface
                 '/admin/',
             ];
         }
-        if (SLUG_MAIN_SITE) {
+        if ($isPublic && SLUG_MAIN_SITE) {
             $baseRoutes['_top'] = [
                 '/',
                 '__SITE__',
