@@ -1,13 +1,20 @@
 <?php
 namespace CleanUrl;
 
-// TODO Remove the "s", that is not required, but kept for now for modules and themes that don't use helper url(). Anyway it's not working.
-const SLUGS_CORE = 'item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install|files|s';
+// The check of "slugs_site" may avoid an issue when empty, after install or
+// during/after upgrade. When empty, there must be a slug site (default "s/").
+if (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE)) {
+    $slugSite = SLUG_SITE;
+    $regexSite = SLUGS_SITE;
+} else {
+    $slugSite = SLUG_SITE_DEFAULT;
+    $regexSite = '[a-zA-Z0-9_-]+';
+}
 
 // Prepare to get the slug of a page, that can be anything except reserved strings.
 $regexSitePage = SLUG_PAGE
     . '(?:'
-    . (SLUG_SITE ? rtrim(SLUG_SITE . '/') . '|' : '')
+    . ($slugSite ? rtrim($slugSite . '/') . '|' : '')
     . (SLUG_PAGE ? rtrim(SLUG_PAGE . '/') . '|' : '')
     . SLUGS_CORE
     // Common modules and reserved strings.
@@ -136,7 +143,10 @@ return [
             'site' => [
                 'type' => \CleanUrl\Router\Http\SegmentMain::class,
                 'options' => [
-                    'route' => '/' . SLUG_SITE . ':site-slug',
+                    'route' => '/' . $slugSite . ':site-slug',
+                    'constraints' => [
+                        'site-slug' => $regexSite,
+                    ],
                 ],
                 'child_routes' => [
                     'page-browse' => [
@@ -172,7 +182,7 @@ return [
             'cleanurl_media_default' => 'generic',
             'cleanurl_media_allowed' => ['generic', 'item_set_item'],
             'cleanurl_media_generic' => 'medium/',
-            'cleanurl_site_slug' => SLUG_SITE,
+            'cleanurl_site_slug' => $slugSite,
             'cleanurl_page_slug' => SLUG_PAGE,
             'cleanurl_use_admin' => true,
             'cleanurl_display_admin_show_identifier' => true,
