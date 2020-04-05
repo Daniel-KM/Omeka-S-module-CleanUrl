@@ -127,6 +127,9 @@ class Module extends AbstractModule
         $settings = $services->get('Omeka\Settings');
         $basePath = $services->get('ViewHelperManager')->get('basePath');
 
+        // TODO Don't call status, it breaks construction of urls (media).
+        // $status = $services->get('Omeka\Status');
+
         $router
             ->addRoute('clean-url', [
                 'type' => \CleanUrl\Router\Http\CleanRoute::class,
@@ -145,7 +148,9 @@ class Module extends AbstractModule
                         'media_generic' => $settings->get('cleanurl_media_generic'),
                         'item_allowed' => $settings->get('cleanurl_item_allowed'),
                         'media_allowed' => $settings->get('cleanurl_media_allowed'),
-                        'admin_use' => $settings->get('cleanurl_admin_use') && $services->get('Omeka\Status')->isAdminRequest(),
+                        // 'is_public' => $status->isSiteRequest(),
+                        // 'is_admin' => $status->isAdminRequest(),
+                        'admin_use' => $settings->get('cleanurl_admin_use'),
                         'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                         'regex' => $settings->get('cleanurl_regex'),
                     ],
