@@ -2,6 +2,7 @@
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
+use const CleanUrl\SLUG_PAGE;
 use const CleanUrl\SLUG_SITE;
 use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
@@ -23,6 +24,11 @@ use Zend\Stdlib\RequestInterface as Request;
  */
 class CleanRoute implements RouteInterface
 {
+    /**
+     * @var \Omeka\Api\Manager
+     */
+    protected $api;
+
     /**
      * @var string
      */
@@ -50,8 +56,9 @@ class CleanRoute implements RouteInterface
      */
     protected $assembledParams = [];
 
-    public function __construct($basePath = '', array $settings = [])
+    public function __construct($api = null, $basePath = '', array $settings = [])
     {
+        $this->api = $api;
         $this->basePath = $basePath;
         $this->settings = $settings + [
             'main_path_full' => null,
@@ -81,11 +88,12 @@ class CleanRoute implements RouteInterface
         }
 
         $options += [
+            'api' => null,
             'base_path' => '',
             'settings' => [],
         ];
 
-        return new static($options['base_path'], $options['settings']);
+        return new static($options['api'], $options['base_path'], $options['settings']);
     }
 
     protected function prepareCleanRoutes()
@@ -416,12 +424,36 @@ class CleanRoute implements RouteInterface
                     }
                 }
 
-                $matchedLength = mb_strlen($matches[0]);
-
                 if (isset($params['site_slug'])) {
                     $params['site-slug'] = $params['site_slug'];
                     unset($params['site_slug']);
                 }
+                // Check for page when there is no page prefix and no main path.
+                $siteSlug = isset($params['site-slug']) ? $params['site-slug'] : SLUG_MAIN_SITE;
+                $checkPage = $siteSlug
+                    && !mb_strlen(SLUG_PAGE)
+                    && ($this->settings['main_short'] || !mb_strlen($this->settings['main_path_full']));
+                if ($checkPage) {
+                    $siteId = $this->api->read('sites', ['slug' => $siteSlug])->getContent()->id();
+                    // Only check the first params, next ones are useless.
+                    // The first may be a resource identifier or a slug.
+                    foreach ($params as $key => $value) {
+                        if (in_array($key, ['item_set_identifier', 'item_identifier', 'resource_identifier'])) {
+                            break;
+                        }
+                    }
+                    $identifier = $value;
+                    // Api doesn't allow to search page by slug.
+                    try {
+                        $result = $this->api->read('site_pages', ['site' => $siteId, 'slug' => $identifier])->getContent();
+                        // Use the default routing.
+                        // TODO Redirect directly to the page.
+                        return null;
+                    } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                    }
+                }
+
+                $matchedLength = mb_strlen($matches[0]);
 
                 return new RouteMatch(array_merge($data['defaults'], $params), $matchedLength);
             }
