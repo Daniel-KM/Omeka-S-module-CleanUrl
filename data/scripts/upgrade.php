@@ -85,8 +85,14 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     }
     $settings->set('cleanurl_media_allowed', $routes);
 
+    $mainPath = $settings->get('cleanurl_main_path');
+    $settings->set('cleanurl_main_path_full', $mainPath);
+    if ($mainPath) {
+        $settings->set('cleanurl_main_path_full_encoded', $this->encode(rtrim($mainPath, '/')) . '/');
+    }
+
     $settings->set('cleanurl_regex', $this->prepareRegexes([
-        'main_path_full' => $settings->get('cleanurl_main_path', ''),
+        'main_path_full' => $settings->get('cleanurl_main_path_full', ''),
         'item_set_generic' => $settings->get('cleanurl_item_set_generic', ''),
         'item_generic' => $settings->get('cleanurl_item_generic', ''),
         'media_generic' => $settings->get('cleanurl_media_generic', ''),
