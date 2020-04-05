@@ -137,9 +137,6 @@ class Module extends AbstractModule
                     'base_path' => $basePath(),
                     'settings' => [
                         'default_site' => $settings->get('default_site'),
-                        'main_path' => $settings->get('cleanurl_main_path'),
-                        'main_path_2' => $settings->get('cleanurl_main_path_2'),
-                        'main_path_3' => $settings->get('cleanurl_main_path_3'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
@@ -148,6 +145,7 @@ class Module extends AbstractModule
                         'media_allowed' => $settings->get('cleanurl_media_allowed'),
                         'admin_use' => $settings->get('cleanurl_admin_use') && $services->get('Omeka\Status')->isAdminRequest(),
                         'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
+                        'regex' => $settings->get('cleanurl_regex'),
                     ],
                     'defaults' => [
                         'controller' => 'CleanUrlController',
@@ -481,6 +479,9 @@ class Module extends AbstractModule
             }
         }
 
+        // Prepare the regexes one time.
+        $params['cleanurl_regex'] = $this->prepareRegexes($params);
+
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
         foreach ($params as $name => $value) {
@@ -673,7 +674,7 @@ class Module extends AbstractModule
         $settings->set('cleanurl_item_set_regex', $regex);
     }
 
-    protected function prepareRegex($list)
+    protected function prepareRegex(array $list)
     {
         // To avoid issues with identifiers that contain another identifier, for
         // example "identifier_bis" contains "identifier", they are ordered by
@@ -692,6 +693,20 @@ class Module extends AbstractModule
         // To avoid a bug with identifiers that contain a "/", that is not
         // escaped with preg_quote().
         return str_replace('/', '\/', implode('|', $listRegex));
+    }
+
+    protected function prepareRegexes(array $params)
+    {
+        // No need to preg quote "/".
+        $replaces = [
+            '\\-' => '-',
+        ];
+        $result = [];
+        $result['main_path_full'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_main_path_full']));
+        $result['item_set_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_item_set_generic']));
+        $result['item_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_item_generic']));
+        $result['media_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_media_generic']));
+        return $result;
     }
 
     /**
