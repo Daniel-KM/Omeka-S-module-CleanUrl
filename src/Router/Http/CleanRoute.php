@@ -14,7 +14,7 @@ use Zend\Stdlib\RequestInterface as Request;
 /**
  * Manage clean urls for all Omeka resources and pages according to the config.
  *
- * @todo Store all routes of all resources and pages in the database?
+ * @todo Store all routes of all resources and pages in the database? Or use a regex route?
  *
  * Partially derived from route \Zend\Router\Http\Segment.
  * Each route is not made regex on construct, but on first check.
@@ -102,8 +102,8 @@ class CleanRoute implements RouteInterface
             'media_generic' => null,
             'item_allowed' => null,
             'media_allowed' => null,
-            'item_set_regex' => null,
             'use_admin' => null,
+            'item_set_regex' => null,
         ];
         $this->defaults = $defaults;
         $this->prepareCleanRoutes();

@@ -58,12 +58,12 @@ return [
                         'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
                             'route' => ':controller[/:action]',
-                            'defaults' => [
-                                'action' => 'browse',
-                            ],
                             'constraints' => [
                                 'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+                                'action' => 'browse',
                             ],
                         ],
                     ],
@@ -71,13 +71,13 @@ return [
                         'type' => \Zend\Router\Http\Segment::class,
                         'options' => [
                             'route' => ':controller/:id[/:action]',
-                            'defaults' => [
-                                'action' => 'show',
-                            ],
                             'constraints' => [
                                 'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'id' => '\d+',
+                            ],
+                            'defaults' => [
+                                'action' => 'show',
                             ],
                         ],
                     ],
@@ -105,9 +105,13 @@ return [
                         ],
                     ],
                     'page' => [
-                        'type' => \Zend\Router\Http\Segment::class,
+                        'type' => \CleanUrl\Router\Http\RegexPage::class,
                         'options' => [
-                            'route' => 'page/:page-slug',
+                            // Forbid any reserved words.
+                            'regex' => SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
+                                // Capturing group ("-" cannot be used).
+                                . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
+                            'spec' => '%page-slug%',
                             'defaults' => [
                                 'controller' => 'Page',
                                 'action' => 'show',
@@ -119,6 +123,19 @@ return [
             // Override the default config to remove the slug for main site.
             'site' => [
                 'type' => \CleanUrl\Router\Http\SegmentMain::class,
+                'child_routes' => [
+                    'page' => [
+                        'type' => \CleanUrl\Router\Http\RegexPage::class,
+                        'options' => [
+                            // Forbid any reserved words.
+                            // Warning: this is the same regex than for top page, but with an initial "/".
+                            'regex' => '/' . SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
+                                // Capturing group ("-" cannot be used).
+                                . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
+                            'spec' => '/%page-slug%',
+                        ],
+                    ],
+                ],
             ],
         ],
     ],
@@ -138,6 +155,7 @@ return [
             'cleanurl_media_default' => 'generic',
             'cleanurl_media_allowed' => ['generic', 'item_set_item'],
             'cleanurl_media_generic' => 'medium/',
+            'cleanurl_page_slug' => SLUG_PAGE,
             'cleanurl_use_admin' => true,
             'cleanurl_display_admin_show_identifier' => true,
         ],
