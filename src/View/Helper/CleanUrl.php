@@ -17,6 +17,11 @@ use Zend\View\Helper\Url;
 class CleanUrl extends Url
 {
     /**
+     * @var \CleanUrl\Router\Http\CleanRoute
+     */
+    protected $cleanRoute;
+
+    /**
      * Generates a clean or a standard url given the name of a route.
      *
      * @todo Assemble urls with clean url routes.
@@ -38,6 +43,7 @@ class CleanUrl extends Url
      */
     public function __invoke($name = null, $params = [], $options = [], $reuseMatchedParams = false)
     {
+        // TODO Is the preparation of the router still needed?
         $this->prepareRouter();
 
         /* Copy of Zend\View\Helper\Url::__invoke(). */
@@ -122,13 +128,10 @@ class CleanUrl extends Url
             // is no show page.
             case 'site/item-set':
                 if (!empty($params['item-set-id'])) {
-                    $cleanUrl = $this->view->getResourceFullIdentifier(
-                        ['type' => 'item_sets', 'id' => $params['item-set-id']],
-                        isset($params['site-slug']) ? $params['site-slug'] : null,
-                        'public',
-                        true,
-                        !empty($options['force_canonical'])
-                    );
+                    $itemSetParams = $params;
+                    $itemSetParams['controller'] = 'item-set';
+                    $itemSetParams['id'] = $params['item-set-id'];
+                    $cleanUrl = $this->getCleanUrl('public', $itemSetParams, $options);
                     if ($cleanUrl) {
                         return $cleanUrl;
                     }
@@ -179,24 +182,53 @@ class CleanUrl extends Url
      */
     protected function getCleanUrl($context, $params, $options)
     {
-        if (isset($params['id'])
-            && isset($params['controller'])
-            && (in_array(
-                $params['controller'],
-                ['item-set', 'item', 'media', 'Omeka\Controller\Site\ItemSet', 'Omeka\Controller\Site\Item', 'Omeka\Controller\Site\Media']
-            ))
-            && (empty($params['action']) || $params['action'] === 'show')
-        ) {
-            $type = $this->controllerName($params['controller']);
-            return $this->view->getResourceFullIdentifier(
-                ['type' => $type, 'id' => $params['id']],
-                isset($params['site-slug']) ? $params['site-slug'] : null,
-                $context,
-                true,
-                !empty($options['force_canonical'])
-            );
+        $route = $this->getCleanRoute();
+        if (!isset($params['site-slug']) && $context === 'public') {
+            $params['site-slug'] = @$this->view->getHelperPluginManager()->getServiceLocator()->get('Application')->getMvcEvent()->getRouteMatch()->getParam('site-slug');
         }
-        return '';
+        return $route->assemble($params, ['base_path' => $context] + $options);
+    }
+
+    /**
+     * @return \CleanUrl\Router\Http\CleanRoute
+     */
+    protected function getCleanRoute()
+    {
+        if (is_null($this->cleanRoute)) {
+            $services = @$this->view->getHelperPluginManager()->getServiceLocator();
+            $plugins = $this->view->getHelperPluginManager();
+            $setting = $plugins->get('setting');
+            $options = [
+                'api' => $services->get('Omeka\ApiManager'),
+                'base_path' => $this->view->basePath(),
+                // See \CleanUrl\Module::addRoutes()
+                'settings' => [
+                    'default_site' => $setting('default_site'),
+                    'main_path_full' => $setting('cleanurl_main_path_full'),
+                    'main_path_full_encoded' => $setting('cleanurl_main_path_full_encoded'),
+                    'main_short' => $setting('cleanurl_main_short'),
+                    'item_set_generic' => $setting('cleanurl_item_set_generic'),
+                    'item_generic' => $setting('cleanurl_item_generic'),
+                    'media_generic' => $setting('cleanurl_media_generic'),
+                    'item_allowed' => $setting('cleanurl_item_allowed'),
+                    'media_allowed' => $setting('cleanurl_media_allowed'),
+                    // 'is_public' => $status->isSiteRequest(),
+                    // 'is_admin' => $status->isAdminRequest(),
+                    'admin_use' => $setting('cleanurl_admin_use'),
+                    'item_set_regex' => $setting('cleanurl_item_set_regex'),
+                    'regex' => $setting('cleanurl_regex'),
+                ],
+                'helpers' => [
+                    'basePath' => $plugins->get('basePath'),
+                    'getResourceIdentifier' => $plugins->get('getResourceIdentifier'),
+                    'serverUrl' => $plugins->get('serverUrl'),
+                    'setting' => $plugins->get('setting'),
+                    'status' => $plugins->get('status'),
+                ],
+            ];
+            $this->cleanRoute = \CleanUrl\Router\Http\CleanRoute::factory($options);
+        }
+        return $this->cleanRoute;
     }
 
     /**

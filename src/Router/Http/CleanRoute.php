@@ -4,10 +4,12 @@ namespace CleanUrl\Router\Http;
 use const CleanUrl\SLUG_MAIN_SITE;
 use const CleanUrl\SLUG_PAGE;
 use const CleanUrl\SLUG_SITE;
+use const CleanUrl\SLUG_SITE_DEFAULT;
 use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
 
+use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Traversable;
 use Zend\Router\Exception;
 use Zend\Router\Http\RouteInterface;
@@ -40,6 +42,11 @@ class CleanRoute implements RouteInterface
     protected $settings;
 
     /**
+     * @var array
+     */
+    protected $helpers;
+
+    /**
      * List of routes.
      *
      * Each route is a segment route that contains keys "route", "constraints",
@@ -56,10 +63,17 @@ class CleanRoute implements RouteInterface
      */
     protected $assembledParams = [];
 
-    public function __construct($api = null, $basePath = '', array $settings = [])
+    /**
+     * @param \Omeka\Api\Manager $api
+     * @param string $basePath
+     * @param array $settings
+     * @param array $helpers Needed only to assemble an url.
+     */
+    public function __construct($api = null, $basePath = '', array $settings = [], array $helpers = [])
     {
         $this->api = $api;
         $this->basePath = $basePath;
+        $this->helpers = $helpers;
         $this->settings = $settings + [
             'main_path_full' => null,
             'main_path_full_encoded' => null,
@@ -91,9 +105,10 @@ class CleanRoute implements RouteInterface
             'api' => null,
             'base_path' => '',
             'settings' => [],
+            'helpers' => [],
         ];
 
-        return new static($options['api'], $options['base_path'], $options['settings']);
+        return new static($options['api'], $options['base_path'], $options['settings'], $options['helpers']);
     }
 
     protected function prepareCleanRoutes()
@@ -388,7 +403,7 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
-        $uri  = $request->getUri();
+        $uri = $request->getUri();
         $path = $uri->getPath();
 
         $matches = [];
@@ -401,7 +416,7 @@ class CleanRoute implements RouteInterface
             $regex = $this->routes[$routeName]['regex'];
 
             // if (is_null($pathOffset)) {
-                $result = preg_match('(^' . $regex . '$)', $path, $matches);
+            $result = preg_match('(^' . $regex . '$)', $path, $matches);
             // } else {
             //     $result = preg_match('(\G' . $regex . ')', $path, $matches, null, $pathOffset);
             // }
@@ -464,13 +479,16 @@ class CleanRoute implements RouteInterface
 
     public function assemble(array $params = [], array $options = [])
     {
-        if (empty($params['route_name'])) {
-            throw new \Omeka\Mvc\Exception\RuntimeException('The param "route_name" is required to assemble params to get a clean url.'); // @translate
+        // TODO Rebuild the method getCleanUrl in order to use spec + params.
+        return $this->getCleanUrl($params, $options);
+
+        if (empty($options['route_name'])) {
+            throw new \Omeka\Mvc\Exception\RuntimeException('The option "route_name" is required to assemble params to get a clean url.'); // @translate
         }
 
-        $routeName = $params['route_name'];
+        $routeName = $options['route_name'];
         if (!isset($this->routes[$routeName])) {
-            throw new \Omeka\Mvc\Exception\RuntimeException('The param "route_name" is not managed by module Clean Url.'); // @translate
+            throw new \Omeka\Mvc\Exception\RuntimeException('The option "route_name" is not managed by module Clean Url.'); // @translate
         }
 
         $url = $this->routes[$routeName]['spec'];
@@ -483,7 +501,6 @@ class CleanRoute implements RouteInterface
                 $this->assembledParams[] = $key;
             }
         }
-
         return $url;
     }
 
@@ -522,5 +539,471 @@ class CleanRoute implements RouteInterface
             // '%7E' => "~", // unreserved - not touched by rawurlencode
         ];
         return strtr(rawurlencode($value), $urlencodeCorrectionMap);
+    }
+
+    protected function getCleanUrl(array $params = [], array $options = [])
+    {
+        $params += [
+            'controller' => null,
+            'action' => null,
+            'id' => null,
+            'site-slug' => null,
+            'resource' => null,
+        ];
+
+        $controller = $this->controllerName($params['controller']);
+        if (!$params['id']
+            || !$controller
+            || ($params['action'] && $params['action'] !== 'show')
+        ) {
+            return '';
+        }
+
+        $resource = $params['resource'];
+        if (!$resource) {
+            $resourceNames = [
+                'item-set' => 'item_sets',
+                'item' => 'items',
+                'media' => 'media',
+            ];
+            try {
+                $resource = $this->api->read($resourceNames[$controller], ['id' => $params['id']])->getContent();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                return '';
+            }
+        }
+
+        $options += [
+            'base_path' => 'current',
+            'main_path' => true,
+            'force_canonical' => false,
+            'format' => null,
+        ];
+
+        $getResourceIdentifier = $this->helpers['getResourceIdentifier'];
+        $setting = $this->helpers['setting'];
+
+        $siteSlug = $params['site-slug'];
+
+        $absolute = $options['force_canonical'];
+        $format = $options['format'];
+        $withBasePath = $options['base_path'];
+        $withMainPath = $options['main_path'];
+
+        switch ($resource->resourceName()) {
+            case 'item_sets':
+                $urlEncode = !$setting('cleanurl_item_set_keep_raw');
+                $identifier = $getResourceIdentifier($resource, $urlEncode, true);
+                if (!$identifier) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                }
+
+                $generic = $setting('cleanurl_item_set_generic');
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+
+            case 'items':
+                if (empty($format)) {
+                    $format = $setting('cleanurl_item_default');
+                }
+                // Else check if the format is allowed.
+                elseif (!$this->_isFormatAllowed($format, 'items')) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                }
+
+                $urlEncode = !$setting('cleanurl_item_keep_raw');
+                $skipPrefixItem = !strpos($format, 'item_full');
+                $identifier = $getResourceIdentifier($resource, $urlEncode, $skipPrefixItem);
+                if (!$identifier) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                }
+
+                switch ($format) {
+                    case 'generic_item':
+                    case 'generic_item_full':
+                        $generic = $setting('cleanurl_item_generic');
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+
+                    case 'item_set_item':
+                    case 'item_set_item_full':
+                        $itemSets = $resource->itemSets();
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('item');
+                            return $format
+                                ? $this->getCleanUrl(['resource' => $resource] + $params, ['format' => $format] + $options)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+
+                        $itemSet = reset($itemSets);
+                        $urlEncode = !$setting('cleanurl_item_set_keep_raw');
+                        $itemSetIdentifier = $getResourceIdentifier($itemSet, $urlEncode, true);
+                        if (!$itemSetIdentifier) {
+                            $itemSetUndefined = $setting('cleanurl_item_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
+                            $itemSetIdentifier = $itemSet->id();
+                        }
+
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
+
+                    default:
+                        break;
+                }
+
+                // Unmanaged format.
+                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+
+            case 'media':
+                if (empty($format)) {
+                    $format = $setting('cleanurl_media_default');
+                }
+                // Else check if the format is allowed.
+                elseif (!$this->_isFormatAllowed($format, 'media')) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                }
+
+                $urlEncode = !$setting('cleanurl_media_keep_raw');
+                $skipPrefixMedia = !strpos($format, 'media_full');
+                $identifier = $getResourceIdentifier($resource, $urlEncode, $skipPrefixMedia);
+                $requireItemIdentifier = false;
+                if (!$identifier) {
+                    switch ($setting('cleanurl_media_media_undefined')) {
+                        case 'id':
+                            $identifier = $resource->id();
+                            break;
+                        case 'position':
+                            // Don't use $item->media() to avoid a different
+                            // position for public/private.
+                            // $view->api() cannot set a response content.
+                            $position = $this->api->read('media', ['id' => $resource->id()], [], ['responseContent' => 'resource'])->getContent()
+                                ->getPosition();
+                            if ($position) {
+                                $requireItemIdentifier = true;
+                                $identifier = sprintf($setting('cleanurl_media_format_position') ?: 'p%d', $position);
+                                break;
+                            }
+                            // no break.
+                        default:
+                            return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                    }
+                }
+
+                switch ($format) {
+                    case 'generic_media':
+                    case 'generic_media_full':
+                        if ($requireItemIdentifier) {
+                            $allowedForMedia = $setting('cleanurl_media_allowed', []);
+                            $result = array_intersect([
+                                'generic_item_media',
+                                'generic_item_full_media',
+                                'generic_item_media_full',
+                                'generic_item_full_media_full',
+                            ], $allowedForMedia);
+                            return $result
+                            ? $this->getCleanUrl(['resource' => $resource] + $params, ['format' => reset($result)] + $options)
+                            : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+                        $generic = $setting('cleanurl_media_generic');
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+
+                    case 'generic_item_media':
+                    case 'generic_item_full_media':
+                    case 'generic_item_media_full':
+                    case 'generic_item_full_media_full':
+                        $item = $resource->item();
+                        $urlEncode = !$setting('cleanurl_item_keep_raw');
+                        $skipPrefixItem = !strpos($format, 'item_full');
+                        $itemIdentifier = $getResourceIdentifier($item, $urlEncode, $skipPrefixItem);
+                        if (empty($itemIdentifier)) {
+                            $itemUndefined = $setting('cleanurl_media_item_undefined');
+                            if ($itemUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
+                            $itemIdentifier = $item->id();
+                        }
+
+                        $generic = $setting('cleanurl_media_generic');
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $itemIdentifier . '/' . $identifier;
+
+                    case 'item_set_media':
+                    case 'item_set_media_full':
+                        if ($requireItemIdentifier) {
+                            $allowedForMedia = $setting('cleanurl_media_allowed', []);
+                            $result = array_intersect([
+                                'item_set_item_media',
+                                'item_set_item_full_media',
+                                'item_set_item_media_full',
+                                'item_set_item_full_media_full',
+                            ], $allowedForMedia);
+                            return $result
+                                ? $this->getCleanUrl(['resource' => $resource] + $params, ['format' => reset($result)] + $options)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+
+                        $item = $resource->item();
+                        $itemSets = $item->itemSets();
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('media');
+                            return $format
+                                ? $this->getCleanUrl(['resource' => $resource] + $params, ['format' => reset($result)] + $options)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+
+                        $itemSet = reset($itemSets);
+                        $urlEncode = !$setting('cleanurl_item_set_keep_raw');
+                        $itemSetIdentifier = $getResourceIdentifier($itemSet, $urlEncode, true);
+                        if (empty($itemSetIdentifier)) {
+                            $itemSetUndefined = $setting('cleanurl_media_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
+                            $itemSetIdentifier = $itemSet->id();
+                        }
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
+
+                    case 'item_set_item_media':
+                    case 'item_set_item_full_media':
+                    case 'item_set_item_media_full':
+                    case 'item_set_item_full_media_full':
+                        $item = $resource->item();
+                        $itemSets = $item->itemSets();
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('media');
+                            return $format
+                                ? $this->getCleanUrl(['resource' => $resource] + $params, ['format' => $format] + $options)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+
+                        $itemSet = reset($itemSets);
+                        $urlEncode = !$setting('cleanurl_item_set_keep_raw');
+                        $itemSetIdentifier = $getResourceIdentifier($itemSet, $urlEncode, true);
+                        if (empty($itemSetIdentifier)) {
+                            $itemSetUndefined = $setting('cleanurl_media_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
+                            $itemSetIdentifier = $itemSet->id();
+                        }
+
+                        $urlEncode = !$setting('cleanurl_item_keep_raw');
+                        $skipPrefixItem = !strpos($format, 'item_full');
+                        $itemIdentifier = $getResourceIdentifier($item, $urlEncode, $skipPrefixItem);
+                        if (!$itemIdentifier) {
+                            $itemUndefined = $setting('cleanurl_media_item_undefined');
+                            if ($itemUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
+                            $itemIdentifier = $item->id();
+                        }
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
+
+                    default:
+                        break;
+                }
+
+                // Unmanaged format.
+                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+
+            default:
+                break;
+        }
+
+        // This resource doesn't have a clean url.
+        return '';
+    }
+
+    /**
+     * Return beginning of the resource name if needed.
+     *
+     * @param string $siteSlug
+     * @param bool $withBasePath
+     * @param bool $withMainPath
+     * @return string The string ends with '/'.
+     */
+    protected function _getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath)
+    {
+        if ($absolute) {
+            $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
+        }
+        if ($withBasePath == 'current') {
+            $withBasePath = $this->helpers['status']->isAdminRequest() ? 'admin' : 'public';
+        }
+
+        $basePath = $this->helpers['basePath'];
+        $serverUrl = $this->helpers['serverUrl'];
+        $setting = $this->helpers['setting'];
+
+        switch ($withBasePath) {
+            case 'public':
+                if (strlen($siteSlug)) {
+                    if (SLUG_MAIN_SITE && $siteSlug === SLUG_MAIN_SITE) {
+                        $siteSlug = '';
+                    }
+                } else {
+                    // // TODO Remove this code, since the site slug is defined in view helper CleanUrl.
+                    // $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
+                    // $siteSlug = $routeMatch->getParam('site-slug');
+                    // if (SLUG_MAIN_SITE && $siteSlug === SLUG_MAIN_SITE) {
+                    //     $siteSlug = '';
+                    // }
+                }
+                if (mb_strlen($siteSlug)) {
+                    // The check of "slugs_site" may avoid an issue when empty,
+                    // after install or during/after upgrade.
+                    $basePath = $basePath(
+                        (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT) . $siteSlug
+                    );
+                } else {
+                    $basePath = $basePath();
+                }
+                break;
+
+            case 'admin':
+                $basePath = $basePath('admin');
+                break;
+
+            default:
+                $basePath = '';
+        }
+
+        $mainPath = $withMainPath ? $setting('cleanurl_main_path_full') : '';
+
+        return ($absolute ? $serverUrl() : '') . $basePath . '/' . $mainPath;
+    }
+
+    /**
+     * Check if a format is allowed for a resource type.
+     *
+     * @param string $format
+     * @param string $resourceName
+     * @return bool|null True if allowed, false if not, null if no format.
+     */
+    protected function _isFormatAllowed($format, $resourceName)
+    {
+        if (empty($format)) {
+            return null;
+        }
+
+        $setting = $this->helpers['setting'];
+        switch ($resourceName) {
+            case 'items':
+                $allowedForItems = $setting('cleanurl_item_allowed', []);
+                return in_array($format, $allowedForItems);
+
+            case 'media':
+                $allowedForMedia = $setting('cleanurl_media_allowed', []);
+                return in_array($format, $allowedForMedia);
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Return the generic format, if exists, for items or media.
+     *
+     * @param string $resourceName
+     * @return string|null
+     */
+    protected function _getGenericFormat($resourceName)
+    {
+        $setting = $this->helpers['setting'];
+        switch ($resourceName) {
+            case 'items':
+                $allowedForItems = $setting('cleanurl_item_allowed', []);
+                $result = array_intersect([
+                    'generic_item',
+                    'generic_item_full',
+                ], $allowedForItems);
+                return $result
+                    ? reset($result)
+                    : null;
+
+            case 'media':
+                $allowedForMedia = $setting('cleanurl_media_allowed', []);
+                $result = array_intersect([
+                    // With item first and short first.
+                    'generic_item_media',
+                    'generic_item_full_media',
+                    'generic_item_media_full',
+                    'generic_item_full_media_full',
+                    'generic_media',
+                    'generic_media_full',
+                ], $allowedForMedia);
+                return $result
+                    ? reset($result)
+                    : null;
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Get an identifier when there is no identifier.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param string $siteSlug
+     * @param bool $absolute
+     * @param string $withBasePath
+     * @param string $withMainPath
+     * @throws \Omeka\Mvc\Exception\RuntimeException
+     * @return string
+     */
+    protected function urlNoIdentifier(AbstractResourceEntityRepresentation $resource, $siteSlug, $absolute, $withBasePath, $withMainPath)
+    {
+        $setting = $this->helpers['setting'];
+        switch ($setting('cleanurl_identifier_undefined')) {
+            case 'main_generic':
+                $genericKeys = [
+                    'item' => 'cleanurl_item_generic',
+                    'item-set' => 'cleanurl_item_set_generic',
+                    'media' => 'cleanurl_media_generic',
+                ];
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $genericKeys[$resource->getControllerName()] . $resource->id();
+            case 'generic':
+                $genericKeys = [
+                    'item' => 'cleanurl_item_generic',
+                    'item-set' => 'cleanurl_item_set_generic',
+                    'media' => 'cleanurl_media_generic',
+                ];
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $genericKeys[$resource->getControllerName()] . $resource->id();
+            case 'exception':
+                if (!$this->helpers['status']->isAdminRequest()) {
+                    $message = new \Omeka\Stdlib\Message('The "%1$s" #%2$d has no normalized identifier.', $resource->getControllerName(), $resource->id()); // @translate
+                    throw new \Omeka\Mvc\Exception\RuntimeException($message);
+                }
+                // no break.
+            case 'default':
+            default:
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $resource->getControllerName() . '/' . $resource->id();
+        }
+    }
+
+    /**
+     * Normalize the controller name.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function controllerName($name)
+    {
+        $controllers = [
+            'item-set' => 'item-set',
+            'item' => 'item',
+            'media' => 'media',
+            'item_sets' => 'item-set',
+            'items' => 'item',
+            'media' => 'media',
+            'Omeka\Controller\Site\ItemSet' => 'item-set',
+            'Omeka\Controller\Site\Item' => 'item',
+            'Omeka\Controller\Site\Media' => 'media',
+            \Omeka\Entity\ItemSet::class => 'item-set',
+            \Omeka\Entity\Item::class => 'item',
+            \Omeka\Entity\Media::class => 'media',
+        ];
+        return isset($controllers[$name])
+            ? $controllers[$name]
+            : null;
     }
 }

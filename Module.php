@@ -125,7 +125,8 @@ class Module extends AbstractModule
         }
 
         $settings = $services->get('Omeka\Settings');
-        $basePath = $services->get('ViewHelperManager')->get('basePath');
+        $helpers = $services->get('ViewHelperManager');
+        $basePath = $helpers->get('basePath');
 
         // TODO Don't call status, it breaks construction of urls (media).
         // $status = $services->get('Omeka\Status');
@@ -139,6 +140,7 @@ class Module extends AbstractModule
                     'api' => $services->get('Omeka\ApiManager'),
                     'base_path' => $basePath(),
                     // TODO Save all these settings in one array.
+                    // See \CleanUrl\View\Helper\CleanUrl::getCleanRoute() too.
                     'settings' => [
                         'default_site' => $settings->get('default_site'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
