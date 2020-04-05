@@ -294,6 +294,7 @@ class Module extends AbstractModule
 
         $params = $controller->getRequest()->getPost();
 
+        /** @var \CleanUrl\Form\ConfigForm $form */
         $form = $services->get('FormElementManager')->get(ConfigForm::class);
         $form->init();
         $form->setData($params);
@@ -339,6 +340,111 @@ class Module extends AbstractModule
         $params['cleanurl_item_allowed'] = array_values(array_unique($params['cleanurl_item_allowed']));
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
+
+        $connection = $services->get('Omeka\Connection');
+
+        // Check the default site.
+        $skip = $params['cleanurl_site_skip_main'];
+        if ($skip) {
+            $default = $settings->get('default_site', '');
+            if ($default) {
+                try {
+                    $default = $services->get('Omeka\ApiManager')->read('sites', ['id' => $default])->getContent()->slug();
+                } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                    $default = '';
+                }
+            }
+            if (!$default) {
+                $message = new \Omeka\Stdlib\Message('There is no default site: "/s/site-slug" cannot be skipped.'); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addError($message);
+                return false;
+            }
+
+            // Check all pages of the default site.
+            // TODO Manage the case where the default site is updated after (rare).
+            $result = [];
+            $slugs = $connection->query('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            foreach ($slugs as $slug) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
+                    $result[] = $slug;
+                }
+            }
+            if ($result) {
+                $message = new \Omeka\Stdlib\Message('The sites "%s" use a reserved string and the "/s/site-slug" cannot be skipped.', implode('", "', $result)); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addError($message);
+                return false;
+            }
+            $slugs = $connection->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            foreach ($slugs as $slug) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
+                    $result[] = $slug;
+                }
+            }
+            if ($result) {
+                $message = new \Omeka\Stdlib\Message('The site pages "%s" use a reserved string and "/s/site-slug" cannot be skipped.', implode('", "', $result)); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addError($message);
+                return false;
+            }
+        }
+
+        // Check the option site slug.
+        $slug = $params['cleanurl_site_slug'];
+        if (mb_strlen($slug)
+            && $slug !== 's/'
+            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
+        ) {
+            $message = new \Omeka\Stdlib\Message('The slug "%s" is used or reserved and the prefix for sites cannot be updated.', $slug); // @translate
+            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+            $messenger->addError($message);
+            return false;
+        }
+
+        if (!mb_strlen($slug)) {
+            $result = [];
+            $slugs = $services->get('Omeka\Connection')->query('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            foreach ($slugs as $slug) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
+                    $result[] = $slug;
+                }
+            }
+            if ($result) {
+                $message = new \Omeka\Stdlib\Message('The sites "%s" use a reserved string and the prefix for sites cannot be removed.', implode('", "', $result)); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addError($message);
+                return false;
+            }
+        }
+
+        // Check the option page slug.
+        $slug = $params['cleanurl_page_slug'];
+        if (mb_strlen($slug)
+            && $slug !== 'page/'
+            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
+        ) {
+            $message = new \Omeka\Stdlib\Message('The slug "%s" is used or reserved and the prefix for pages cannot be updated.', $slug); // @translate
+            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+            $messenger->addError($message);
+            return false;
+        }
+
+        if (!mb_strlen($slug)) {
+            $result = [];
+            $slugs = $services->get('Omeka\Connection')->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            foreach ($slugs as $slug) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
+                    $result[] = $slug;
+                }
+            }
+            if ($result) {
+                $message = new \Omeka\Stdlib\Message('The site pages "%s" use a reserved string and the prefix for pages cannot be removed.', implode('", "', $result)); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addError($message);
+                return false;
+            }
+        }
 
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
