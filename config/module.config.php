@@ -42,8 +42,8 @@ return [
         ],
     ],
     'form_elements' => [
-        'factories' => [
-            Form\ConfigForm::class => Service\Form\ConfigFormFactory::class,
+        'invokables' => [
+            Form\ConfigForm::class => Form\ConfigForm::class,
         ],
     ],
     'controllers' => [
@@ -168,6 +168,9 @@ return [
     ],
     'cleanurl' => [
         'config' => [
+            'cleanurl_site_skip_main' => false,
+            'cleanurl_site_slug' => $slugSite,
+            'cleanurl_page_slug' => SLUG_PAGE,
             // 10 is the hard coded id of "dcterms:identifier" in default install.
             'cleanurl_identifier_property' => 10,
             'cleanurl_identifier_prefix' => 'document:',
@@ -188,9 +191,6 @@ return [
                 'item_set_item',
             ],
             'cleanurl_media_generic' => 'medium/',
-            'cleanurl_site_skip_main' => false,
-            'cleanurl_site_slug' => $slugSite,
-            'cleanurl_page_slug' => SLUG_PAGE,
             'cleanurl_use_admin' => true,
             'cleanurl_display_admin_show_identifier' => true,
         ],
