@@ -520,6 +520,18 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_admin_show_identifier',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_admin_reserved',
+                'type' => Element\Textarea::class,
+                'options' => [
+                    'label' => 'Other reserved routes in admin', // @translate
+                    'info' => 'This options allows to fix routes for unmanaged modules. Add them in the file cleanurl.config.php or here, on by row.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_admin_reserved',
+                    'rows' => 5,
+                ],
             ]);
 
         $inputFilter = $this->getInputFilter();
@@ -650,6 +662,31 @@ class ConfigForm extends Form
             ->add([
                 'name' => 'cleanurl_admin_show_identifier',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_admin_reserved',
+                'required' => false,
+                'filters' => [
+                    [
+                        'name' => \Zend\Filter\Callback::class,
+                        'options' => [
+                            'callback' => [$this, 'stringToList'],
+                        ],
+                    ],
+                ],
             ]);
+    }
+
+    /**
+     * Get each line of a string separately.
+     *
+     * @param string $string
+     * @return array
+     */
+    public function stringToList($string)
+    {
+        return is_array($string)
+            ? $string
+            : array_filter(array_map('trim', explode("\n", str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], $string))), 'strlen');
     }
 }

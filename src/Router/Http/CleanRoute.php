@@ -86,6 +86,7 @@ class CleanRoute implements RouteInterface
             'admin_use' => null,
             'item_set_regex' => null,
             'regex' => null,
+            'admin_reserved' => null,
         ];
         $this->prepareCleanRoutes();
     }
@@ -443,11 +444,13 @@ class CleanRoute implements RouteInterface
                     $params['site-slug'] = $params['site_slug'];
                     unset($params['site_slug']);
                 }
+
                 // Check for page when there is no page prefix and no main path.
                 $siteSlug = isset($params['site-slug']) ? $params['site-slug'] : SLUG_MAIN_SITE;
+                $noPath = $this->settings['main_short'] || !mb_strlen($this->settings['main_path_full']);
                 $checkPage = $siteSlug
                     && !mb_strlen(SLUG_PAGE)
-                    && ($this->settings['main_short'] || !mb_strlen($this->settings['main_path_full']));
+                    && $noPath;
                 if ($checkPage) {
                     $siteId = $this->api->read('sites', ['slug' => $siteSlug])->getContent()->id();
                     // Only check the first params, next ones are useless.
@@ -458,13 +461,25 @@ class CleanRoute implements RouteInterface
                         }
                     }
                     $identifier = $value;
-                    // Api doesn't allow to search page by slug.
+                    // Api doesn't allow to search page by slug, so read it.
                     try {
                         $result = $this->api->read('site_pages', ['site' => $siteId, 'slug' => $identifier])->getContent();
                         // Use the default routing.
                         // TODO Redirect directly to the page.
                         return null;
                     } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                        // It is not a page.
+                    }
+                }
+
+                // Check for first part when there is no main path, and it is
+                // not in the reserved list checked above (unknown modules).
+                if ($noPath && $this->settings['admin_reserved'] && strpos($routeName, '_admin')) {
+                    $firstIdentifier = array_intersect(['item_set_identifier', 'item_identifier', 'resource_identifier'], array_keys($params));
+                    if ($firstIdentifier
+                        && in_array($params[reset($firstIdentifier)], $this->settings['admin_reserved'])
+                    ) {
+                        return null;
                     }
                 }
 
