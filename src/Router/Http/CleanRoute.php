@@ -99,11 +99,15 @@ class CleanRoute implements RouteInterface
         $allowedForItems = $this->settings['item_allowed'];
         $allowedForMedia = $this->settings['media_allowed'];
 
+        // TODO Check if the item set regex is still needed, since a check is done in controller. Quicker?
         $regexItemSets = $this->settings['item_set_regex'];
+        $hasItemSets = (bool) mb_strlen($regexItemSets);
+        $regexItemSets = '(?P<item_set_identifier>' . $regexItemSets . ')';
+        $regexItemSetsResource = '(?P<resource_identifier>' . $regexItemSets . ')';
 
         $regex = $this->settings['regex'];
         $regexResourceIdentifier = '(?P<resource_identifier>[^/]+)';
-        $regexItemSetIdentifier = '(?P<item_set_identifier>[^/]+)';
+        // $regexItemSetIdentifier = '(?P<item_set_identifier>[^/]+)';
         $regexItemIdentifier = '(?P<item_identifier>[^/]+)';
         // $regexMediaIdentifier = '(?P<media_identifier>[^/]+)';
 
@@ -140,7 +144,7 @@ class CleanRoute implements RouteInterface
         foreach ($baseRoutes as $routeExt => $array) {
             list($baseRoute, $space, $namespaceController, $siteSlug, $regexBaseRoute, $specBaseRoute) = $array;
 
-            if (!empty($regexItemSets)) {
+            if ($hasItemSets) {
                 // Match item set / item route for media.
                 if (array_intersect(
                     ['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'],
@@ -151,7 +155,8 @@ class CleanRoute implements RouteInterface
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
                             . $regex['item_set_generic']
-                            . $regexItemSetIdentifier . '/'
+                            // . $regexItemSetIdentifier . '/'
+                            . $regexItemSets . '/'
                             . $regexItemIdentifier . '/'
                             . $regexResourceIdentifier,
                         'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%item_identifier%/%resource_identifier%',
@@ -176,7 +181,8 @@ class CleanRoute implements RouteInterface
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
                             . $regex['item_set_generic']
-                            . $regexItemSetIdentifier . '/'
+                            // . $regexItemSetIdentifier . '/'
+                            . $regexItemSets . '/'
                             . $regexResourceIdentifier,
                         'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
@@ -201,7 +207,8 @@ class CleanRoute implements RouteInterface
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
                             . $regex['item_set_generic']
-                            . $regexItemSetIdentifier . '/'
+                            // . $regexItemSetIdentifier . '/'
+                            . $regexItemSets . '/'
                             . $regexResourceIdentifier,
                         'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
@@ -308,7 +315,7 @@ class CleanRoute implements RouteInterface
                 ];
             }
 
-            if (!empty($regexItemSets)) {
+            if ($hasItemSets) {
                 // Match item set route.
                 // This clean url is the same when the generic path is the same.
                 $routeName = 'cleanurl_item_set' . $routeExt;
@@ -316,7 +323,8 @@ class CleanRoute implements RouteInterface
                     'regex' => $regexBaseRoute
                         . $regex['main_path_full']
                         . $regex['item_set_generic']
-                        . $regexResourceIdentifier,
+                        // . $regexItemSetIdentifier . '/'
+                        . $regexItemSetsResource,
                     'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
