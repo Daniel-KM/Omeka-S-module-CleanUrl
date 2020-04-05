@@ -481,7 +481,7 @@ class ConfigForm extends Form
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Format of the media position', // @translate
-                    'info' => 'A "sprintf" string that will format the position. It is recommended to use a format with a leading letter to avoid confusion with numeric media id. Furthermore, the position may not be stable: a scanned image may be missing.', // @translate
+                    'info' => 'A "sprintf" string that will format the position. It is recommended to use a format with a leading letter to avoid confusion with numeric media id. Furthermore, the position may not be stable: a scanned image may be missing. Finally, if the first media is not marked "1" in the database, use module "Bulk Check" to fix positions.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_format_position',
