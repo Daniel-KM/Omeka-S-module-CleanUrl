@@ -11,6 +11,8 @@ namespace CleanUrl\View\Helper;
 
 use const CleanUrl\SLUG_MAIN_SITE;
 use const CleanUrl\SLUG_SITE;
+use const CleanUrl\SLUG_SITE_DEFAULT;
+use const CleanUrl\SLUGS_SITE;
 
 use Zend\Mvc\Application;
 use Zend\View\Helper\AbstractHelper;
@@ -252,9 +254,15 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $siteSlug = '';
                     }
                 }
-                $basePath = mb_strlen($siteSlug)
-                    ? $this->view->basePath(SLUG_SITE . $siteSlug)
-                    : $this->view->basePath();
+                if (mb_strlen($siteSlug)) {
+                    // The check of "slugs_site" may avoid an issue when empty,
+                    // after install or during/after upgrade.
+                    $basePath = $this->view->basePath(
+                        (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT) . $siteSlug
+                    );
+                } else {
+                    $basePath = $this->view->basePath();
+                }
                 break;
 
             case 'admin':

@@ -21,6 +21,10 @@ require_once file_exists(OMEKA_PATH . '/config/clean_url.config.php')
     ? OMEKA_PATH . '/config/clean_url.config.php'
     : __DIR__ . '/config/clean_url.config.php';
 
+require_once file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')
+    ? OMEKA_PATH . '/config/clean_url.dynamic.php'
+    : __DIR__ . '/config/clean_url.dynamic.php';
+
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
 use Generic\AbstractModule;
@@ -41,23 +45,55 @@ class Module extends AbstractModule
         $this->addRoutes();
     }
 
-    protected function postInstall()
+    protected function preInstall()
     {
         $services = $this->getServiceLocator();
         $t = $services->get('MvcTranslator');
-
         $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+
+        $this->preInstallCopyConfigFiles();
+
         $messenger->addWarning($t->translate('Some settings may be configured in the file "config/clean_url.config.php" in the root of Omeka.')); // @translate
+    }
+
+    protected function preInstallCopyConfigFiles()
+    {
+        $success = true;
+
+        $services = $this->getServiceLocator();
+        $t = $services->get('MvcTranslator');
+        $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+
+        $configPath = __DIR__ . '/config/clean_url.dynamic.php';
+        $omekaConfigPath = OMEKA_PATH . '/config/clean_url.dynamic.php';
+        if (file_exists($configPath) && !file_exists($omekaConfigPath)) {
+            $result = @copy($configPath, $omekaConfigPath);
+            if (!$result) {
+                $success = false;
+                $message = $t->translate('Unable to copy the file "config/clean_url.dynamic.php" in Omeka config directory. It should be kept writeable by the server.') // @translate
+                    . ' ' . $t->translate('Without this file, it won‘t be possible to modify or remove the "s/".'); // @translate
+                $messenger->addWarning($message);
+            }
+        }
 
         $configPath = __DIR__ . '/config/clean_url.config.php';
         $omekaConfigPath = OMEKA_PATH . '/config/clean_url.config.php';
         if (file_exists($configPath) && !file_exists($omekaConfigPath)) {
             $result = @copy($configPath, $omekaConfigPath);
             if (!$result) {
-                $messenger->addWarning($t->translate('Unable to copy the special config file "config/clean_url.config.php" in Omeka config directory.')); // @translate
+                $success = false;
+                $message = $t->translate('Unable to copy the special config file "config/clean_url.config;php" in Omeka config directory.') // @translate
+                    . ' ' . $t->translate('Without this file, it won‘t be possible to modify or remove the "s/" and "page/" or to define a main site.'); // @translate
+                $messenger->addWarning($message);
             }
         }
 
+        return $success;
+    }
+
+    protected function postInstall()
+    {
+        $this->cacheSiteSlugs();
         $this->cacheItemSetsRegex();
     }
 
@@ -68,13 +104,18 @@ class Module extends AbstractModule
         $config = $services->get('Config');
         $settings = $services->get('Omeka\Settings');
 
+        // The params are cached on load and save, to manage the case the user
+        // doesn‘t save the config.
+        $this->cacheSiteSlugs();
+        $this->cacheItemSetsRegex();
+
         // This settings are currently not used, but update them for display.
-        $settings->set('cleanurl_site_slug', SLUG_SITE);
+        $settings->set('cleanurl_site_slug', mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT);
         $settings->set('cleanurl_page_slug', SLUG_PAGE);
 
         // TODO Clean filling of the config form.
         $data = [];
-        $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
+        $defaultSettings = $config['cleanurl']['config'];
         foreach ($defaultSettings as $name => $value) {
             $data['clean_url_identifiers'][$name] = $settings->get($name, $value);
             $data['clean_url_main_path'][$name] = $settings->get($name, $value);
@@ -157,7 +198,7 @@ class Module extends AbstractModule
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
-        $params['cleanurl_site_slug'] = SLUG_SITE;
+        $params['cleanurl_site_slug'] = mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT;
         $params['cleanurl_page_slug'] = SLUG_PAGE;
 
         $defaultSettings = $config['cleanurl']['config'];
@@ -166,6 +207,7 @@ class Module extends AbstractModule
             $settings->set($name, $value);
         }
 
+        $this->cacheSiteSlugs();
         $this->cacheItemSetsRegex();
         return true;
     }
@@ -324,6 +366,46 @@ class Module extends AbstractModule
     }
 
     /**
+     * Cache site slugs in file config/clean_url.dynamic.php.
+     */
+    protected function cacheSiteSlugs()
+    {
+        $services = $this->getServiceLocator();
+
+        $filepath = OMEKA_PATH . '/config/clean_url.dynamic.php';
+        if (!$this->checkFilepath($filepath)) {
+            $logger = $services->get('Omeka\Logger');
+            $logger->warn('The file "clean_url.dynamic.php" in the config directory of Omeka is not writeable.'); // @translate
+            return false;
+        }
+
+        // Get all site slugs, public or not.
+        $sql = 'SELECT slug FROM site;';
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $services->get('Omeka\Connection');
+        $stmt = $connection->query($sql);
+        $slugs = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $replaceRegex = $this->prepareRegex($slugs);
+
+        // The file is always reset from original file.
+        $sourceFilepath = __DIR__ . '/config/clean_url.dynamic.php';
+        $content = file_get_contents($sourceFilepath);
+        $regex = "~const SLUGS_SITE = '[^']*?';~";
+        $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
+        $content = preg_replace($regex, $replace, $content, 1);
+
+        file_put_contents($filepath, $content);
+    }
+
+    protected function checkFilepath($filepath)
+    {
+        return file_exists($filepath)
+            && is_file($filepath)
+            && filesize($filepath)
+            && is_writeable($filepath);
+    }
+
+    /**
      * Cache item set identifiers as string to speed up routing.
      */
     protected function cacheItemSetsRegex()
@@ -340,22 +422,31 @@ class Module extends AbstractModule
             $itemSetIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
         }
 
-        // To avoid issues with identifiers that contain another identifier,
-        // for example "item_set_bis" contains "item_set", they are ordered
-        // by reversed length.
-        array_multisort(
-            array_map('strlen', $itemSetIdentifiers),
-            $itemSetIdentifiers
-        );
-        $itemSetIdentifiers = array_reverse($itemSetIdentifiers);
-
-        $itemSetsRegex = array_map('preg_quote', $itemSetIdentifiers);
-        // To avoid a bug with identifiers that contain a "/", that is not
-        // escaped with preg_quote().
-        $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
+        $regex = $this->prepareRegex($itemSetIdentifiers);
 
         $settings = $services->get('Omeka\Settings');
-        $settings->set('cleanurl_item_set_regex', $itemSetsRegex);
+        $settings->set('cleanurl_item_set_regex', $regex);
+    }
+
+    protected function prepareRegex($list)
+    {
+        // To avoid issues with identifiers that contain another identifier, for
+        // example "identifier_bis" contains "identifier", they are ordered by
+        // reversed length.
+        array_multisort(
+            array_map('mb_strlen', $list),
+            $list
+        );
+        $list = array_reverse($list);
+
+        // Don't quote "-", it's useless for matches.
+        $listRegex = array_map(function ($v) {
+            return str_replace('\\-', '-', preg_quote($v));
+        }, $list);
+
+        // To avoid a bug with identifiers that contain a "/", that is not
+        // escaped with preg_quote().
+        return str_replace('/', '\/', implode('|', $listRegex));
     }
 
     /**

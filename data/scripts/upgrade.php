@@ -13,7 +13,7 @@ namespace CleanUrl;
  */
 $services = $serviceLocator;
 $settings = $services->get('Omeka\Settings');
-$config = require dirname(dirname(__DIR__)) . '/config/module.config.php';
+$config = @require dirname(dirname(__DIR__)) . '/config/module.config.php';
 $connection = $services->get('Omeka\Connection');
 $entityManager = $services->get('Omeka\EntityManager');
 $plugins = $services->get('ControllerPluginManager');
@@ -46,21 +46,18 @@ if (version_compare($oldVersion, '3.15.5', '<')) {
 }
 
 if (version_compare($oldVersion, '3.15.13', '<')) {
-    $oldPath = OMEKA_PATH . '/config/routes.main_slug.php';
-    $newPath = OMEKA_PATH . '/config/clean_url.config.php';
-
     $t = $services->get('MvcTranslator');
     $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
 
-    if (file_exists($oldPath) && !file_exists($newPath) && is_writeable(dirname($newPath))) {
-        $result = @copy(dirname(dirname(__DIR__ )). '/config/clean_url.config.php', $newPath);
-        if (!$result) {
-            $messenger->addWarning($t->translate('Automatic copy of config file "config/clean_url.config.php" in the config directory of Omeka failed.')); // @translate
-        }
+    if (!$this->preInstallCopyConfigFiles()) {
+        $message = $t->translate('Unable to copy config files "config/clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka.'); // @translate
+        $messenger->addWarning($message);
+        $logger = $services->get('Omeka\Logger');
+        $logger->err('The file "clean_url.dynamic.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka is not writeable.'); // @translate
     }
+
+    $messenger->addWarning($t->translate('Check the new config file "config/clean_url.config.php" and remove the old one in the config directory of Omeka.')); // @translate
 
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
-
-    $messenger->addWarning($t->translate('Check the new config file "config/clean_url.config.php" and remove the old one in the config directory of Omeka.')); // @translate
 }
