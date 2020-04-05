@@ -1,19 +1,18 @@
 Clean Url (module for Omeka S)
 ==============================
 
-[![Build Status](https://travis-ci.org/biblibre/omeka-s-module-CleanUrl.svg?branch=master)](https://travis-ci.org/biblibre/omeka-s-module-CleanUrl)
-
 [Clean Url] is a module for [Omeka S] that creates clean, readable and search
 engine optimized URLs like `https://example.com/my_item_set/dc:identifier`
 instead of `https://example.com/item/internal_code`. Used identifiers come from
-standard Dublin Core metadata, or from a specific field, so they are easy to
-manage.
+standard Dublin Core metadata, or from any specific field, so they are easy to
+manage. It supports [Ark] and short urls too.
 
 Furthermore, it makes possible to use a main site and additional sites, like in
-Omeka Classic, so the main site won‘t start with "/s/site-slug".
+Omeka Classic, so the main site won‘t start with "/s/site-slug". The slug "/page/"
+can be removed too.
 
-This [Omeka S] module is based on a rewrite of the [Clean Url plugin] for [Omeka]
-by [BibLibre] and intends to provide the same features as the original plugin.
+This [Omeka S] module was initially based on a rewrite of the [Clean Url plugin]
+for [Omeka] and provide the same features as the original plugin.
 
 
 Installation
@@ -27,6 +26,19 @@ Uncompress files and rename module folder `CleanUrl`.
 
 Then install it like any other Omeka module and follow the config instructions.
 
+IMPORTANT:
+The module copies two files in the main config directory of Omeka:
+- "clean_url.config.php": this is a list of all reserved words for the first
+  level of the url, when there are no site and page prefixes. All common routes
+  are included. It is larger than needed in order to manage future modules or
+  improvments, according to existing modules in Omeka classic or Omeka S or
+  common wishes. It can be edited as needed if you have a public route for a
+  specific module.
+- "clean_url.dynamic.php": this file is automatically updated to save the list
+  of site slugs and some other settings in order to manage routing quickly, in
+  particular when there are no site and page paths. You should not modify it
+  manually.
+
 
 Usage
 -----
@@ -37,16 +49,30 @@ the admin theme. They are case insensitive.
 This module may be used with the module [Archive Repertory] to set similar paths
 for real files (item_set_identifier / item_identifier / true_filename).
 
+**IMPORTANT**: In all cases, it is recommended to use unique identifiers through
+sites, pages, item, item set, media. and any other resources.
+
 ### Main site
 
 In some cases, Omeka S is used like in Omeka Classic, with a main site and some
 exhibits or decentralized sites (see [omeka/omeka-s#870]). In such cases, the
-prefix "/s/site-slug" is useless and not seo and user friendly.
+prefix "/s/site-slug" is useless and not seo and user friendly. An option is
+available in the config form to remove it.
 
-To set the main site:
-- first, set the default site in the main settings of Omeka;
-- second, copy the file [config/clean_url.config.php] in the Omeka config folder;
-- third, fill the slug of the main site as const `SLUG_MAIN_SITE`.
+### Sites and pages
+
+Options are available to replace or remove the `s/` and the `page/` in order to
+get these urls:
+
+    - / [ s/ ] :site-slug / [ page/ ] :page-slug
+    - / [ s/ ] :site-slug / :page-slug
+    - / :site-slug
+    - / :page-slug (for main site)
+
+Of course, be aware that some conflicts are possible in particular for pages,
+even if some slugs are reserved. A check is done when creating sites and pages
+to avoid issues.
+
 
 ### Identifiers ###
 
@@ -92,7 +118,7 @@ So the configuration of the module let you choose among these possible paths:
 
 #### Items
 
-    - / :identifier_item (currently not available)
+    - / :identifier_item
     - / generic_item / :identifier_item
     - / :identifier_item_set / :identifier_item
     - / generic_item_set / :identifier_item_set / :identifier_item
@@ -103,22 +129,22 @@ So the configuration of the module let you choose among these possible paths:
 
 #### Medias
 
-    - / :identifier_file (currently not available)
-    - / :identifier_item / :identifier_file (currently not available)
-    - / generic_file / :identifier_file
-    - / generic_file / :identifier_item / :identifier_file
-    - / :identifier_item_set / :identifier_file
-    - / generic_item_set / :identifier_item_set / :identifier_file
-    - / :identifier_item_set / :identifier_item / :identifier_file
-    - / generic_item_set / :identifier_item_set / :identifier_item / :identifier_file
-    - / main_path / :identifier_file
-    - / main_path / :identifier_item / :identifier_file
-    - / main_path / generic_file / :identifier_file
-    - / main_path / generic_file / :identifier_item / :identifier_file
-    - / main_path / :identifier_item_set / :identifier_file
-    - / main_path / generic_item_set / :identifier_item_set / :identifier_file
-    - / main_path / :identifier_item_set / :identifier_item / :identifier_file
-    - / main_path / generic_item_set / :identifier_item_set / :identifier_item / :identifier_file
+    - / :identifier_media
+    - / :identifier_item / :identifier_media
+    - / generic_file / :identifier_media
+    - / generic_file / :identifier_item / :identifier_media
+    - / :identifier_item_set / :identifier_media
+    - / generic_item_set / :identifier_item_set / :identifier_media
+    - / :identifier_item_set / :identifier_item / :identifier_media
+    - / generic_item_set / :identifier_item_set / :identifier_item / :identifier_media
+    - / main_path / :identifier_media
+    - / main_path / :identifier_item / :identifier_media
+    - / main_path / generic_file / :identifier_media
+    - / main_path / generic_file / :identifier_item / :identifier_media
+    - / main_path / :identifier_item_set / :identifier_media
+    - / main_path / generic_item_set / :identifier_item_set / :identifier_media
+    - / main_path / :identifier_item_set / :identifier_item / :identifier_media
+    - / main_path / generic_item_set / :identifier_item_set / :identifier_item / :identifier_media
 
 Note: only logical combinations of some of these paths are available together!
 
@@ -201,12 +227,12 @@ altered, and that no provisions are either added or removed herefrom.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2019 (see [Daniel-KM] on GitHub)
+* Copyright Daniel Berthereau, 2012-2020 (see [Daniel-KM] on GitHub)
 * Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
 The upgrade for Omeka 2.0 has been built for [Mines ParisTech]. The upgrade for
-Omeka S has been built for [Paris Sciences et Lettres (PSL)].
+Omeka S was built by [BibLibre] for [Paris Sciences et Lettres (PSL)].
 
 
 [Clean Url]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
@@ -214,12 +240,14 @@ Omeka S has been built for [Paris Sciences et Lettres (PSL)].
 [Clean Url plugin]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl
 [Omeka]: https://omeka.org/classic
 [BibLibre]: https://github.com/biblibre
+[Ark]: https://github.com/Daniel-KM/Omeka-S-module-Ark
 [Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
 [config/clean_url.config.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
+[Bulk Check]: https://github.com/Daniel-KM/Omeka-S-module-BulkCheck
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
