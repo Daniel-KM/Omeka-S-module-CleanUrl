@@ -12,6 +12,8 @@ use Zend\Mvc\Controller\AbstractActionController;
 /**
  * The module controller for index pages.
  *
+ * @todo Rebuild and simplify this controller.
+ *
  * @package CleanUrl
  */
 abstract class AbstractCleanUrlController extends AbstractActionController
@@ -143,7 +145,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // If no identifier exists, the module tries to use the identifier
         // specified ini the config, or the resource id directly.
         if (!$id) {
-            $media = $this->retrieveMedia();
+            $media = $this->retrieveMedia($this->_resource_identifier);
             if (!$media) {
                 return $this->notFound();
             }
@@ -201,7 +203,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // If no identifier exists, the module tries to use the identifier
         // specified ini the config, or the resource id directly.
         if (!$id) {
-            $resource = $this->retrieveMedia($itemId);
+            $resource = $this->retrieveMedia($this->_resource_identifier, $itemId);
             if (!$resource) {
                 return $this->notFound();
             }
@@ -391,7 +393,15 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         $result = $this->queryResource($identifiers, $this->_item_set_id, $this->_item_id);
         if (!$result) {
-            throw new NotFoundException;
+            if ($this->_resource_name !== 'media') {
+                throw new NotFoundException;
+            }
+            // An exception may be thrown.
+            $media = $this->notFoundMedia();
+            $result = [
+                'id' => $media->id(),
+                'type' => \Omeka\Entity\Media::class,
+            ];
         }
 
         if ($result['type'] === \Omeka\Entity\ItemSet::class) {
@@ -413,6 +423,21 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             'site-slug' => $this->params('site-slug'),
             'id' => $result['id'],
         ]);
+    }
+
+    protected function notFoundMedia()
+    {
+        // Here, it's probably an item and a media without identifier, so the
+        // resource identifier is the item id / media.
+
+        if ($this->_item_id) {
+            $media = $this->retrieveMedia($this->_resource_identifier, $this->_item_id);
+            if ($media) {
+                return $media;
+            }
+        }
+
+        throw new NotFoundException;
     }
 
     /**
@@ -587,10 +612,11 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     }
 
     /**
+     * @param string $mediaIdentifier
      * @param int $itemId
      * @return \Omeka\Api\Representation\MediaRepresentation|null
      */
-    protected function retrieveMedia($itemId = null)
+    protected function retrieveMedia($mediaIdentifier, $itemId = null)
     {
         $undefined = $this->settings()->get('cleanurl_media_media_undefined');
         if (!in_array($undefined, ['id', 'position'])) {
@@ -605,7 +631,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
                 }
                 // Whatever the format, use the numeric character only: sprintf
                 // cannot be reversed.
-                $position = preg_replace('~\D~', '', $this->_resource_identifier);
+                $position = preg_replace('~\D~', '', $mediaIdentifier);
                 $sql = 'SELECT id FROM media WHERE item_id = :item_id AND position = :position;';
                 $stmt = $this->connection->prepare($sql);
                 $stmt->bindValue('item_id', $itemId);
@@ -625,7 +651,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             case 'id':
             default:
                 try {
-                    return $this->api()->read('media', $this->_resource_identifier);
+                    return $this->api()->read('media', $mediaIdentifier);
                 } catch (\Omeka\Api\Exception\NotFoundException $e) {
                     return null;
                 }
