@@ -10,6 +10,7 @@ namespace CleanUrl\View\Helper;
  */
 
 use const CleanUrl\SLUG_MAIN_SITE;
+use const CleanUrl\SLUG_SITE;
 
 use Zend\Mvc\Application;
 use Zend\View\Helper\AbstractHelper;
@@ -252,7 +253,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     }
                 }
                 $basePath = mb_strlen($siteSlug)
-                    ? $this->view->basePath('s/' . $siteSlug)
+                    ? $this->view->basePath(SLUG_SITE . $siteSlug)
                     : $this->view->basePath();
                 break;
 

@@ -68,6 +68,10 @@ class Module extends AbstractModule
         $config = $services->get('Config');
         $settings = $services->get('Omeka\Settings');
 
+        // This settings are currently not used, but update them for display.
+        $settings->set('cleanurl_site_slug', SLUG_SITE);
+        $settings->set('cleanurl_page_slug', SLUG_PAGE);
+
         // TODO Clean filling of the config form.
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
@@ -153,6 +157,7 @@ class Module extends AbstractModule
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
+        $params['cleanurl_site_slug'] = SLUG_SITE;
         $params['cleanurl_page_slug'] = SLUG_PAGE;
 
         $defaultSettings = $config['cleanurl']['config'];

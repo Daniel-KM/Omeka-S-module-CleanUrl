@@ -48,46 +48,19 @@ if (version_compare($oldVersion, '3.15.5', '<')) {
 if (version_compare($oldVersion, '3.15.13', '<')) {
     $oldPath = OMEKA_PATH . '/config/routes.main_slug.php';
     $newPath = OMEKA_PATH . '/config/clean_url.config.php';
-    if (file_exists($oldPath) && !file_exists($newPath)) {
-        $result = @rename($oldPath, $newPath);
-        if ($result) {
-            if (is_writeable($newPath)) {
-                $content = file_get_contents($newPath);
-                if (strpos($content, 'SLUG_MAIN_SITE') === false) {
-                    $content .= PHP_EOL . PHP_EOL . <<<PHP
-// In order to have a main site without "/s/site-slug", fill your main site slug
-// here, so it won’t be used.
-const SLUG_MAIN_SITE = false;
-PHP;
-                    file_put_contents($newPath, $content);
-                }
 
-                $content .= PHP_EOL . PHP_EOL . <<<PHP
-// Rename or remove /page/ from the urls of pages.
-const SLUG_PAGE = 'page/';
-PHP;
-                file_put_contents($newPath, $content);
+    $t = $services->get('MvcTranslator');
+    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
 
-                $content .= PHP_EOL . PHP_EOL . <<<PHP
-// List of reserved slugs that cannot be used as site slug or page slug.
-// It is larger than needed in order to manage future modules or improvments,
-// according to existing modules in Omeka classic or Omeka S or common wishes.
-// It completes the default list present in Omeka core at top and site levels
-// (admin, api, item, login, etc.).
-// It can be edited as needed.
-const SLUG_RESERVED = '|access|adminer|annotation|ark|ark%3A|ark:|atom|auth|basket|bulk|cartography|collecting|comment|correction|cron|download|ebook|elastic|elastic-search|embed|embed-item|embed-page|epub|export|favorite|feed|find|graph|guest|iiif|iiif-img|iiif-search|iiif-server|image-server|import|ldap|login-admin|map|map-browse|ns|oai|oai-pmh|oauth|output|pdf|rss|saml|scripto|search|sitemap|solr|statistics|stats|story|storymap|subscription|tag|tagging|tags|timeline|unapi|upload|uri-dereferencer|value-suggest|xml-sitemap';
-PHP;
-                file_put_contents($newPath, $content);
-
-            } else {
-                $t = $services->get('MvcTranslator');
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
-                $messenger->addWarning($t->translate('Automatic filling of "config/clean_url.config.php" failed. Config it manually in the config directory of Omeka.')); // @translate
-            }
-        } else {
-            $t = $services->get('MvcTranslator');
-            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
-            $messenger->addWarning($t->translate('Automatic renaming failed. You should rename manually "config/routes.main_slug.php" as "config/clean_url.config.php" in the config directory of Omeka.')); // @translate
+    if (file_exists($oldPath) && !file_exists($newPath) && is_writeable(dirname($newPath))) {
+        $result = @copy(dirname(dirname(__DIR__ )). '/config/clean_url.config.php', $newPath);
+        if (!$result) {
+            $messenger->addWarning($t->translate('Automatic copy of config file "config/clean_url.config.php" in the config directory of Omeka failed.')); // @translate
         }
     }
+
+    $settings->set('cleanurl_site_slug', 's/');
+    $settings->set('cleanurl_page_slug', 'page/');
+
+    $messenger->addWarning($t->translate('Check the new config file "config/clean_url.config.php" and remove the old one in the config directory of Omeka.')); // @translate
 }

@@ -1,6 +1,20 @@
 <?php
 namespace CleanUrl;
 
+// TODO Remove the "s", that is not required, but kept for now for modules and themes that don't use helper url(). Anyway it's not working.
+const SLUGS_CORE = 'item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install|files|s';
+
+// Prepare to get the slug of a page, that can be anything except reserved strings.
+$regexSitePage = SLUG_PAGE
+    . '(?:'
+    . (SLUG_SITE ? rtrim(SLUG_SITE . '/') . '|' : '')
+    . (SLUG_PAGE ? rtrim(SLUG_PAGE . '/') . '|' : '')
+    . SLUGS_CORE
+    // Common modules and reserved strings.
+    . SLUGS_RESERVED
+    // Capturing group for page-slug ("-" cannot be used here).
+    . '|(?P<page_slug>[a-zA-Z0-9_-]+))';
+
 return [
     'view_manager' => [
         'controller_map' => [
@@ -50,7 +64,7 @@ return [
                     ],
                 ],
                 'may_terminate' => true,
-                // TODO Find a way to avoid to copy all the site routes, in particular for modules.
+                // TODO Find a way to avoid to copy all the site routes, in particular for modules. Add "|" to the regex of site slug?
                 // Allows to access main site resources and pages.
                 // Same routes than "site", except initial "/" and routes,
                 // without starting "/".
@@ -108,13 +122,8 @@ return [
                     'page' => [
                         'type' => \CleanUrl\Router\Http\RegexPage::class,
                         'options' => [
-                            // Forbid any reserved words.
-                            'regex' => SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
-                                // Common modules and reserved words.
-                                . SLUG_RESERVED
-                                // Capturing group ("-" cannot be used).
-                                . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
-                            'spec' => '%page-slug%',
+                            'regex' => $regexSitePage,
+                            'spec' => SLUG_PAGE . '%page-slug%',
                             'defaults' => [
                                 'controller' => 'Page',
                                 'action' => 'show',
@@ -126,6 +135,9 @@ return [
             // Override the default config to remove the slug for main site.
             'site' => [
                 'type' => \CleanUrl\Router\Http\SegmentMain::class,
+                'options' => [
+                    'route' => '/' . SLUG_SITE . ':site-slug',
+                ],
                 'child_routes' => [
                     'page-browse' => [
                         'options' => [
@@ -135,14 +147,9 @@ return [
                     'page' => [
                         'type' => \CleanUrl\Router\Http\RegexPage::class,
                         'options' => [
-                            // Forbid any reserved words.
                             // Warning: this is the same regex than for top page, but with an initial "/".
-                            'regex' => '/' . SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
-                                // Common modules and reserved words.
-                                . SLUG_RESERVED
-                                // Capturing group ("-" cannot be used).
-                                . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
-                            'spec' => '/%page-slug%',
+                            'regex' => '/' . $regexSitePage,
+                            'spec' => '/' . SLUG_PAGE . '%page-slug%',
                         ],
                     ],
                 ],
@@ -165,6 +172,7 @@ return [
             'cleanurl_media_default' => 'generic',
             'cleanurl_media_allowed' => ['generic', 'item_set_item'],
             'cleanurl_media_generic' => 'medium/',
+            'cleanurl_site_slug' => SLUG_SITE,
             'cleanurl_page_slug' => SLUG_PAGE,
             'cleanurl_use_admin' => true,
             'cleanurl_display_admin_show_identifier' => true,
