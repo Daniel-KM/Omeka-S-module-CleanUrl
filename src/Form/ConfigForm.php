@@ -118,7 +118,7 @@ class ConfigForm extends Form
                         'default' => 'Omeka route: / resource type / id', // @translate
                         'main_generic' => 'Main and generic path: / main / generic / id', // @translate
                         'generic' => 'Generic path: / generic / id', // @translate
-                        'exception' => 'Error 404', // @translate
+                        'exception' => 'Error 404 (except in admin)', // @translate
                     ],
                 ],
                 'attributes' => [

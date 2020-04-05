@@ -39,10 +39,8 @@ class GetResourceFullIdentifier extends AbstractHelper
      * @param \Omeka\Api\Representation\AbstractResourceRepresentation|array $resource
      * @param string $siteSlug May be required on main public pages.
      * @param string $withBasePath Can be empty, "admin", "public" or "current".
-     * If any, implies main path.
      * @param bool $withMainPath
-     * @param bool $absoluteUrl If true, implies current / admin or public
-     * path and main path.
+     * @param bool $absoluteUrl
      * @param string $format Format of the identifier (default one if empty).
      * @return string Full identifier of the resource if any, else empty string.
      */
@@ -264,7 +262,7 @@ class GetResourceFullIdentifier extends AbstractHelper
      * Return beginning of the resource name if needed.
      *
      * @param string $siteSlug
-     * @param bool $withBasePath Implies main path.
+     * @param bool $withBasePath
      * @param bool $withMainPath
      * @return string The string ends with '/'.
      */
@@ -272,14 +270,9 @@ class GetResourceFullIdentifier extends AbstractHelper
     {
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
-            $withMainPath = true;
-        } elseif ($withBasePath) {
-            $withMainPath = true;
         }
-
         if ($withBasePath == 'current') {
-            $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
-            $withBasePath = $routeMatch->getParam('__ADMIN__') ? 'admin' : 'public';
+            $withBasePath = $this->view->status()->isAdminRequest() ? 'admin' : 'public';
         }
 
         switch ($withBasePath) {
@@ -289,9 +282,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $siteSlug = '';
                     }
                 } else {
-                    if (empty($routeMatch)) {
-                        $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
-                    }
+                    $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
                     $siteSlug = $routeMatch->getParam('site-slug');
                     if (SLUG_MAIN_SITE && $siteSlug === SLUG_MAIN_SITE) {
                         $siteSlug = '';
@@ -421,8 +412,11 @@ class GetResourceFullIdentifier extends AbstractHelper
                 ];
                 return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $genericKeys[$resource->getControllerName()] . $resource->id();
             case 'exception':
-                $message = new \Omeka\Stdlib\Message('The "%1$s" #%2$d has no normalized identifier.', $resource->getControllerName(), $resource->id()); // @translate
-                throw new \Omeka\Mvc\Exception\RuntimeException($message);
+                if (!$this->view->status()->isAdminRequest()) {
+                    $message = new \Omeka\Stdlib\Message('The "%1$s" #%2$d has no normalized identifier.', $resource->getControllerName(), $resource->id()); // @translate
+                    throw new \Omeka\Mvc\Exception\RuntimeException($message);
+                }
+                // no break.
             case 'default':
             default:
                 return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $resource->getControllerName() . '/' . $resource->id();
