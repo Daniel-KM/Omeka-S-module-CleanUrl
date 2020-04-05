@@ -112,7 +112,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Defines public routes like "main_path / main_path_2 / my_item_set | generic / item dcterms:identifier / media dcterms:identifier".
+     * Defines public routes like "main_path / my_item_set | generic / item dcterms:identifier / media dcterms:identifier".
      *
      * @todo Rechecks performance of routes definition.
      */
