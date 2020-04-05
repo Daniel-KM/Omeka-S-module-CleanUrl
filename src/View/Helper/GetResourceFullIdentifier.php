@@ -113,11 +113,11 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 switch ($format) {
-                    case 'generic':
+                    case 'generic_item':
                         $generic = $view->setting('cleanurl_item_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
-                    case 'item_set':
+                    case 'item_set_item':
                         $itemSets = $resource->itemSets();
                         $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
@@ -154,11 +154,11 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 switch ($format) {
-                    case 'generic':
+                    case 'generic_media':
                         $generic = $view->setting('cleanurl_media_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
-                    case 'generic_item':
+                    case 'generic_item_media':
                         $generic = $view->setting('cleanurl_media_generic');
 
                         $item = $resource->item();
@@ -168,7 +168,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         }
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $item_identifier . '/' . $identifier;
 
-                    case 'item_set':
+                    case 'item_set_media':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
                         $itemSetIdentifier = null;
@@ -185,7 +185,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         }
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
 
-                    case 'item_set_item':
+                    case 'item_set_item_media':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
                         $itemSetIdentifier = null;
@@ -318,17 +318,17 @@ class GetResourceFullIdentifier extends AbstractHelper
         switch ($resourceName) {
             case 'items':
                 $allowedForItems = $this->view->setting('cleanurl_item_allowed');
-                return in_array('generic', $allowedForItems)
-                    ? 'generic'
+                return in_array('generic_item', $allowedForItems)
+                    ? 'generic_item'
                     : null;
 
             case 'media':
                 $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
-                if (in_array('generic_item', $allowedForMedia)) {
-                    return 'generic_item';
+                if (in_array('generic_item_media', $allowedForMedia)) {
+                    return 'generic_item_media';
                 }
-                return in_array('generic', $allowedForMedia)
-                    ? 'generic'
+                return in_array('generic_media', $allowedForMedia)
+                    ? 'generic_media'
                     : null;
 
             default:

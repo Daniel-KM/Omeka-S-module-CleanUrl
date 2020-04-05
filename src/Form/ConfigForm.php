@@ -174,8 +174,8 @@ class ConfigForm extends Form
                     'label' => 'Default url of items', // @translate
                     'info' => 'Select the default format of the url for items.', // @translate
                     'value_options' => [
-                        'generic' => '/ generic / item identifier', // @translate
-                        'item_set' => '/ item set identifier / item identifier', // @translate
+                        'generic_item' => '/ generic / item identifier', // @translate
+                        'item_set_item' => '/ item set identifier / item identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -190,8 +190,8 @@ class ConfigForm extends Form
                     'label' => 'Allowed urls for items', // @translate
                     'info' => 'Select the allowed formats for urls of items, for example to allow a permalink and a seo link.', // @translate
                     'value_options' => [
-                        'generic' => '/ generic / item identifier', // @translate
-                        'item_set' => '/ item set identifier / item identifier', // @translate
+                        'generic_item' => '/ generic / item identifier', // @translate
+                        'item_set_item' => '/ item set identifier / item identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -227,10 +227,10 @@ class ConfigForm extends Form
                     'label' => 'Default url of medias', // @translate
                     'info' => 'Select the default format of the url for medias.', // @translate
                     'value_options' => [
-                        'generic' => '/ generic / media identifier', // @translate
-                        'generic_item' => '/ generic / item identifier / media identifier', // @translate
-                        'item_set' => '/ item_set identifier / media identifier', // @translate
-                        'item_set_item' => '/ item set identifier / item identifier / media identifier', // @translate
+                        'generic_media' => '/ generic / media identifier', // @translate
+                        'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
+                        'item_set_media' => '/ item_set identifier / media identifier', // @translate
+                        'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -245,10 +245,10 @@ class ConfigForm extends Form
                     'label' => 'Allowed urls for medias', // @translate
                     'info' => 'Select the allowed formats for urls of medias, for example to allow a permalink and a seo link.', // @translate
                     'value_options' => [
-                        'generic' => '/ generic / media identifier', // @translate
-                        'generic_item' => '/ generic / item identifier / media identifier', // @translate
-                        'item_set' => '/ item_set identifier / media identifier', // @translate
-                        'item_set_item' => '/ item set identifier / item identifier / media identifier', // @translate
+                        'generic_media' => '/ generic / media identifier', // @translate
+                        'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
+                        'item_set_media' => '/ item_set identifier / media identifier', // @translate
+                        'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
                     ],
                 ],
                 'attributes' => [
