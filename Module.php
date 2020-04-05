@@ -28,7 +28,6 @@ use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\Controller\AbstractController;
 use Zend\Mvc\MvcEvent;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\View\Renderer\PhpRenderer;
 
 class Module extends AbstractModule
@@ -42,10 +41,9 @@ class Module extends AbstractModule
         $this->addRoutes();
     }
 
-    public function install(ServiceLocatorInterface $serviceLocator)
+    protected function postInstall()
     {
-        parent::install($serviceLocator);
-        $this->cacheItemSetsRegex($serviceLocator);
+        $this->cacheItemSetsRegex();
     }
 
     public function getConfigForm(PhpRenderer $renderer)
@@ -75,7 +73,7 @@ class Module extends AbstractModule
         $view->headStyle()->appendStyle('.inputs label { display: block; }');
         $form->prepare();
 
-        $html = $translate('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.') // @translate
+        $html = $translate('"CleanUrl" module allows to have clean, readable and search engine optimized Urls like http://example.com/my_item_set/item_identifier.') // @translate
             . '<br />'
             . sprintf($translate('See %s for more information.'), // @translate
                 sprintf('<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme'))
@@ -143,7 +141,7 @@ class Module extends AbstractModule
             }
         }
 
-        $this->cacheItemSetsRegex($this->getServiceLocator());
+        $this->cacheItemSetsRegex();
     }
 
     /**
@@ -466,19 +464,18 @@ class Module extends AbstractModule
 
     /**
      * Cache item set identifiers as string to speed up routing.
-     *
-     * @param ServiceLocatorInterface $serviceLocator
      */
-    protected function cacheItemSetsRegex(ServiceLocatorInterface $serviceLocator)
+    protected function cacheItemSetsRegex()
     {
+        $services = $this->getServiceLocator();
         // Get all item set identifiers with one query.
-        $viewHelpers = $serviceLocator->get('ViewHelperManager');
+        $viewHelpers = $services->get('ViewHelperManager');
         // The view helper is not available during intall, upgrade and tests.
         if ($viewHelpers->has('getResourceTypeIdentifiers')) {
             $getResourceTypeIdentifiers = $viewHelpers->get('getResourceTypeIdentifiers');
             $itemSetIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
         } else {
-            $getResourceTypeIdentifiers = $this->getViewHelperRTI($serviceLocator);
+            $getResourceTypeIdentifiers = $this->getViewHelperRTI($services);
             $itemSetIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
         }
 
@@ -496,43 +493,34 @@ class Module extends AbstractModule
         // escaped with preg_quote().
         $itemSetsRegex = str_replace('/', '\/', implode('|', $itemSetsRegex));
 
-        $settings = $serviceLocator->get('Omeka\Settings');
+        $settings = $services->get('Omeka\Settings');
         $settings->set('cleanurl_item_set_regex', $itemSetsRegex);
     }
 
     /**
      * Get the view helper getResourceTypeIdentifiers with some params.
      *
-     * @param ServiceLocatorInterface $serviceLocator
      * @return \CleanUrl\View\Helper\GetResourceTypeIdentifiers
      */
-    protected function getViewHelperRTI(ServiceLocatorInterface $serviceLocator)
+    protected function getViewHelperRTI()
     {
-        require_once __DIR__
-            . DIRECTORY_SEPARATOR . 'src'
-            . DIRECTORY_SEPARATOR . 'Service'
-            . DIRECTORY_SEPARATOR . 'ViewHelper'
-            . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiersFactory.php';
+        $services = $this->getServiceLocator();
 
-        require_once __DIR__
-            . DIRECTORY_SEPARATOR . 'src'
-            . DIRECTORY_SEPARATOR . 'View'
-            . DIRECTORY_SEPARATOR . 'Helper'
-            . DIRECTORY_SEPARATOR . 'GetResourceTypeIdentifiers.php';
+        require_once __DIR__ . '/src/Service/ViewHelper/GetResourceTypeIdentifiersFactory.php';
+        require_once __DIR__ . '/src/View/Helper/GetResourceTypeIdentifiers.php';
 
-        $settings = $serviceLocator->get('Omeka\Settings');
+        $settings = $services->get('Omeka\Settings');
         $propertyId = (int) $settings->get('cleanurl_identifier_property');
         $prefix = $settings->get('cleanurl_identifier_prefix');
 
         $factory = new GetResourceTypeIdentifiersFactory();
-        $helper = $factory(
-            $serviceLocator,
+        return $factory(
+            $services,
             'getResourceTypeIdentifiers',
             [
                 'propertyId' => $propertyId,
                 'prefix' => $prefix,
             ]
         );
-        return $helper;
     }
 }
