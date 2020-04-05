@@ -81,7 +81,7 @@ class ConfigForm extends Form
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Prefix to select an identifier', // @translate
-                    'info' => 'This prefix allow to find one identifier when there are multiple values: "ark:", "record:", or "doc =". Let empty to use the first identifier. If this identifier does not exists, the Omeka item id will be used.', // @translate
+                    'info' => 'This prefix allows to find one identifier when there are multiple values: "ark:", "record:", or "doc =". Let empty to use the first identifier. If this identifier does not exists, the Omeka item id will be used.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_identifier_prefix',
@@ -526,7 +526,7 @@ class ConfigForm extends Form
                 'type' => Element\Textarea::class,
                 'options' => [
                     'label' => 'Other reserved routes in admin', // @translate
-                    'info' => 'This options allows to fix routes for unmanaged modules. Add them in the file cleanurl.config.php or here, on by row.', // @translate
+                    'info' => 'This option allows to fix routes for unmanaged modules. Add them in the file cleanurl.config.php or here, one by row.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_admin_reserved',
