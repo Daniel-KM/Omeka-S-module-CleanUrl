@@ -99,8 +99,7 @@ class GetIdentifiersFromResources extends AbstractHelper
         $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
         // Get the list of identifiers.
-        $connection = $this->connection;
-        $qb = $connection->createQueryBuilder()
+        $qb = $this->connection->createQueryBuilder()
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
             ->andWhere('value.property_id = :property_id')
@@ -145,14 +144,14 @@ class GetIdentifiersFromResources extends AbstractHelper
         $tempTable = count($resources) > self::CHUNK_RECORDS;
         if ($tempTable) {
             $query = 'DROP TABLE IF EXISTS temp_resources;';
-            $stmt = $connection->query($query);
+            $stmt = $this->connection->query($query);
             // TODO Check if the id may be unique.
             // $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL, PRIMARY KEY(id));';
             $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL);';
-            $stmt = $connection->query($query);
+            $stmt = $this->connection->query($query);
             foreach (array_chunk($resources, self::CHUNK_RECORDS) as $chunk) {
                 $query = 'INSERT INTO temp_resources VALUES(' . implode('),(', $chunk) . ');';
-                $stmt = $connection->query($query);
+                $stmt = $this->connection->query($query);
             }
             $qb
                 // No where condition.
@@ -171,7 +170,7 @@ class GetIdentifiersFromResources extends AbstractHelper
                 ->andWhere('value.resource_id IN (' . implode(',', $resources) . ')');
         }
 
-        $stmt = $connection->executeQuery($qb, $qb->getParameters());
+        $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
         $result = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         return $one
             ? array_shift($result)
