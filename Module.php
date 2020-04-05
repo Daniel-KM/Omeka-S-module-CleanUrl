@@ -567,11 +567,14 @@ class Module extends AbstractModule
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $request->getContent();
+        if (!isset($data['o:slug'])) {
+            return;
+        };
         $slug = $data['o:slug'];
         if (!mb_strlen($slug)) {
             return;
         }
-
+        // Don't update if the slug didn't change.
         if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . $slug . '|') === false) {
             return;
         }
