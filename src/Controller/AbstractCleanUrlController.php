@@ -57,7 +57,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     public function itemSetShowAction()
     {
-        $this->_item_set_identifier = rawurldecode($this->params('resource_identifier'));
+        $this->_item_set_identifier = $this->params('resource_identifier');
         $result = $this->_setItemSetId();
         if (empty($result)) {
             throw new NotFoundException;
@@ -96,7 +96,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     public function routeItemSetItemAction()
     {
-        $this->_item_set_identifier = rawurldecode($this->params('item_set_identifier'));
+        $this->_item_set_identifier = $this->params('item_set_identifier');
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
         if (is_null($result)) {
@@ -182,13 +182,13 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     public function routeItemSetItemMediaAction()
     {
-        $this->_item_set_identifier = rawurldecode($this->params('item_set_identifier'));
+        $this->_item_set_identifier = $this->params('item_set_identifier');
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
         if (is_null($result)) {
             throw new NotFoundException;
         }
-        $this->_item_identifier = rawurldecode($this->params('item_identifier'));
+        $this->_item_identifier = $this->params('item_identifier');
         // If 0, this is possible (generic route).
         $result = $this->_setItemId();
         if (is_null($result)) {
@@ -242,7 +242,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $settings = $this->settings();
         $propertyId = (int) $settings->get('cleanurl_identifier_property');
 
-        $this->_resource_identifier = rawurldecode($this->params('resource_identifier'));
+        $this->_resource_identifier = $this->params('resource_identifier');
 
         $sqlFrom = 'FROM resource';
 
