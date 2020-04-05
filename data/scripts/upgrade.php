@@ -41,8 +41,8 @@ if (version_compare($oldVersion, '3.15.3', '<')) {
 }
 
 if (version_compare($oldVersion, '3.15.5', '<')) {
-    $settings->set('cleanurl_use_admin',
-        $config[strtolower(__NAMESPACE__)]['config']['cleanurl_use_admin']);
+    $settings->set('cleanurl_admin_use',
+        $config[strtolower(__NAMESPACE__)]['config']['cleanurl_admin_use']);
 }
 
 if (version_compare($oldVersion, '3.15.13', '<')) {
@@ -61,6 +61,12 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $settings->set('cleanurl_site_skip_main', false);
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
+
+    $settings->set('cleanurl_admin_show_identifier', $settings->get('cleanurl_display_admin_show_identifier'));
+    $settings->delete('cleanurl_display_admin_show_identifier');
+
+    $settings->set('cleanurl_admin_use', $settings->get('cleanurl_use_admin'));
+    $settings->delete('cleanurl_use_admin');
 
     $settings->set('cleanurl_item_default', $settings->get('cleanurl_item_default') . '_item');
     $routes = [];

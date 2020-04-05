@@ -194,8 +194,8 @@ return [
                 'item_set_item_media',
             ],
             'cleanurl_media_generic' => 'medium/',
-            'cleanurl_use_admin' => true,
-            'cleanurl_display_admin_show_identifier' => true,
+            'cleanurl_admin_use' => true,
+            'cleanurl_admin_show_identifier' => true,
         ],
     ],
 ];

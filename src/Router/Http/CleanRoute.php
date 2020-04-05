@@ -106,7 +106,7 @@ class CleanRoute implements RouteInterface
             'media_generic' => null,
             'item_allowed' => null,
             'media_allowed' => null,
-            'use_admin' => null,
+            'admin_use' => null,
             'item_set_regex' => null,
         ];
         $this->defaults = $defaults;
@@ -158,7 +158,7 @@ class CleanRoute implements RouteInterface
             'CleanUrl\Controller\Site',
             null,
         ];
-        if ($this->settings['use_admin']) {
+        if ($this->settings['admin_use']) {
             $baseRoutes['_admin'] = [
                 '/admin/',
                 '__ADMIN__',

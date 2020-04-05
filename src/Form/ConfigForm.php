@@ -320,25 +320,25 @@ class ConfigForm extends Form
         $adminFieldset = $this->get('clean_url_admin');
         $adminFieldset
             ->add([
-                'name' => 'cleanurl_use_admin',
+                'name' => 'cleanurl_admin_use',
                 'type' => Element\Checkbox::class,
                 'options' => [
                     'label' => 'Use in admin board', // @translate
                     'info' => 'If checked, the clean url will be used in the admin board.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_use_admin',
+                    'id' => 'cleanurl_admin_use',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_display_admin_show_identifier',
+                'name' => 'cleanurl_admin_show_identifier',
                 'type' => Element\Checkbox::class,
                 'options' => [
                     'label' => 'Display identifier in admin resources', // @translate
                     'info' => 'If checked, the identifier of each item will be displayed in the admin item show page.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_display_admin_show_identifier',
+                    'id' => 'cleanurl_admin_show_identifier',
                 ],
             ]);
 
@@ -421,7 +421,11 @@ class ConfigForm extends Form
         $adminFilter = $inputFilter->get('clean_url_admin');
         $adminFilter
             ->add([
-                'name' => 'cleanurl_display_admin_show_identifier',
+                'name' => 'cleanurl_admin_use',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_admin_show_identifier',
                 'required' => false,
             ]);
     }
