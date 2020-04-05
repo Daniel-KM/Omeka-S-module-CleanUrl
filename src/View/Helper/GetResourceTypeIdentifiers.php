@@ -32,7 +32,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
      * @param bool $skipPrefix Keep the prefix or not.
      * @return array List of identifiers.
      */
-    public function __invoke($resourceName, $rawUrlEncode = true, $skipPrefix = false)
+    public function __invoke($resourceName, $rawUrlEncode = false, $skipPrefix = false)
     {
         $resourceTypes = [
             'item_sets' => \Omeka\Entity\ItemSet::class,

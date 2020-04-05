@@ -37,7 +37,7 @@ class GetResourceIdentifier extends AbstractHelper
      * @param bool $skipPrefix Keep the prefix or not.
      * @return string Identifier of the record, if any, else empty string.
      */
-    public function __invoke($resource, $rawUrlEncode = true, $skipPrefix = false)
+    public function __invoke($resource, $rawUrlEncode = false, $skipPrefix = false)
     {
         $resourceTypes = [
             ItemSetRepresentation::class => ItemSet::class,

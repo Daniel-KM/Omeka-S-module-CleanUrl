@@ -32,6 +32,8 @@ class GetResourceFullIdentifier extends AbstractHelper
     /**
      * Get clean url path of a resource in the default or specified format.
      *
+     * @todo Replace by standard routing assemble.
+     *
      * @param \Omeka\Api\Representation\AbstractResourceRepresentation|array $resource
      * @param string $siteSlug May be required on main public pages.
      * @param bool $withMainPath
@@ -97,17 +99,17 @@ class GetResourceFullIdentifier extends AbstractHelper
                 return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
-                $identifier = $view->getResourceIdentifier($resource, true, true);
-                if (empty($identifier)) {
-                    $identifier = $resource->id();
-                }
-
                 if (empty($format)) {
                     $format = $view->setting('cleanurl_item_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'items')) {
                     return '';
+                }
+
+                $identifier = $view->getResourceIdentifier($resource, true, true);
+                if (empty($identifier)) {
+                    $identifier = $resource->id();
                 }
 
                 switch ($format) {
@@ -138,17 +140,17 @@ class GetResourceFullIdentifier extends AbstractHelper
                 break;
 
             case 'media':
-                $identifier = $view->getResourceIdentifier($resource, true, true);
-                if (empty($identifier)) {
-                    $identifier = $resource->id();
-                }
-
                 if (empty($format)) {
                     $format = $view->setting('cleanurl_media_default');
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
                     return '';
+                }
+
+                $identifier = $view->getResourceIdentifier($resource, true, true);
+                if (empty($identifier)) {
+                    $identifier = $resource->id();
                 }
 
                 switch ($format) {
