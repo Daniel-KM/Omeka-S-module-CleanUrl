@@ -136,8 +136,9 @@ class Module extends AbstractModule
                 // Check clean url first.
                 'priority' => 10,
                 'options' => [
-                    // TODO Save all these settings in one array.
+                    'api' => $services->get('Omeka\ApiManager'),
                     'base_path' => $basePath(),
+                    // TODO Save all these settings in one array.
                     'settings' => [
                         'default_site' => $settings->get('default_site'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
