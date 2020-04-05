@@ -99,6 +99,7 @@ class CleanRoute implements RouteInterface
         $this->settings = $settings + [
             'main_path' => null,
             'main_path_2' => null,
+            'main_path_3' => null,
             'main_path_full' => null,
             'item_set_generic' => null,
             'item_generic' => null,
@@ -138,6 +139,7 @@ class CleanRoute implements RouteInterface
 
         $mainPath = $this->settings['main_path'];
         $mainPath2 = $this->settings['main_path_2'];
+        $mainPath3 = $this->settings['main_path_3'];
         $mainPathFull = $this->settings['main_path_full'];
 
         $itemSetGeneric = $this->settings['item_set_generic'];

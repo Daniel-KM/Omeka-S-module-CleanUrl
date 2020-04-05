@@ -139,6 +139,7 @@ class Module extends AbstractModule
                         'default_site' => $settings->get('default_site'),
                         'main_path' => $settings->get('cleanurl_main_path'),
                         'main_path_2' => $settings->get('cleanurl_main_path_2'),
+                        'main_path_3' => $settings->get('cleanurl_main_path_3'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
@@ -326,6 +327,7 @@ class Module extends AbstractModule
         foreach ([
             'cleanurl_main_path',
             'cleanurl_main_path_2',
+            'cleanurl_main_path_3',
             'cleanurl_item_set_generic',
             'cleanurl_item_generic',
             'cleanurl_media_generic',
@@ -338,12 +340,16 @@ class Module extends AbstractModule
 
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
 
+        if (!mb_strlen($params['cleanurl_main_path_2']) && mb_strlen($params['cleanurl_main_path_3'])) {
+            $params['cleanurl_main_path_2'] = $params['cleanurl_main_path_3'];
+            $params['cleanurl_main_path_3'] = '';
+        }
         if (!mb_strlen($params['cleanurl_main_path']) && mb_strlen($params['cleanurl_main_path_2'])) {
             $params['cleanurl_main_path'] = $params['cleanurl_main_path_2'];
             $params['cleanurl_main_path_2'] = '';
         }
         // Prepare a hidden params with the full path, to avoid checks later.
-        $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'];
+        $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];
