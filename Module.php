@@ -128,6 +128,11 @@ class Module extends AbstractModule
         $helpers = $services->get('ViewHelperManager');
         $basePath = $helpers->get('basePath');
 
+        // TODO Add route specifications, not route names.
+        // Add first part or the routes, that is generally the name of the
+        // modules used as route.
+        // $adminRoutes = array_keys($router->getRoutes()->toArray()['admin']->getRoutes()->toArray());
+
         // TODO Don't call status, it breaks construction of urls (media).
         // $status = $services->get('Omeka\Status');
 
@@ -156,6 +161,7 @@ class Module extends AbstractModule
                         'admin_use' => $settings->get('cleanurl_admin_use'),
                         'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                         'regex' => $settings->get('cleanurl_regex'),
+                        'admin_reserved' => $settings->get('cleanurl_admin_reserved'),
                     ],
                 ],
             ]);
@@ -271,6 +277,8 @@ class Module extends AbstractModule
             $data['clean_url_medias'][$name] = $settings->get($name, $value);
             $data['clean_url_admin'][$name] = $settings->get($name, $value);
         }
+
+        $data['clean_url_admin']['cleanurl_admin_reserved'] = implode("\n", $data['clean_url_admin']['cleanurl_admin_reserved']);
 
         $form = $services->get('FormElementManager')->get(ConfigForm::class);
         $form->init();

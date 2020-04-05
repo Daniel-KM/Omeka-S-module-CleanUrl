@@ -209,6 +209,7 @@ return [
             'cleanurl_media_format_position' => 'p%d',
             'cleanurl_admin_use' => true,
             'cleanurl_admin_show_identifier' => true,
+            'cleanurl_admin_reserved' => [],
             'cleanurl_regex' => [], // hidden
         ],
     ],
