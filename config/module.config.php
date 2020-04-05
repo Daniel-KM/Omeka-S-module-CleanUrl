@@ -198,6 +198,8 @@ return [
             'cleanurl_media_generic' => 'medium/',
             'cleanurl_media_item_set_undefined' => 'item_set_id',
             'cleanurl_media_item_undefined' => 'item_id',
+            'cleanurl_media_media_undefined' => 'item_id',
+            'cleanurl_media_format_position' => 'p%d',
             'cleanurl_admin_use' => true,
             'cleanurl_admin_show_identifier' => true,
         ],

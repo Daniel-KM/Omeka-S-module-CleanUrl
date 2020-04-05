@@ -10,7 +10,7 @@ use Omeka\Mvc\Exception\NotFoundException;
 use Zend\Mvc\Controller\AbstractActionController;
 
 /**
- * The plugin controller for index pages.
+ * The module controller for index pages.
  *
  * @package CleanUrl
  */
@@ -106,12 +106,13 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $this->_resource_name = 'items';
         $id = $this->_routeResource();
 
-        // If no identifier exists, the plugin tries to use the record id directly.
+        // If no identifier exists, the module tries to use the resource id
+        // directly.
         if (!$id) {
             try {
                 $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                throw new NotFoundException($e);
+                throw new NotFoundException;
             }
 
             $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
@@ -139,17 +140,16 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $this->_resource_name = 'media';
         $id = $this->_routeResource();
 
-        // If no identifier exists, the plugin tries to use the record id directly.
+        // If no identifier exists, the module tries to use the identifier
+        // specified ini the config, or the resource id directly.
         if (!$id) {
-            try {
-                $this->api()->read($this->_resource_name, $this->_resource_identifier);
-            } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                throw new NotFoundException($e);
+            $media = $this->retrieveMedia();
+            if (!$media) {
+                throw new NotFoundException;
             }
-            $id = $this->_resource_identifier;
         }
 
-        $this->_resource_id = $id;
+        $this->_resource_id = $media->id();
 
         return $this->forward()->dispatch($this->namespaceMedia, [
             '__NAMESPACE__' => $this->namespace,
@@ -184,26 +184,29 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     {
         $this->_item_set_identifier = $this->params('item_set_identifier');
         // If 0, this is possible (item without item set, or generic route).
-        $result = $this->_setItemSetId();
-        if (is_null($result)) {
+        $itemSetId = $this->_setItemSetId();
+        if (is_null($itemSetId)) {
             throw new NotFoundException;
         }
         $this->_item_identifier = $this->params('item_identifier');
+        // TODO Check if it is still the case.
         // If 0, this is possible (generic route).
-        $result = $this->_setItemId();
-        if (is_null($result)) {
+        $itemId = $this->_setItemId();
+        if (is_null($itemId)) {
             throw new NotFoundException;
         }
         $this->_resource_name = 'media';
         $id = $this->_routeResource();
 
-        // If no identifier exists, the plugin tries to use the record id directly.
+        // If no identifier exists, the module tries to use the identifier
+        // specified ini the config, or the resource id directly.
         if (!$id) {
-            try {
-                $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
-            } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                throw new NotFoundException($e);
+            $resource = $this->retrieveMedia($itemId);
+            if (!$resource) {
+                throw new NotFoundException;
             }
+
+            $id = $resource->id();
 
             // Check if the found media belongs to the item set.
             if (!$this->_checkItemSetMedia($resource)) {
@@ -214,8 +217,6 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             if (!$this->_checkItemMedia($resource)) {
                 throw new NotFoundException;
             }
-
-            $id = $this->_resource_identifier;
         }
 
         $this->_resource_id = $id;
@@ -356,7 +357,6 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      * Checks if a media belongs to an item set.
      *
      * @param MediaRepresentation $media Media to check.
-     *
      * @return bool
      */
     protected function _checkItemSetMedia(MediaRepresentation $media)
@@ -381,10 +381,9 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      * Checks if a media belongs to an item.
      *
      * @param MediaRepresentation $media Media to check.
-     *
      * @return bool
      */
-    protected function _checkItemMedia($media)
+    protected function _checkItemMedia(MediaRepresentation $media)
     {
         // Get the item.
         $item = $media->item();
@@ -427,6 +426,52 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         if (!in_array($item_set_id, $itemSetsIds)) {
             throw new NotFoundException;
+        }
+    }
+
+    /**
+     * @param int $itemId
+     * @return \Omeka\Api\Representation\MediaRepresentation|null
+     */
+    protected function retrieveMedia($itemId = null)
+    {
+        $undefined = $this->settings()->get('cleanurl_media_media_undefined');
+        if (!in_array($undefined, ['id', 'position'])) {
+            $undefined = $this->settings()->get('cleanurl_identifier_undefined');
+        }
+        switch ($undefined) {
+            case 'exception':
+                return null;
+            case 'position':
+                if (!$itemId) {
+                    return null;
+                }
+                // Whatever the format, use the numeric character only: sprintf
+                // cannot be reversed.
+                $position = preg_replace('~\D~', '', $this->_resource_identifier);
+                $sql = 'SELECT id FROM media WHERE item_id = :item_id AND position = :position;';
+                $stmt = $this->connection->prepare($sql);
+                $stmt->bindValue('item_id', $itemId);
+                $stmt->bindValue('position', $position);
+                $stmt->execute();
+                $id = $stmt->fetchColumn();
+                if (!$id) {
+                    return null;
+                }
+                // The id may be private.
+                try {
+                    return $this->api()->read('media', $id)->getContent();
+                } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                    return null;
+                }
+                break;
+            case 'id':
+            default:
+                try {
+                    return $this->api()->read('media', $this->_resource_identifier);
+                } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                    return null;
+                }
         }
     }
 
