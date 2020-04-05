@@ -43,7 +43,7 @@ return [
                     'defaults' => [
                         '__NAMESPACE__' => 'Omeka\Controller\Site',
                         '__SITE__' => true,
-                        'site-slug' => MAIN_SITE_SLUG,
+                        'site-slug' => SLUG_MAIN_SITE,
                         'controller' => 'Page',
                         'action' => 'show',
                     ],
@@ -51,7 +51,7 @@ return [
                 'may_terminate' => true,
                 // Allows to access main site resources and pages.
                 // Same routes than "site", except initial "/" and default values.
-                'child_routes' => MAIN_SITE_SLUG ? [
+                'child_routes' => SLUG_MAIN_SITE ? [
                     'resource' => [
                         'type' => \Zend\Router\Http\Segment::class,
                         'options' => [

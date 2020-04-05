@@ -6,7 +6,7 @@ namespace CleanUrl;
  *
  * Allows to have URL like http://example.com/my_item_set/dc:identifier.
  *
- * @copyright Daniel Berthereau, 2012-2019
+ * @copyright Daniel Berthereau, 2012-2020
  * @copyright BibLibre, 2016-2017
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
@@ -288,12 +288,12 @@ class Module extends AbstractModule
         // (most specific) to the first one (most generic).
 
         $baseRoutes = [];
-        if (MAIN_SITE_SLUG) {
+        if (SLUG_MAIN_SITE) {
             $baseRoutes['_top'] = [
                 '/',
                 '__SITE__',
                 'CleanUrl\Controller\Site',
-                MAIN_SITE_SLUG,
+                SLUG_MAIN_SITE,
             ];
         }
         $baseRoutes['_public'] = [

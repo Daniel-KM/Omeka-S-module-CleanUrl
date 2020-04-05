@@ -1,7 +1,7 @@
 <?php
 namespace CleanUrl\Router\Http;
 
-use const CleanUrl\MAIN_SITE_SLUG;
+use const CleanUrl\SLUG_MAIN_SITE;
 
 use Zend\Router\Http\Segment;
 
@@ -12,7 +12,7 @@ class SegmentMain extends Segment
 {
     public function assemble(array $params = [], array $options = [])
     {
-        return MAIN_SITE_SLUG && isset($params['site-slug']) && $params['site-slug'] === MAIN_SITE_SLUG
+        return SLUG_MAIN_SITE && isset($params['site-slug']) && $params['site-slug'] === SLUG_MAIN_SITE
             ? ''
             : parent::assemble($params, $options);
     }

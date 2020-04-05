@@ -46,7 +46,7 @@ prefix "/s/site-slug" is useless and not seo and user friendly.
 To set the main site:
 - first, set the default site in the main settings of Omeka;
 - second, copy the file [config/clean_url.config.php] in the Omeka config folder;
-- third, fill the slug of the main site as const `MAIN_SITE_SLUG`.
+- third, fill the slug of the main site as const `SLUG_MAIN_SITE`.
 
 ### Identifiers ###
 

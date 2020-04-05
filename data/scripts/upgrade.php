@@ -50,7 +50,20 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $newPath = OMEKA_PATH . '/config/clean_url.config.php';
     if (file_exists($oldPath) && !file_exists($newPath)) {
         $result = @rename($oldPath, $newPath);
-        if (!$result) {
+        if ($result) {
+            $content = file_get_contents($newPath);
+            if (strpos($content, 'SLUG_MAIN_SITE') === false) {
+                $content .= PHP_EOL . PHP_EOL
+                    . '// MAIN_SITE_SLUG is deprecated.' . PHP_EOL
+                    . 'const SLUG_MAIN_SITE = MAIN_SITE_SLUG;' . PHP_EOL;
+                $result = file_put_contents($newPath, $content);
+                if (!$result) {
+                    $t = $services->get('MvcTranslator');
+                    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                    $messenger->addWarning($t->translate('Automatic update of main config failed. You should rename the constant "MAIN_SITE_SLUG" to "SLUG_MAIN_SITE" in the file "config/clean_url.config.php" in the config directory of Omeka.')); // @translate
+                }
+            }
+        } else {
             $t = $services->get('MvcTranslator');
             $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
             $messenger->addWarning($t->translate('Automatic renaming failed. You should rename manually "config/routes.main_slug.php" as "config/clean_url.config.php" in the config directory of Omeka.')); // @translate

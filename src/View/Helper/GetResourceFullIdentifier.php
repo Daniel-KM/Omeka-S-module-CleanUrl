@@ -9,7 +9,7 @@ namespace CleanUrl\View\Helper;
  * @see Omeka\View\Helper\CleanUrl.php
  */
 
-use const CleanUrl\MAIN_SITE_SLUG;
+use const CleanUrl\SLUG_MAIN_SITE;
 
 use Zend\Mvc\Application;
 use Zend\View\Helper\AbstractHelper;
@@ -239,7 +239,7 @@ class GetResourceFullIdentifier extends AbstractHelper
         switch ($withBasePath) {
             case 'public':
                 if (strlen($siteSlug)) {
-                    if (MAIN_SITE_SLUG && $siteSlug === MAIN_SITE_SLUG) {
+                    if (SLUG_MAIN_SITE && $siteSlug === SLUG_MAIN_SITE) {
                         $siteSlug = '';
                     }
                 } else {
@@ -247,7 +247,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $routeMatch = $this->application->getMvcEvent()->getRouteMatch();
                     }
                     $siteSlug = $routeMatch->getParam('site-slug');
-                    if (MAIN_SITE_SLUG && $siteSlug === MAIN_SITE_SLUG) {
+                    if (SLUG_MAIN_SITE && $siteSlug === SLUG_MAIN_SITE) {
                         $siteSlug = '';
                     }
                 }
