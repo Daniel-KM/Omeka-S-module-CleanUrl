@@ -60,4 +60,7 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
 
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
+
+    $this->cacheCleanData();
+    $this->cacheItemSetsRegex();
 }

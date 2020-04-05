@@ -93,7 +93,7 @@ class Module extends AbstractModule
 
     protected function postInstall()
     {
-        $this->cacheSiteSlugs();
+        $this->cacheCleanData();
         $this->cacheItemSetsRegex();
     }
 
@@ -106,7 +106,7 @@ class Module extends AbstractModule
 
         // The params are cached on load and save, to manage the case the user
         // doesn‘t save the config.
-        $this->cacheSiteSlugs();
+        $this->cacheCleanData();
         $this->cacheItemSetsRegex();
 
         // This settings are currently not used, but update them for display.
@@ -207,7 +207,7 @@ class Module extends AbstractModule
             $settings->set($name, $value);
         }
 
-        $this->cacheSiteSlugs();
+        $this->cacheCleanData();
         $this->cacheItemSetsRegex();
         return true;
     }
@@ -368,7 +368,7 @@ class Module extends AbstractModule
     /**
      * Cache site slugs in file config/clean_url.dynamic.php.
      */
-    protected function cacheSiteSlugs()
+    protected function cacheCleanData()
     {
         $services = $this->getServiceLocator();
 
@@ -379,6 +379,28 @@ class Module extends AbstractModule
             return false;
         }
 
+        $settings = $services->get('Omeka\Settings');
+
+        // The file is always reset from original file.
+        $sourceFilepath = __DIR__ . '/config/clean_url.dynamic.php';
+        $content = file_get_contents($sourceFilepath);
+
+        // Update main site.
+        $default = $settings->get('default_site', '');
+        $skip = $settings->get('cleanurl_site_skip_main');
+        if ($default) {
+            try {
+                $default = $services->get('Omeka\ApiManager')->read('sites', ['id' => $default])->getContent()->slug();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                $default = '';
+            }
+        }
+        $replaceRegex = $skip && strlen($default) ? "'$default'" : 'false';
+        $regex = "~const SLUG_MAIN_SITE = (?:'[^']*?'|false);~";
+        $replace = "const SLUG_MAIN_SITE = $replaceRegex;";
+        $content = preg_replace($regex, $replace, $content, 1);
+
+        // Update list of sites.
         // Get all site slugs, public or not.
         $sql = 'SELECT slug FROM site;';
         /** @var \Doctrine\DBAL\Connection $connection */
@@ -386,10 +408,6 @@ class Module extends AbstractModule
         $stmt = $connection->query($sql);
         $slugs = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         $replaceRegex = $this->prepareRegex($slugs);
-
-        // The file is always reset from original file.
-        $sourceFilepath = __DIR__ . '/config/clean_url.dynamic.php';
-        $content = file_get_contents($sourceFilepath);
         $regex = "~const SLUGS_SITE = '[^']*?';~";
         $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
         $content = preg_replace($regex, $replace, $content, 1);
