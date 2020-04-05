@@ -184,8 +184,6 @@ class CleanRoute implements RouteInterface
         foreach ($baseRoutes as $routeExt => $array) {
             list($baseRoute, $space, $namespaceController, $siteSlug, $regexBaseRoute, $specBaseRoute) = $array;
 
-            // TODO Move some item set routes under item routes.
-
             if (!empty($regexItemSets)) {
                 // Match item set / item route for media.
                 if (array_intersect(
@@ -261,24 +259,6 @@ class CleanRoute implements RouteInterface
                         ],
                     ];
                 }
-
-                // Match item set route.
-                $routeName = 'cleanurl_item_set' . $routeExt;
-                $this->routes[$routeName] = [
-                    'regex' => $regexBaseRoute
-                        . $regex['main_path_full']
-                        . $regex['item_set_generic']
-                        . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%resource_identifier%',
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'item-set-show',
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
             }
 
             // Match generic route for items.
@@ -368,6 +348,27 @@ class CleanRoute implements RouteInterface
                         'controller' => 'CleanUrlController',
                         'action' => 'route-media',
                         'item_set_id' => null,
+                        'site-slug' => $siteSlug,
+                    ],
+                ];
+            }
+
+            if (!empty($regexItemSets)) {
+                // Match item set route.
+                // This clean url is the same when the generic path is the same.
+                $routeName = 'cleanurl_item_set' . $routeExt;
+                $this->routes[$routeName] = [
+                    'regex' => $regexBaseRoute
+                        . $regex['main_path_full']
+                        . $regex['item_set_generic']
+                        . $regexResourceIdentifier,
+                    'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%resource_identifier%',
+                    'defaults' => [
+                        'route_name' => $routeName,
+                        '__NAMESPACE__' => $namespaceController,
+                        $space => true,
+                        'controller' => 'CleanUrlController',
+                        'action' => 'item-set-show',
                         'site-slug' => $siteSlug,
                     ],
                 ];
