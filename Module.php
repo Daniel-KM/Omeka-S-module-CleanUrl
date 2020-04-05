@@ -109,10 +109,6 @@ class Module extends AbstractModule
         $this->cacheCleanData();
         $this->cacheItemSetsRegex();
 
-        // This settings are currently not used, but update them for display.
-        $settings->set('cleanurl_site_slug', mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT);
-        $settings->set('cleanurl_page_slug', SLUG_PAGE);
-
         // TODO Clean filling of the config form.
         $data = [];
         $defaultSettings = $config['cleanurl']['config'];
@@ -185,9 +181,11 @@ class Module extends AbstractModule
             'cleanurl_item_set_generic',
             'cleanurl_item_generic',
             'cleanurl_media_generic',
+            'cleanurl_site_slug',
+            'cleanurl_page_slug',
         ] as $posted) {
             $value = trim(trim($params[$posted]), ' /');
-            $params[$posted] = empty($value) ? '' : trim($value) . '/';
+            $params[$posted] = mb_strlen($value) ? trim($value) . '/' : '';
         }
 
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
@@ -197,9 +195,6 @@ class Module extends AbstractModule
         $params['cleanurl_item_allowed'] = array_values(array_unique($params['cleanurl_item_allowed']));
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
-
-        $params['cleanurl_site_slug'] = mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE) ? SLUG_SITE : SLUG_SITE_DEFAULT;
-        $params['cleanurl_page_slug'] = SLUG_PAGE;
 
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
@@ -362,7 +357,7 @@ class Module extends AbstractModule
      */
     public function afterSaveItemSet(Event $event)
     {
-        $this->cacheItemSetsRegex($this->getServiceLocator());
+        $this->cacheItemSetsRegex();
     }
 
     /**
@@ -398,6 +393,20 @@ class Module extends AbstractModule
         $replaceRegex = $skip && strlen($default) ? "'$default'" : 'false';
         $regex = "~const SLUG_MAIN_SITE = (?:'[^']*?'|false);~";
         $replace = "const SLUG_MAIN_SITE = $replaceRegex;";
+        $content = preg_replace($regex, $replace, $content, 1);
+
+        // Update options for site prefix.
+        $siteSlug = trim($settings->get('cleanurl_site_slug', ''), ' /');
+        $siteSlug = mb_strlen($siteSlug) ? $siteSlug . '/' : '';
+        $regex = "~const SLUG_SITE = '[^']*?';~";
+        $replace = "const SLUG_SITE = '$siteSlug';";
+        $content = preg_replace($regex, $replace, $content, 1);
+
+        // Update options for page prefix.
+        $pageSlug = trim($settings->get('cleanurl_page_slug', ''), ' /');
+        $pageSlug = mb_strlen($pageSlug) ? $pageSlug . '/' : '';
+        $regex = "~const SLUG_PAGE = '[^']*?';~";
+        $replace = "const SLUG_PAGE = '$pageSlug';";
         $content = preg_replace($regex, $replace, $content, 1);
 
         // Update list of sites.

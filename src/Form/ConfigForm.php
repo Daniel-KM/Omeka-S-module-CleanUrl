@@ -1,9 +1,6 @@
 <?php
 namespace CleanUrl\Form;
 
-use const CleanUrl\SLUG_PAGE;
-use const CleanUrl\SLUG_SITE;
-
 use Omeka\Form\Element\PropertySelect;
 use Zend\Form\Element;
 use Zend\Form\Fieldset;
@@ -262,12 +259,9 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Rename or skip prefix /s/', // @translate
-                    'info' => 'Currently, this option should be set in file "clean_url.config.php".', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_site_slug',
-                    'value' => SLUG_SITE,
-                    'disabled' => 'disabled',
                 ],
             ])
             ->add([
@@ -275,12 +269,9 @@ class ConfigForm extends Form implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Rename or skip prefix /page/', // @translate
-                    'info' => 'Currently, this option should be set in file "clean_url.config.php".', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_page_slug',
-                    'value' => SLUG_PAGE,
-                    'disabled' => 'disabled',
                 ],
             ]);
 

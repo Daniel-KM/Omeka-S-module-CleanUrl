@@ -4,18 +4,6 @@ namespace CleanUrl;
 // This file is copied in the main config folder, beside database.ini and local.config.php.
 
 /**
- * Rename or remove /s/ from the urls of sites.
- * It must end with "/", or be an empty string. Default: "s/".
- */
-const SLUG_SITE = 's/';
-
-/**
- * Rename or remove /page/ from the urls of pages.
- * It must end with "/", or be an empty string. Default: "page/".
- */
-const SLUG_PAGE = 'page/';
-
-/**
  * List of reserved slugs that cannot be used as site slug or page slug.
  * It is larger than needed in order to manage future modules or improvments,
  * according to existing modules in Omeka classic or Omeka S or common wishes.
