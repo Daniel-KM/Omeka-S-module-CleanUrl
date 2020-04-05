@@ -58,6 +58,7 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
 
     $messenger->addWarning($t->translate('Check the new config file "config/clean_url.config.php" and remove the old one in the config directory of Omeka.')); // @translate
 
+    $settings->set('cleanurl_site_skip_main', false);
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
 
