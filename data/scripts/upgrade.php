@@ -85,6 +85,13 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     }
     $settings->set('cleanurl_media_allowed', $routes);
 
+    $settings->set('cleanurl_regex', $this->prepareRegexes([
+        'main_path_full' => $settings->get('cleanurl_main_path', ''),
+        'item_set_generic' => $settings->get('cleanurl_item_set_generic', ''),
+        'item_generic' => $settings->get('cleanurl_item_generic', ''),
+        'media_generic' => $settings->get('cleanurl_media_generic', ''),
+    ]));
+
     $this->cacheCleanData();
     $this->cacheItemSetsRegex();
 }

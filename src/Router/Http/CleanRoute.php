@@ -3,9 +3,9 @@ namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
 use const CleanUrl\SLUG_SITE;
+use const CleanUrl\SLUGS_SITE;
 
 use Traversable;
-use Zend\I18n\Translator\TranslatorInterface as Translator;
 use Zend\Router\Exception;
 use Zend\Router\Http\RouteInterface;
 use Zend\Router\Http\RouteMatch;
@@ -17,8 +17,7 @@ use Zend\Stdlib\RequestInterface as Request;
  *
  * @todo Store all routes of all resources and pages in the database? Or use a regex route?
  *
- * Partially derived from route \Zend\Router\Http\Segment.
- * Each route is not made regex on construct, but on first check.
+ * Partially derived from route \Zend\Router\Http\Regex and \Zend\Router\Http\Segment.
  */
 class CleanRoute implements RouteInterface
 {
@@ -97,9 +96,6 @@ class CleanRoute implements RouteInterface
     {
         $this->basePath = $basePath;
         $this->settings = $settings + [
-            'main_path' => null,
-            'main_path_2' => null,
-            'main_path_3' => null,
             'main_path_full' => null,
             'item_set_generic' => null,
             'item_generic' => null,
@@ -108,6 +104,7 @@ class CleanRoute implements RouteInterface
             'media_allowed' => null,
             'admin_use' => null,
             'item_set_regex' => null,
+            'regex' => null,
         ];
         $this->defaults = $defaults;
         $this->prepareCleanRoutes();
@@ -137,19 +134,22 @@ class CleanRoute implements RouteInterface
     {
         $this->routes = [];
 
-        $mainPath = $this->settings['main_path'];
-        $mainPath2 = $this->settings['main_path_2'];
-        $mainPath3 = $this->settings['main_path_3'];
         $mainPathFull = $this->settings['main_path_full'];
 
-        $itemSetGeneric = $this->settings['item_set_generic'];
-        $itemGeneric = $this->settings['item_generic'];
-        $mediaGeneric = $this->settings['media_generic'];
+        $genericItemSet = $this->settings['item_set_generic'];
+        $genericItem = $this->settings['item_generic'];
+        $genericMedia = $this->settings['media_generic'];
 
         $allowedForItems = $this->settings['item_allowed'];
         $allowedForMedia = $this->settings['media_allowed'];
 
-        $itemSetsRegex = $this->settings['item_set_regex'];
+        $regexItemSets = $this->settings['item_set_regex'];
+
+        $regex = $this->settings['regex'];
+        $regexResourceIdentifier = '(?P<resource_identifier>[^/]+)';
+        $regexItemSetIdentifier = '(?P<item_set_identifier>[^/]+)';
+        $regexItemIdentifier = '(?P<item_identifier>[^/]+)';
+        // $regexMediaIdentifier = '(?P<media_identifier>[^/]+)';
 
         $baseRoutes = [];
         $baseRoutes['_public'] = [
@@ -157,6 +157,8 @@ class CleanRoute implements RouteInterface
             '__SITE__',
             'CleanUrl\Controller\Site',
             null,
+            '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
+            '/' . SLUG_SITE . '/%site-slug%/',
         ];
         if ($this->settings['admin_use']) {
             $baseRoutes['_admin'] = [
@@ -164,6 +166,8 @@ class CleanRoute implements RouteInterface
                 '__ADMIN__',
                 'CleanUrl\Controller\Admin',
                 null,
+                '/admin/',
+                '/admin/',
             ];
         }
         if (SLUG_MAIN_SITE) {
@@ -172,16 +176,17 @@ class CleanRoute implements RouteInterface
                 '__SITE__',
                 'CleanUrl\Controller\Site',
                 SLUG_MAIN_SITE,
+                '/',
+                '/',
             ];
         }
 
         foreach ($baseRoutes as $routeExt => $array) {
-            list($baseRoute, $space, $namespaceController, $siteSlug) = $array;
+            list($baseRoute, $space, $namespaceController, $siteSlug, $regexBaseRoute, $specBaseRoute) = $array;
 
             // TODO Move some item set routes under item routes.
-            if (!empty($itemSetsRegex)) {
-                $route = $baseRoute . $mainPathFull . $itemSetGeneric;
 
+            if (!empty($regexItemSets)) {
                 // Match item set / item route for media.
                 if (array_intersect(
                     ['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'],
@@ -189,10 +194,13 @@ class CleanRoute implements RouteInterface
                 )) {
                     $routeName = 'cleanurl_item_set_item_media' . $routeExt;
                     $this->routes[$routeName] = [
-                        'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
+                        'regex' => $regexBaseRoute
+                            . $regex['main_path_full']
+                            . $regex['item_set_generic']
+                            . $regexItemSetIdentifier . '/'
+                            . $regexItemIdentifier . '/'
+                            . $regexResourceIdentifier,
+                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%item_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -211,10 +219,12 @@ class CleanRoute implements RouteInterface
                 )) {
                     $routeName = 'cleanurl_item_set_item' . $routeExt;
                     $this->routes[$routeName] = [
-                        'route' => $route . ':item_set_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
+                        'regex' => $regexBaseRoute
+                            . $regex['main_path_full']
+                            . $regex['item_set_generic']
+                            . $regexItemSetIdentifier . '/'
+                            . $regexResourceIdentifier,
+                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -235,10 +245,12 @@ class CleanRoute implements RouteInterface
                 )) {
                     $routeName = 'cleanurl_item_set_media' . $routeExt;
                     $this->routes[$routeName] = [
-                        'route' => $route . ':item_set_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
+                        'regex' => $regexBaseRoute
+                            . $regex['main_path_full']
+                            . $regex['item_set_generic']
+                            . $regexItemSetIdentifier . '/'
+                            . $regexResourceIdentifier,
+                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -253,10 +265,11 @@ class CleanRoute implements RouteInterface
                 // Match item set route.
                 $routeName = 'cleanurl_item_set' . $routeExt;
                 $this->routes[$routeName] = [
-                    'route' => $route . ':resource_identifier',
-                    'constraints' => [
-                        'resource_identifier' => $itemSetsRegex,
-                    ],
+                    'regex' => $regexBaseRoute
+                        . $regex['main_path_full']
+                        . $regex['item_set_generic']
+                        . $regexResourceIdentifier,
+                    'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -273,12 +286,13 @@ class CleanRoute implements RouteInterface
                 ['generic_item', 'generic_item_full'],
                 $allowedForItems
             )) {
-                $route = $baseRoute . $mainPathFull . $itemGeneric;
                 $routeName = 'cleanurl_generic_item' . $routeExt;
                 $this->routes[$routeName] = [
-                    'route' => $route . ':resource_identifier',
-                    'constraints' => [
-                    ],
+                    'regex' => $regexBaseRoute
+                        . $regex['main_path_full']
+                        . $regex['item_generic']
+                        . $regexResourceIdentifier,
+                    'spec' => $specBaseRoute . $mainPathFull . $genericItem . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -290,21 +304,24 @@ class CleanRoute implements RouteInterface
                     ],
                 ];
 
-                $route = $baseRoute . $mainPathFull . trim($itemGeneric, '/');
-                $routeName = 'cleanurl_generic_items_browse' . $routeExt;
-                $this->routes[$routeName] = [
-                    'route' => $route,
-                    'constraints' => [
-                    ],
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'items-browse',
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
+                $route = $baseRoute . $mainPathFull . rtrim($genericItem, '/');
+                if ($route !== '/' && $route !== $baseRoute) {
+                    $routeName = 'cleanurl_generic_items_browse' . $routeExt;
+                    $this->routes[$routeName] = [
+                        'regex' => $regexBaseRoute
+                            . $regex['main_path_full']
+                            . rtrim($regex['item_generic'], '\/'),
+                        'spec' => $specBaseRoute . $mainPathFull . rtrim($genericItem, '/'),
+                        'defaults' => [
+                            'route_name' => $routeName,
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
+                            'controller' => 'CleanUrlController',
+                            'action' => 'items-browse',
+                            'site-slug' => $siteSlug,
+                        ],
+                    ];
+                }
             }
 
             // Match generic / item route for media.
@@ -312,12 +329,14 @@ class CleanRoute implements RouteInterface
                 ['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'],
                 $allowedForMedia
             )) {
-                $route = $baseRoute . $mainPathFull . $mediaGeneric;
                 $routeName = 'cleanurl_generic_item_media' . $routeExt;
                 $this->routes[$routeName] = [
-                    'route' => $route . ':item_identifier/:resource_identifier',
-                    'constraints' => [
-                    ],
+                    'regex' => $regexBaseRoute
+                        . $regex['main_path_full']
+                        . $regex['media_generic']
+                        . $regexItemIdentifier . '/'
+                        . $regexResourceIdentifier,
+                    'spec' => $specBaseRoute . $mainPathFull . $genericMedia . '%item_identifier%/%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -335,12 +354,13 @@ class CleanRoute implements RouteInterface
                 ['generic_media', 'generic_media_full'],
                 $allowedForMedia
             )) {
-                $route = $baseRoute . $mainPathFull . $mediaGeneric;
                 $routeName = 'cleanurl_generic_media' . $routeExt;
                 $this->routes[$routeName] = [
-                    'route' => $route . ':resource_identifier',
-                    'constraints' => [
-                    ],
+                    'regex' => $regexBaseRoute
+                        . $regex['main_path_full']
+                        . $regex['media_generic']
+                        . $regexResourceIdentifier,
+                    'spec' => $specBaseRoute . $mainPathFull . $genericMedia . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -355,290 +375,77 @@ class CleanRoute implements RouteInterface
         }
     }
 
-    protected function prepareRoute($routeName)
-    {
-        $this->routes[$routeName]['parts'] = $this->parseRouteDefinition($this->routes[$routeName]['route']);
-        $this->routes[$routeName]['regex'] = $this->buildRegex($this->routes[$routeName]['parts'], $this->routes[$routeName]['constraints'], $routeName);
-    }
-
-    /* Adapted from \Zend\Router\Http\Segment */
-
-    /**
-     * Parse a route definition.
-     *
-     * @param  string $def
-     * @return array
-     * @throws Exception\RuntimeException
-     */
-    protected function parseRouteDefinition($def)
-    {
-        $currentPos = 0;
-        $length = strlen($def);
-        $parts = [];
-        $levelParts = [&$parts];
-        $level = 0;
-
-        $matches = [];
-        while ($currentPos < $length) {
-            preg_match('(\G(?P<literal>[^:{\[\]]*)(?P<token>[:{\[\]]|$))', $def, $matches, 0, $currentPos);
-
-            $currentPos += strlen($matches[0]);
-
-            if (! empty($matches['literal'])) {
-                $levelParts[$level][] = ['literal', $matches['literal']];
-            }
-
-            if ($matches['token'] === ':') {
-                if (! preg_match(
-                    '(\G(?P<name>[^:/{\[\]]+)(?:{(?P<delimiters>[^}]+)})?:?)',
-                    $def,
-                    $matches,
-                    0,
-                    $currentPos
-                )) {
-                    throw new Exception\RuntimeException(sprintf('Found empty parameter name for route definition "%s".', $def));
-                }
-
-                $levelParts[$level][] = [
-                    'parameter',
-                    $matches['name'],
-                    isset($matches['delimiters']) ? $matches['delimiters'] : null,
-                ];
-
-                $currentPos += strlen($matches[0]);
-            } elseif ($matches['token'] === '{') {
-                if (! preg_match('(\G(?P<literal>[^}]+)\})', $def, $matches, 0, $currentPos)) {
-                    throw new Exception\RuntimeException(sprintf('Translated literal missing closing bracket for route definition "%s".', $def));
-                }
-
-                $currentPos += strlen($matches[0]);
-
-                $levelParts[$level][] = ['translated-literal', $matches['literal']];
-            } elseif ($matches['token'] === '[') {
-                $levelParts[$level][] = ['optional', []];
-                $levelParts[$level + 1] = &$levelParts[$level][count($levelParts[$level]) - 1][1];
-
-                $level++;
-            } elseif ($matches['token'] === ']') {
-                unset($levelParts[$level]);
-                $level--;
-
-                if ($level < 0) {
-                    throw new Exception\RuntimeException(sprintf('Found closing bracket without matching opening bracket for route definition "%s".', $def));
-                }
-            } else {
-                break;
-            }
-        }
-
-        if ($level > 0) {
-            throw new Exception\RuntimeException(sprintf('Found unbalanced brackets in route definition "%s".', $def));
-        }
-
-        return $parts;
-    }
-
-    /**
-     * Build the matching regex from parsed parts.
-     *
-     * @param  array   $parts
-     * @param  array   $constraints
-     * @param  string   $routeName
-     * @param  int $groupIndex
-     * @return string
-     */
-    protected function buildRegex($parts, array $constraints, $routeName, &$groupIndex = 1)
-    {
-        $regex = '';
-
-        foreach ($parts as $part) {
-            switch ($part[0]) {
-                case 'literal':
-                    $regex .= preg_quote($part[1]);
-                    break;
-
-                case 'parameter':
-                    $groupName = '?P<param' . $groupIndex . '>';
-
-                    if (isset($constraints[$part[1]])) {
-                        $regex .= '(' . $groupName . $constraints[$part[1]] . ')';
-                    } elseif ($part[2] === null) {
-                        $regex .= '(' . $groupName . '[^/]+)';
-                    } else {
-                        $regex .= '(' . $groupName . '[^' . $part[2] . ']+)';
-                    }
-
-                    $this->routes[$routeName]['paramMap']['param' . $groupIndex++] = $part[1];
-                    break;
-
-                case 'optional':
-                    $regex .= '(?:' . $this->buildRegex($part[1], $constraints, $routeName, $groupIndex) . ')?';
-                    break;
-
-                case 'translated-literal':
-                    $regex .= '#' . $part[1] . '#';
-                    $this->routes[$routeName]['translationKeys'][] = $part[1];
-                    break;
-            }
-        }
-
-        return $regex;
-    }
-
-    /**
-     * Build a path.
-     *
-     * @param  array   $parts
-     * @param  array   $mergedParams
-     * @param  bool    $isOptional
-     * @param  bool    $hasChild
-     * @param  array   $options
-     * @param  string  $routeName
-     * @return string
-     * @throws Exception\InvalidArgumentException
-     * @throws Exception\RuntimeException
-     */
-    protected function buildPath(array $parts, array $mergedParams, $isOptional, $hasChild, array $options, $routeName)
-    {
-        if (!empty($this->routes[$routeName]['translationKeys'])) {
-            if (! isset($options['translator']) || ! $options['translator'] instanceof Translator) {
-                throw new Exception\RuntimeException('No translator provided');
-            }
-
-            $translator = $options['translator'];
-            $textDomain = (isset($options['text_domain']) ? $options['text_domain'] : 'default');
-            $locale = (isset($options['locale']) ? $options['locale'] : null);
-        }
-
-        $path = '';
-        $skip = true;
-        $skippable = false;
-
-        foreach ($parts as $part) {
-            switch ($part[0]) {
-                case 'literal':
-                    $path .= $part[1];
-                    break;
-
-                case 'parameter':
-                    $skippable = true;
-
-                    if (! isset($mergedParams[$part[1]])) {
-                        if (! $isOptional || $hasChild) {
-                            throw new Exception\InvalidArgumentException(sprintf('Missing parameter "%s"', $part[1]));
-                        }
-
-                        return '';
-                    } elseif (! $isOptional
-                        || $hasChild
-                        || ! isset($this->defaults[$part[1]])
-                        || $this->defaults[$part[1]] !== $mergedParams[$part[1]]
-                    ) {
-                        $skip = false;
-                    }
-
-                    $path .= $this->encode($mergedParams[$part[1]]);
-
-                    $this->assembledParams[] = $part[1];
-                    break;
-
-                case 'optional':
-                    $skippable = true;
-                    $optionalPart = $this->buildPath($part[1], $mergedParams, true, $hasChild, $options, $routeName);
-
-                    if ($optionalPart !== '') {
-                        $path .= $optionalPart;
-                        $skip = false;
-                    }
-                    break;
-
-                case 'translated-literal':
-                    $path .= $translator->translate($part[1], $textDomain, $locale);
-                    break;
-            }
-        }
-
-        if ($isOptional && $skippable && $skip) {
-            return '';
-        }
-
-        return $path;
-    }
-
-    public function match(Request $request, $pathOffset = null, array $options = [])
+    public function match(Request $request, $pathOffset = null)
     {
         if (!method_exists($request, 'getUri')) {
             return null;
         }
 
-        $uri = $request->getUri();
+        $uri  = $request->getUri();
         $path = $uri->getPath();
 
         $matches = [];
 
-        foreach ($this->routes as $routeName => $data) {
-            if (!isset($this->routes[$routeName]['regex'])) {
-                $this->prepareRoute($routeName);
-            }
+        // The path offset is currently not managed: no action.
+        // So the check all the remaining path. Routes will be reordered.
+        $path = mb_substr($path, $pathOffset);
 
+        foreach ($this->routes as $routeName => $data) {
             $regex = $this->routes[$routeName]['regex'];
 
-            if (!empty($this->routes[$routeName]['translationKeys'])) {
-                if (! isset($options['translator']) || ! $options['translator'] instanceof Translator) {
-                    throw new Exception\RuntimeException('No translator provided');
-                }
-
-                $translator = $options['translator'];
-                $textDomain = (isset($options['text_domain']) ? $options['text_domain'] : 'default');
-                $locale = (isset($options['locale']) ? $options['locale'] : null);
-
-                foreach ($this->routes[$routeName]['translationKeys'] as $key) {
-                    $regex = str_replace('#' . $key . '#', $translator->translate($key, $textDomain, $locale), $regex);
-                }
-            }
-
-            if (is_null($pathOffset)) {
+            // if (is_null($pathOffset)) {
                 $result = preg_match('(^' . $regex . '$)', $path, $matches);
-            } else {
-                $result = preg_match('(\G' . $regex . ')', $path, $matches, null, $pathOffset);
-            }
+            // } else {
+            //     $result = preg_match('(\G' . $regex . ')', $path, $matches, null, $pathOffset);
+            // }
 
             if ($result) {
-                $matchedLength = strlen($matches[0]);
+                $matchedLength = mb_strlen($matches[0]);
                 $params = [];
-
-                foreach ($this->routes[$routeName]['paramMap'] as $index => $name) {
-                    if (isset($matches[$index]) && $matches[$index] !== '') {
-                        $params[$name] = $this->decode($matches[$index]);
+                foreach ($matches as $key => $value) {
+                    if (is_numeric($key) || is_int($key) || $value === '') {
+                        // unset($matches[$key]);
+                    } else {
+                        $params[$key] = rawurldecode($value);
                     }
+                }
+
+                if (isset($params['site_slug'])) {
+                    $params['site-slug'] = $params['site_slug'];
+                    unset($params['site_slug']);
                 }
 
                 return new RouteMatch(array_merge($data['defaults'], $params), $matchedLength);
             }
         }
+
+        return null;
     }
 
     public function assemble(array $params = [], array $options = [])
     {
         if (empty($params['route_name'])) {
-            throw new \Omeka\Mvc\Exception\RuntimeException('The params "route_name" is required to assemble params currently.'); // @translate
+            throw new \Omeka\Mvc\Exception\RuntimeException('The param "route_name" is required to assemble params to get a clean url.'); // @translate
         }
 
         $routeName = $params['route_name'];
         if (!isset($this->routes[$routeName])) {
-            throw new \Omeka\Mvc\Exception\RuntimeException('The params "route_name" is not managed.'); // @translate
+            throw new \Omeka\Mvc\Exception\RuntimeException('The param "route_name" is not managed by module Clean Url.'); // @translate
         }
 
+        $url = $this->routes[$routeName]['spec'];
+        $mergedParams = array_merge($this->defaults, $params);
         $this->assembledParams = [];
 
-        return $this->buildPath(
-            $this->routes[$routeName]['parts'],
-            array_merge($this->routes[$routeName]['defaults'], $params),
-            false,
-            (isset($options['has_child']) ? $options['has_child'] : false),
-            $options,
-            $routeName
-        );
+        foreach ($mergedParams as $key => $value) {
+            $spec = '%' . $key . '%';
+            if (strpos($url, $spec) !== false) {
+                $url = str_replace($spec, $this->encode($value), $url);
+                $this->assembledParams[] = $key;
+            }
+        }
+
+        return $url;
     }
 
     public function getAssembledParams()
@@ -660,16 +467,5 @@ class CleanRoute implements RouteInterface
             static::$cacheEncode[$key] = strtr(static::$cacheEncode[$key], static::$urlencodeCorrectionMap);
         }
         return static::$cacheEncode[$key];
-    }
-
-    /**
-     * Decode a path segment.
-     *
-     * @param  string $value
-     * @return string
-     */
-    protected function decode($value)
-    {
-        return rawurldecode($value);
     }
 }
