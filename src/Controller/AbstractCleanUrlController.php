@@ -242,14 +242,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     protected function _routeResource()
     {
         $settings = $this->settings();
-        $propertyId = (int) $settings->get('cleanurl_identifier_property');
 
         $this->_resource_identifier = $this->params('resource_identifier');
-
-        $sqlFrom = 'FROM resource';
-
-        // Use of ordered placeholders.
-        $bind = [];
 
         $identifiers = [];
 
@@ -257,31 +251,76 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             case 'items':
                 $allowShortIdentifier = $this->allowShortIdentifierItem();
                 $allowFullIdentifier = $this->allowFullIdentifierItem();
+                $includeItemSetIdentifier = $settings->get('cleanurl_item_item_set_included');
+                $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
+                    ? $this->_item_set_identifier  . '/'
+                    : '';
+                $includeItemIdentifier = 'no';
+                $itemIdentifier = '';
                 break;
             case 'media':
                 $allowShortIdentifier = $this->allowShortIdentifierMedia();
                 $allowFullIdentifier = $this->allowFullIdentifierMedia();
+                $includeItemSetIdentifier = $settings->get('cleanurl_media_item_set_included');
+                $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
+                    ? $this->_item_set_identifier  . '/'
+                    : '';
+                $includeItemIdentifier = $settings->get('cleanurl_media_item_included');
+                $itemIdentifier = $this->_item_identifier && $includeItemIdentifier !== 'no'
+                    ? $this->_item_identifier  . '/'
+                    : '';
                 break;
         }
+
+        $isNN = $includeItemSetIdentifier === 'no' && $includeItemIdentifier === 'no';
+        $isNY = $includeItemSetIdentifier === 'no' && $includeItemIdentifier !== 'no';
+        $isYN = $includeItemSetIdentifier !== 'no' && $includeItemIdentifier === 'no';
+        $isYY = $includeItemSetIdentifier !== 'no' && $includeItemIdentifier !== 'no';
+
         if ($allowShortIdentifier) {
             // Check the identifier of the record (commonly dcterms:identifier).
             $prefix = $settings->get('cleanurl_identifier_prefix');
-            $identifiers[] = $prefix . $this->_resource_identifier;
+            $identifiers[] = $isNN ? $prefix . $this->_resource_identifier : null;
+            $identifiers[] = $isNY ? $prefix . $itemIdentifier . $this->_resource_identifier : null;
+            $identifiers[] = $isYN ? $prefix . $itemSetIdentifier . $this->_resource_identifier : null;
+            $identifiers[] = $isYY ? $prefix . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier : null;
+
             // Check with a space between prefix and identifier too.
-            $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
+            $identifiers[] = $isNN ? $prefix . ' ' . $this->_resource_identifier : null;
+            $identifiers[] = $isNY ? $prefix . ' ' . $itemIdentifier . $this->_resource_identifier : null;
+            $identifiers[] = $isYN ? $prefix . ' ' . $itemSetIdentifier . $this->_resource_identifier : null;
+            $identifiers[] = $isYY ? $prefix . ' ' . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier : null;
+
             // Check prefix with a space and a no-break space.
             if ($settings->get('cleanurl_identifier_unspace')) {
                 $unspace = str_replace([' ', ' '], '', $prefix);
                 if ($prefix != $unspace) {
-                    $identifiers[] = $unspace . $this->_resource_identifier;
-                    $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
+                    $identifiers[] = $isNN ? $unspace . $this->_resource_identifier : null;
+                    $identifiers[] = $isNN ? $unspace . ' ' . $this->_resource_identifier : null;
+                    $identifiers[] = $isNY ? $unspace . $itemIdentifier . $this->_resource_identifier : null;
+                    $identifiers[] = $isNY ? $unspace . ' ' . $itemIdentifier . $this->_resource_identifier : null;
+                    $identifiers[] = $isYN ? $unspace . $itemSetIdentifier . $this->_resource_identifier : null;
+                    $identifiers[] = $isYN ? $unspace . ' ' . $itemSetIdentifier . $this->_resource_identifier : null;
+                    $identifiers[] = $isYY ? $unspace . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier : null;
+                    $identifiers[] = $isYY ? $unspace . ' ' . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier : null;
                 }
             }
         }
+
         if ($allowFullIdentifier) {
             $identifiers[] = $this->_resource_identifier;
         }
+
+        // Use of ordered placeholders.
+        $bind = [];
+
+        $propertyId = (int) $settings->get('cleanurl_identifier_property');
+
+        $identifiers = array_unique(array_filter($identifiers));
+
         $in = implode(',', array_fill(0, count($identifiers), '?'));
+
+        $sqlFrom = 'FROM resource';
 
         // If the table is case sensitive, lower-case the search.
         if ($settings->get('cleanurl_identifier_case_insensitive')) {
