@@ -184,12 +184,14 @@ return [
             'cleanurl_main_path_full_encoded' => '', // hidden
             'cleanurl_item_set_regex' => '', // hidden
             'cleanurl_item_set_generic' => '',
+            'cleanurl_item_set_keep_raw' => false,
             'cleanurl_item_default' => 'generic_item',
             'cleanurl_item_allowed' => [
                 'generic_item',
                 'item_set_item',
             ],
             'cleanurl_item_generic' => 'document/',
+            'cleanurl_item_keep_raw' => false,
             'cleanurl_item_item_set_undefined' => 'item_set_id',
             'cleanurl_media_default' => 'generic_media',
             'cleanurl_media_allowed' => [
@@ -197,6 +199,7 @@ return [
                 'item_set_item_media',
             ],
             'cleanurl_media_generic' => 'medium/',
+            'cleanurl_media_keep_raw' => false,
             'cleanurl_media_item_set_undefined' => 'item_set_id',
             'cleanurl_media_item_undefined' => 'item_id',
             'cleanurl_media_media_undefined' => 'item_id',

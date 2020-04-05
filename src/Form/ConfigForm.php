@@ -191,6 +191,16 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_item_set_generic',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_set_keep_raw',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Keep raw identifier (no url encode)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_set_keep_raw',
+                ],
             ]);
 
         $this
@@ -250,6 +260,16 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_generic',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_keep_raw',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Keep raw identifier (no url encode)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_keep_raw',
                 ],
             ])
             ->add([
@@ -338,6 +358,17 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_generic',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_keep_raw',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Keep raw identifier (no url encode)', // @translate
+                    'info' => 'This option may be needed when the resource contains the parent identifier separated with a "/", like ark identifiers.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_keep_raw',
                 ],
             ])
             ->add([
