@@ -62,6 +62,20 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
 
+    $settings->set('cleanurl_item_default', $settings->get('cleanurl_item_default') . '_item');
+    $routes = [];
+    foreach ($settings->get('cleanurl_item_allowed') as $route) {
+        $routes[] = $route . '_item';
+    }
+    $settings->set('cleanurl_item_allowed', $routes);
+
+    $settings->set('cleanurl_media_default', $settings->get('cleanurl_media_default') . '_media');
+    $routes = [];
+    foreach ($settings->get('cleanurl_media_allowed') as $route) {
+        $routes[] = $route . '_media';
+    }
+    $settings->set('cleanurl_media_allowed', $routes);
+
     $this->cacheCleanData();
     $this->cacheItemSetsRegex();
 }
