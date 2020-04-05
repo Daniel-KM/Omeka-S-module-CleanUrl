@@ -3,19 +3,19 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-04-06 00:00+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2020-04-06 00:00+0200\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.3\n"
 
 #: data/scripts/upgrade.php:53
 msgid ""
@@ -73,23 +73,23 @@ msgstr ""
 #, php-format
 msgid ""
 "%sNote%s: it is not recommended to use identifiers with reserved characters "
-"such \"/\" or \"%%\", even if they can be managed."
+"such \"/\" or \"%%\", even if they are managed."
 msgstr ""
 
-#: Module.php:301
+#: Module.php:299
 #, php-format
 msgid ""
 "%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the "
 "same resource."
 msgstr ""
 
-#: Module.php:569
+#: Module.php:553
 msgid "Clean identifier"
 msgstr ""
 
-#: Module.php:571
+#: Module.php:555
 msgid "[none]"
-msgstr ""
+msgstr "[aucun]"
 
 #: src/Generic/AbstractModule.php:598
 #, php-format
@@ -114,76 +114,52 @@ msgid ""
 "in the config directory of Omeka is not writeable."
 msgstr ""
 
-#: Module.php:401
+#: Module.php:297 Module.php:299
+msgid "</strong>"
+msgstr ""
+
+#: Module.php:397
 msgid "There is no default site: \"/s/site-slug\" cannot be skipped."
 msgstr ""
 
-#: Module.php:418
-#, php-format
-msgid ""
-"The sites \"%s\" use a reserved string and the \"/s/site-slug\" cannot be "
-"skipped."
-msgstr ""
+#: Module.php:413 Module.php:425 Module.php:453 Module.php:481
+msgid "\", \""
+msgstr "\", \""
 
-#: Module.php:433
-#, php-format
-msgid ""
-"The site pages \"%s\" use a reserved string and \"/s/site-slug\" cannot be "
-"skipped."
-msgstr ""
-
-#: Module.php:448
+#: Module.php:438
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for sites cannot be "
 "updated."
 msgstr ""
 
-#: Module.php:464
-#, php-format
-msgid ""
-"The sites \"%s\" use a reserved string and the prefix for sites cannot be "
-"removed."
-msgstr ""
-
-#: Module.php:479
+#: Module.php:466
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for pages cannot be "
 "updated."
 msgstr ""
 
-#: Module.php:495
-#, php-format
-msgid ""
-"The site pages \"%s\" use a reserved string and the prefix for pages cannot "
-"be removed."
-msgstr ""
-
-#: Module.php:496
-msgid "\", \""
-msgstr ""
-
-#: Module.php:509
+#: Module.php:493
 msgid ""
 "The option \"media position\" requires to set a generic route with an item "
 "id. One route was added."
 msgstr ""
 
-#: Module.php:517
+#: Module.php:501
 msgid ""
 "The option \"media position\" requires to set an item set route with an item "
 "id. One route was added."
 msgstr ""
 
-#: Module.php:620
+#: Module.php:604
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved. A random string has been automatically "
 "appended."
 msgstr ""
 
-#: Module.php:636
+#: Module.php:620
 msgid ""
 "The file \"clean_url.dynamic.php\" in the config directory of Omeka is not "
 "writeable."

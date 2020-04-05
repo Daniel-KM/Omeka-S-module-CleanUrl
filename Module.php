@@ -294,9 +294,13 @@ class Module extends AbstractModule
             . sprintf($translate('See %s for more information.'), // @translate
             sprintf('<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme'))
             . '<br />'
-            . sprintf($translate('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".'), '<strong>', '</strong>') // @translate
+            . sprintf($translate('%sNote%s: it is not recommended to use identifiers with reserved characters such "/" or "%%", even if they can be managed.'), // @translate
+                '<strong>', '</strong>'
+            )
             . '<br />'
-            . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), '<strong>', '</strong>') // @translate
+            . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), // @translate
+                '<strong>', '</strong>'
+            )
             . $view->formCollection($form);
         return $html;
     }
@@ -410,7 +414,10 @@ class Module extends AbstractModule
                 }
             }
             if ($result) {
-                $message = new \Omeka\Stdlib\Message('The sites "%s" use a reserved string and the "/s/site-slug" cannot be skipped.', implode('", "', $result)); // @translate
+                $message = new \Omeka\Stdlib\Message(
+                    'The sites "%s" use a reserved string and the "/s/site-slug" cannot be skipped.', // @translate
+                    implode('", "', $result)
+                );
                 $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
                 return false;
@@ -422,7 +429,10 @@ class Module extends AbstractModule
                 }
             }
             if ($result) {
-                $message = new \Omeka\Stdlib\Message('The site pages "%s" use a reserved string and "/s/site-slug" cannot be skipped.', implode('", "', $result)); // @translate
+                $message = new \Omeka\Stdlib\Message(
+                    'The site pages "%s" use a reserved string and "/s/site-slug" cannot be skipped.', // @translate
+                    implode('", "', $result)
+                );
                 $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
                 return false;
@@ -450,7 +460,10 @@ class Module extends AbstractModule
                 }
             }
             if ($result) {
-                $message = new \Omeka\Stdlib\Message('The sites "%s" use a reserved string and the prefix for sites cannot be removed.', implode('", "', $result)); // @translate
+                $message = new \Omeka\Stdlib\Message(
+                    'The sites "%s" use a reserved string and the prefix for sites cannot be removed.', // @translate
+                    implode('", "', $result)
+                );
                 $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
                 return false;
@@ -478,7 +491,10 @@ class Module extends AbstractModule
                 }
             }
             if ($result) {
-                $message = new \Omeka\Stdlib\Message('The site pages "%s" use a reserved string and the prefix for pages cannot be removed.', implode('", "', $result)); // @translate
+                $message = new \Omeka\Stdlib\Message(
+                    'The site pages "%s" use a reserved string and the prefix for pages cannot be removed.', // @translate
+                    implode('", "', $result)
+                ); // @translate
                 $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
                 return false;
