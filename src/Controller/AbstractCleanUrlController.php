@@ -108,9 +108,10 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
-            if (!$resource) {
-                throw new NotFoundException;
+            try {
+                $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                throw new NotFoundException($e);
             }
 
             $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
@@ -140,11 +141,11 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier);
-            if (!$resource) {
-                throw new NotFoundException;
+            try {
+                $this->api()->read($this->_resource_name, $this->_resource_identifier);
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                throw new NotFoundException($e);
             }
-
             $id = $this->_resource_identifier;
         }
 
@@ -198,11 +199,10 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $response = $this->api()->read($this->_resource_name, $this->_resource_identifier);
-            $resource = $response->getContent();
-
-            if (!$resource) {
-                throw new NotFoundException;
+            try {
+                $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                throw new NotFoundException($e);
             }
 
             // Check if the found media belongs to the item set.
@@ -322,8 +322,11 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // TODO Include this in the query.
         if ($id && !empty($this->_item_identifier) && $this->_resource_name == 'media') {
             // Check if the found file belongs to the item.
-            $response = $this->api()->read('media', $id);
-            $media = $response->getContent();
+            try {
+                $media = $this->api()->read('media', $id)->getContent();
+            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                return null;
+            }
             if (!$this->_checkItemMedia($media)) {
                 return null;
             }
