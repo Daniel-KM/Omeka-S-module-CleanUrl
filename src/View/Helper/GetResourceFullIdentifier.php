@@ -5,7 +5,8 @@ namespace CleanUrl\View\Helper;
 /*
  * Get resource full identifier
  *
- * @todo Use a route name?
+ * @todo Use CleanRoute (but it's for the full identifier).
+ *
  * @see Omeka\View\Helper\CleanUrl.php
  */
 
@@ -14,6 +15,7 @@ use const CleanUrl\SLUG_SITE;
 use const CleanUrl\SLUG_SITE_DEFAULT;
 use const CleanUrl\SLUGS_SITE;
 
+use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Zend\Mvc\Application;
 use Zend\View\Helper\AbstractHelper;
 
@@ -91,8 +93,8 @@ class GetResourceFullIdentifier extends AbstractHelper
         switch ($resource->resourceName()) {
             case 'item_sets':
                 $identifier = $view->getResourceIdentifier($resource, true, true);
-                if (empty($identifier)) {
-                    return '';
+                if (!$identifier) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                 }
 
                 $generic = $view->setting('cleanurl_item_set_generic');
@@ -104,13 +106,13 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'items')) {
-                    return '';
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                 }
 
                 $skipPrefixItem = !strpos($format, 'item_full');
                 $identifier = $view->getResourceIdentifier($resource, true, $skipPrefixItem);
-                if (empty($identifier)) {
-                    $identifier = $resource->id();
+                if (!$identifier) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                 }
 
                 switch ($format) {
@@ -122,17 +124,21 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'item_set_item':
                     case 'item_set_item_full':
                         $itemSets = $resource->itemSets();
-                        $itemSetIdentifier = null;
-                        if (!empty($itemSets)) {
-                            $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('item');
+                            return $format
+                                ? $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $format)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                         }
-                        if (empty($itemSetIdentifier)) {
-                            $genericFormat = $this->_getGenericFormat('items');
-                            if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
+
+                        $itemSet = reset($itemSets);
+                        $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
+                        if (!$itemSetIdentifier) {
+                            $itemSetUndefined = $view->setting('cleanurl_item_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                             }
-                            return '';
+                            $itemSetIdentifier = $itemSet->id();
                         }
 
                         return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
@@ -140,7 +146,9 @@ class GetResourceFullIdentifier extends AbstractHelper
                     default:
                         break;
                 }
-                break;
+
+                // Unmanaged format.
+                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
 
             case 'media':
                 if (empty($format)) {
@@ -148,13 +156,13 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
                 // Else check if the format is allowed.
                 elseif (!$this->_isFormatAllowed($format, 'media')) {
-                    return '';
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                 }
 
                 $skipPrefixMedia = !strpos($format, 'media_full');
                 $identifier = $view->getResourceIdentifier($resource, true, $skipPrefixMedia);
-                if (empty($identifier)) {
-                    $identifier = $resource->id();
+                if (!$identifier) {
+                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                 }
 
                 switch ($format) {
@@ -167,31 +175,39 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'generic_item_full_media':
                     case 'generic_item_media_full':
                     case 'generic_item_full_media_full':
-                        $generic = $view->setting('cleanurl_media_generic');
-
                         $item = $resource->item();
                         $skipPrefixItem = !strpos($format, 'item_full');
                         $itemIdentifier = $view->getResourceIdentifier($item, true, $skipPrefixItem);
-                        if (!$itemIdentifier) {
+                        if (empty($itemIdentifier)) {
+                            $itemUndefined = $view->setting('cleanurl_media_item_undefined');
+                            if ($itemUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
                             $itemIdentifier = $item->id();
                         }
+
+                        $generic = $view->setting('cleanurl_media_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $itemIdentifier . '/' . $identifier;
 
                     case 'item_set_media':
                     case 'item_set_media_full':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
-                        $itemSetIdentifier = null;
-                        if (!empty($itemSets)) {
-                            $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('media');
+                            return $format
+                                ? $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $format)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                         }
+
+                        $itemSet = reset($itemSets);
+                        $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
                         if (empty($itemSetIdentifier)) {
-                            $genericFormat = $this->_getGenericFormat('media');
-                            if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
+                            $itemSetUndefined = $view->setting('cleanurl_media_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                             }
-                            return '';
+                            $itemSetIdentifier = $itemSet->id();
                         }
                         return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
 
@@ -201,22 +217,30 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'item_set_item_full_media_full':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
-                        $itemSetIdentifier = null;
-                        if (!empty($itemSets)) {
-                            $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
+                        if (empty($itemSets)) {
+                            $format = $this->_getGenericFormat('media');
+                            return $format
+                                ? $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $format)
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                         }
+
+                        $itemSet = reset($itemSets);
+                        $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
                         if (empty($itemSetIdentifier)) {
-                            $genericFormat = $this->_getGenericFormat('media');
-                            if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
+                            $itemSetUndefined = $view->setting('cleanurl_media_item_set_undefined');
+                            if ($itemSetUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
                             }
-                            return '';
+                            $itemSetIdentifier = $itemSet->id();
                         }
 
                         $skipPrefixItem = !strpos($format, 'item_full');
                         $itemIdentifier = $view->getResourceIdentifier($item, true, $skipPrefixItem);
                         if (!$itemIdentifier) {
+                            $itemUndefined = $view->setting('cleanurl_media_item_undefined');
+                            if ($itemUndefined !== 'parent_id') {
+                                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                            }
                             $itemIdentifier = $item->id();
                         }
                         return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
@@ -224,7 +248,9 @@ class GetResourceFullIdentifier extends AbstractHelper
                     default:
                         break;
                 }
-                break;
+
+                // Unmanaged format.
+                return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
 
             default:
                 break;
@@ -363,6 +389,43 @@ class GetResourceFullIdentifier extends AbstractHelper
 
             default:
                 return null;
+        }
+    }
+
+    /**
+     * Get an identifier when there is no identifier.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param string $siteSlug
+     * @param bool $absolute
+     * @param string $withBasePath
+     * @param string $withMainPath
+     * @throws \Omeka\Mvc\Exception\RuntimeException
+     * @return string
+     */
+    protected function urlNoIdentifier(AbstractResourceEntityRepresentation $resource, $siteSlug, $absolute, $withBasePath, $withMainPath)
+    {
+        switch ($this->view->setting('cleanurl_identifier_undefined')) {
+            case 'main_generic':
+                $genericKeys = [
+                    'item' => 'cleanurl_item_generic',
+                    'item-set' => 'cleanurl_item_set_generic',
+                    'media' => 'cleanurl_media_generic',
+                ];
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $genericKeys[$resource->getControllerName()] . $resource->id();
+            case 'generic':
+                $genericKeys = [
+                    'item' => 'cleanurl_item_generic',
+                    'item-set' => 'cleanurl_item_set_generic',
+                    'media' => 'cleanurl_media_generic',
+                ];
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $genericKeys[$resource->getControllerName()] . $resource->id();
+            case 'exception':
+                $message = new \Omeka\Stdlib\Message('The "%1$s" #%2$d has no normalized identifier.', $resource->getControllerName(), $resource->id()); // @translate
+                throw new \Omeka\Mvc\Exception\RuntimeException($message);
+            case 'default':
+            default:
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, false) . $resource->getControllerName() . '/' . $resource->id();
         }
     }
 }
