@@ -55,29 +55,26 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             $this->propertyId = (int) $this->view->setting('cleanurl_identifier_property');
             $this->prefix = $this->view->setting('cleanurl_identifier_prefix');
         }
-        $propertyId = $this->propertyId;
-        $prefix = $this->prefix;
 
         // Use a direct query in order to improve speed.
-        $connection = $this->connection;
-        $qb = $connection->createQueryBuilder()
+        $qb = $this->connection->createQueryBuilder()
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
             ->andWhere('value.property_id = :property_id')
-            ->setParameter('property_id', $propertyId)
+            ->setParameter('property_id', $this->propertyId)
             ->andWhere('resource.resource_type = :resource_type')
             ->setParameter('resource_type', $resourceType)
             ->addOrderBy('value.resource_id', 'ASC')
             ->addOrderBy('value.id', 'ASC');
 
-        if ($prefix) {
+        if ($this->prefix) {
             $qb
                 ->select([
                     // $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($this->prefix) + 1)),
-                    '(TRIM(SUBSTR(value.value, ' . (mb_strlen($prefix) + 1) . ')))',
+                    '(TRIM(SUBSTR(value.value, ' . (mb_strlen($this->prefix) + 1) . ')))',
                 ])
                 ->andWhere('value.value LIKE :value_value')
-                ->setParameter('value_value', $prefix . '%');
+                ->setParameter('value_value', $this->prefix . '%');
         } else {
             $qb
                 ->select([
@@ -85,7 +82,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
                 ]);
         }
 
-        $stmt = $connection->executeQuery($qb, $qb->getParameters());
+        $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
         $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
         return $rawUrlEncode
