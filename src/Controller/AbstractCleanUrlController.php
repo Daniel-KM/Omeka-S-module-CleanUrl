@@ -234,6 +234,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      * Routes a clean url of an item or a media to the default url.
      *
      * Item sets are managed directly in itemSetShowAction().
+     * @todo Use the standard getResourceFromIdentifier().
      *
      * @return int Id of the record.
      */
@@ -249,25 +250,41 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // Use of ordered placeholders.
         $bind = [];
 
-        // Check the dublin core identifier of the record.
-        $prefix = $settings->get('cleanurl_identifier_prefix');
         $identifiers = [];
-        $identifiers[] = $prefix . $this->_resource_identifier;
-        // Check with a space between prefix and identifier too.
-        $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
-        // Check prefix with a space and a no-break space.
-        if ($settings->get('cleanurl_identifier_unspace')) {
-            $unspace = str_replace([' ', ' '], '', $prefix);
-            if ($prefix != $unspace) {
-                $identifiers[] = $unspace . $this->_resource_identifier;
-                $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
+
+        switch ($this->_resource_name) {
+            case 'items':
+                $allowShortIdentifier = $this->allowShortIdentifierItem();
+                $allowFullIdentifier = $this->allowFullIdentifierItem();
+                break;
+            case 'media':
+                $allowShortIdentifier = $this->allowShortIdentifierMedia();
+                $allowFullIdentifier = $this->allowFullIdentifierMedia();
+                break;
+        }
+        if ($allowShortIdentifier) {
+            // Check the identifier of the record (commonly dcterms:identifier).
+            $prefix = $settings->get('cleanurl_identifier_prefix');
+            $identifiers[] = $prefix . $this->_resource_identifier;
+            // Check with a space between prefix and identifier too.
+            $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
+            // Check prefix with a space and a no-break space.
+            if ($settings->get('cleanurl_identifier_unspace')) {
+                $unspace = str_replace([' ', ' '], '', $prefix);
+                if ($prefix != $unspace) {
+                    $identifiers[] = $unspace . $this->_resource_identifier;
+                    $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
+                }
             }
+        }
+        if ($allowFullIdentifier) {
+            $identifiers[] = $this->_resource_identifier;
         }
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
         // If the table is case sensitive, lower-case the search.
         if ($settings->get('cleanurl_case_insensitive')) {
-            $identifiers = array_map('strtolower', $identifiers);
+            $identifiers = array_map('mb_strtolower', $identifiers);
             $sqlWhereValue =
                 "AND LOWER(value.value) IN ($in)";
         }
@@ -374,15 +391,25 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         // Check if the found file belongs to the item.
         if (!empty($this->_item_identifier)) {
-            // Get the item identifier.
-            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
-            // It's useless to skip the prefix, it is just a check.
-            $item_identifier = $getResourceIdentifier($item, false, false);
-            // Check identifier and id of item.
-            if (strtolower($this->_item_identifier) != strtolower($item_identifier)
-                    && $this->_item_identifier != $item->id()) {
+            if ($item->id() != $this->_item_id) {
                 return false;
             }
+
+            // Get the full item identifier.
+            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
+            $itemIdentifier = $getResourceIdentifier($item, false, false);
+            if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
+                return true;
+            }
+
+            // Get the item identifier.
+            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
+            $itemIdentifier = $getResourceIdentifier($item, false, true);
+            if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
+                return true;
+            }
+
+            return false;
         }
 
         return true;
@@ -407,9 +434,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     {
         if ($this->_item_set_identifier) {
             $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
-
-            $itemSet = $getResourceFromIdentifier($this->_item_set_identifier, false, 'item_sets');
-            $this->_item_set_id = $itemSet ? $itemSet->id() : null;
+            $resource = $getResourceFromIdentifier($this->_item_set_identifier, false, 'item_sets');
+            $this->_item_set_id = $resource ? $resource->id() : null;
         }
         return $this->_item_set_id;
     }
@@ -418,9 +444,15 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     {
         if ($this->_item_identifier) {
             $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
-
-            $item = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
-            $this->_item_id = $item ? $item->id() : null;
+            if ($this->allowFullIdentifierItem()) {
+                $resource = $getResourceFromIdentifier($this->_item_identifier, true, 'items');
+                if (empty($resource) && $this->allowShortIdentifierItem()) {
+                    $resource = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
+                }
+            } else {
+                $resource = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
+            }
+            $this->_item_id = $resource ? $resource->id() : null;
         }
         return $this->_item_id;
     }
@@ -428,8 +460,65 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     protected function _setMediaId()
     {
         if ($this->_media_identifier) {
-            $this->_media_id = $this->getView()->getResourceFromIdentifier($this->_media_identifier, false, 'media');
+            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
+            if ($this->allowFullIdentifierMedia()) {
+                $resource = $getResourceFromIdentifier($this->_media_identifier, true, 'media');
+                if (empty($resource) && $this->allowShortIdentifierMedia()) {
+                    $resource = $getResourceFromIdentifier($this->_media_identifier, false, 'media');
+                }
+            } else {
+                $resource = $getResourceFromIdentifier($this->_media_identifier, false, 'media');
+            }
+            $this->_media_id = $resource ? $resource->id() : null;
         }
         return $this->_media_id;
+    }
+
+    protected function allowShortIdentifierItem()
+    {
+        return (bool) array_intersect(array_merge($this->settings()->get('cleanurl_item_allowed', []), $this->settings()->get('cleanurl_media_allowed', [])), [
+            'generic_item',
+            'generic_item_media',
+            'generic_item_media_full',
+            'item_set_item',
+            'item_set_item_media',
+            'item_set_item_media_full',
+        ]);
+    }
+
+    protected function allowFullIdentifierItem()
+    {
+        return (bool) array_intersect(array_merge($this->settings()->get('cleanurl_item_allowed', []), $this->settings()->get('cleanurl_media_allowed', [])), [
+            'generic_item_full',
+            'generic_item_full_media',
+            'generic_item_full_media_full',
+            'item_set_item_full',
+            'item_set_item_full_media',
+            'item_set_item_full_media_full',
+        ]);
+    }
+
+    protected function allowShortIdentifierMedia()
+    {
+        return (bool) array_intersect($this->settings()->get('cleanurl_media_allowed', []), [
+            'generic_media',
+            'generic_item_media',
+            'generic_item_full_media',
+            'item_set_media',
+            'item_set_item_media',
+            'item_set_item_full_media',
+        ]);
+    }
+
+    protected function allowFullIdentifierMedia()
+    {
+        return (bool) array_intersect($this->settings()->get('cleanurl_media_allowed', []), [
+            'generic_media_full',
+            'generic_item_media_full',
+            'generic_item_full_media_full',
+            'item_set_media_full',
+            'item_set_item_media_full',
+            'item_set_item_full_media_full',
+        ]);
     }
 }

@@ -170,6 +170,8 @@ class CleanUrl extends Url
     /**
      * Get clean url path of a resource.
      *
+     * @todo Replace by route assemble.
+     *
      * @param string $context "public" or "admin"
      * @param array $params
      * @param array $options
@@ -185,8 +187,9 @@ class CleanUrl extends Url
             ))
             && (empty($params['action']) || $params['action'] === 'show')
         ) {
+            $type = $this->controllerName($params['controller']);
             return $this->view->getResourceFullIdentifier(
-                ['type' => $this->controllerName($params['controller']), 'id' => $params['id']],
+                ['type' => $type, 'id' => $params['id']],
                 isset($params['site-slug']) ? $params['site-slug'] : null,
                 true,
                 $context,
