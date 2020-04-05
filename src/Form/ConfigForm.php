@@ -108,6 +108,23 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_identifier_case_insensitive',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_identifier_undefined',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'When no identifier exists', // @translate
+                    'value_options' => [
+                        'default' => 'Omeka route: / resource type / id', // @translate
+                        'main_generic' => 'Main and generic path: / main / generic / id', // @translate
+                        'generic' => 'Generic path: / generic / id', // @translate
+                        'exception' => 'Error 404', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_identifier_undefined',
+                    'required' => true,
+                ],
             ]);
 
         $this
@@ -234,6 +251,21 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_item_generic',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_item_set_undefined',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'When item set is undefined', // @translate
+                    'value_options' => [
+                        'parent_id' => 'Use item set id', // @translate
+                        'undefined' => 'Use main setting for undefined', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_item_set_undefined',
+                    'required' => true,
+                ],
             ]);
 
         $this
@@ -307,6 +339,36 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_media_generic',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_set_undefined',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'When item set is undefined', // @translate
+                    'value_options' => [
+                        'parent_id' => 'Use item set id', // @translate
+                        'undefined' => 'Use main undefined setting', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_item_set_undefined',
+                    'required' => true,
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_undefined',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'When item identifier is undefined', // @translate
+                    'value_options' => [
+                        'parent_id' => 'Use item id', // @translate
+                        'undefined' => 'Use main undefined setting', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_item_undefined',
+                    'required' => true,
+                ],
             ]);
 
         $this
@@ -377,6 +439,21 @@ class ConfigForm extends Form
                 'required' => false,
             ])
             ->add([
+                'name' => 'cleanurl_identifier_undefined',
+                'required' => true,
+            ]);
+
+        $itemSetsFilter = $inputFilter->get('clean_url_main_path');
+        $itemSetsFilter
+            ->add([
+                'name' => 'cleanurl_main_path',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_main_path_2',
+                'required' => false,
+            ])
+            ->add([
                 'name' => 'cleanurl_main_path_3',
                 'required' => false,
             ]);
@@ -401,6 +478,10 @@ class ConfigForm extends Form
             ->add([
                 'name' => 'cleanurl_item_generic',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_item_item_set_undefined',
+                'required' => true,
             ]);
 
         $mediaFilter = $inputFilter->get('clean_url_medias');
@@ -416,6 +497,14 @@ class ConfigForm extends Form
             ->add([
                 'name' => 'cleanurl_media_generic',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_set_undefined',
+                'required' => true,
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_undefined',
+                'required' => true,
             ]);
 
         $adminFilter = $inputFilter->get('clean_url_admin');
