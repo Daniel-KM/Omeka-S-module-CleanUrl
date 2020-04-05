@@ -122,6 +122,43 @@ So the configuration of the module let you choose among these possible paths:
 
 Note: only logical combinations of some of these paths are available together!
 
+A second and third main path can be added, for example to manage ark identifier:
+main path is "ark:/" and the second main path is the naan.
+
+The identifier of the media can be the position. In that case, the string for
+this position can be formatted with function "sprintf". It is recommended to use
+a format with a leading letter to avoid confusion with numeric media id.
+Furthermore, the position may not be stable: a scanned image may be missing.
+Finally, if the first media is not marked "1" in the database, use module [Bulk Check]
+to fix them.
+
+### Config for Ark
+
+The module [Ark] allows to create normalized unique identifiers formatted like
+`ark:/12025/b6KN`, where the "12025" is the id of the institution, that is
+assigned for free by the [California Digital Library] to any institution with
+historical or archival purposes. The "b6KN" is the short hash of the id, with a
+control key. The name is always short, because four characters are enough to
+create more than ten millions of unique names.
+
+To config it, use these params:
+- Resource identifiers: `prefix = ark:/12345/`.
+- Main base path: `main path = ark:/` and `sub-main path = 12345/`; if another
+  main path is added, set them as sub-main path and sub-sub-main path path.
+- Content: `default url = / generic / item identifier`, no generic path,
+  `identifier includes item set identifie = no`.
+- Media: : `default url = / generic / media identifier`, no generic path,
+  `keep raw identifier = true`, `identifier includes item identifier = yes` (or
+  `maybe` is some arks are missing).
+Other options are at your convenience.
+
+
+TODO
+----
+
+- Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
+- Forward/Redirect to the canonical url
+
 
 Warning
 -------
