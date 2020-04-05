@@ -26,8 +26,8 @@ return [
         ],
     ],
     'controllers' => [
-        // Override the page controller used for the root url.
         'invokables' => [
+            // Override the page controller used for the root url.
             'Omeka\Controller\Site\Page' => Controller\Site\PageController::class,
         ],
         'factories' => [
@@ -41,6 +41,7 @@ return [
                 // Override the top controller in order to use the site homepage.
                 'options' => [
                     'defaults' => [
+                        // TODO Remove __SITE__ to allow the main setting for default site or not.
                         '__NAMESPACE__' => 'Omeka\Controller\Site',
                         '__SITE__' => true,
                         'site-slug' => SLUG_MAIN_SITE,
@@ -50,7 +51,8 @@ return [
                 ],
                 'may_terminate' => true,
                 // Allows to access main site resources and pages.
-                // Same routes than "site", except initial "/" and default values.
+                // Same routes than "site", except initial "/" and routes,
+                // without starting "/".
                 'child_routes' => SLUG_MAIN_SITE ? [
                     'resource' => [
                         'type' => \Zend\Router\Http\Segment::class,
@@ -122,7 +124,7 @@ return [
     ],
     'cleanurl' => [
         'config' => [
-            // 10 is the hard set id of "dcterms:identifier" in default install.
+            // 10 is the hard coded id of "dcterms:identifier" in default install.
             'cleanurl_identifier_property' => 10,
             'cleanurl_identifier_prefix' => 'document:',
             'cleanurl_identifier_unspace' => false,

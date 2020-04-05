@@ -14,6 +14,8 @@ use Zend\Stdlib\RequestInterface as Request;
 /**
  * Manage clean urls for all Omeka resources and pages according to the config.
  *
+ * @todo Store all routes of all resources and pages in the database?
+ *
  * Partially derived from route \Zend\Router\Http\Segment.
  * Each route is not made regex on construct, but on first check.
  */
