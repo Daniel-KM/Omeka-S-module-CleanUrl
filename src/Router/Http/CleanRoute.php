@@ -145,14 +145,6 @@ class CleanRoute implements RouteInterface
         $itemSetsRegex = $this->settings['item_set_regex'];
 
         $baseRoutes = [];
-        if (SLUG_MAIN_SITE) {
-            $baseRoutes['_top'] = [
-                '/',
-                '__SITE__',
-                'CleanUrl\Controller\Site',
-                SLUG_MAIN_SITE,
-            ];
-        }
         $baseRoutes['_public'] = [
             '/s/:site-slug/',
             '__SITE__',
@@ -167,47 +159,21 @@ class CleanRoute implements RouteInterface
                 null,
             ];
         }
+        if (SLUG_MAIN_SITE) {
+            $baseRoutes['_top'] = [
+                '/',
+                '__SITE__',
+                'CleanUrl\Controller\Site',
+                SLUG_MAIN_SITE,
+            ];
+        }
 
         foreach ($baseRoutes as $routeExt => $array) {
             list($baseRoute, $space, $namespaceController, $siteSlug) = $array;
+
+            // TODO Move some item set routes under item routes.
             if (!empty($itemSetsRegex)) {
                 $route = $baseRoute . $mainPath . $itemSetGeneric;
-
-                // Match item set route.
-                $routeName = 'cleanurl_item_sets' . $routeExt;
-                $this->routes[$routeName] = [
-                    'route' => $route . ':resource_identifier',
-                    'constraints' => [
-                        'resource_identifier' => $itemSetsRegex,
-                    ],
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'item-set-show',
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-
-                // Match item set route for media.
-                if (in_array('item_set', $allowedForMedia)) {
-                    $routeName = 'cleanurl_item_sets_media' . $routeExt;
-                    $this->routes[$routeName] = [
-                        'route' => $route . ':item_set_identifier/:resource_identifier',
-                        'constraints' => [
-                            'item_set_identifier' => $itemSetsRegex,
-                        ],
-                        'defaults' => [
-                            'route_name' => $routeName,
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-media',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ];
-                }
 
                 // Match item set / item route for media.
                 if (in_array('item_set_item', $allowedForMedia)) {
@@ -246,24 +212,77 @@ class CleanRoute implements RouteInterface
                         ],
                     ];
                 }
-            }
 
-            // Match generic route for media.
-            if (in_array('generic', $allowedForMedia)) {
-                $route = $baseRoute . $mainPath . $mediaGeneric;
-                $routeName = 'cleanurl_generic_media' . $routeExt;
+                // This clean url is same than the one above, but it's a choice
+                // of the admin.
+                // Match item set route for media.
+                if (in_array('item_set', $allowedForMedia)) {
+                    $routeName = 'cleanurl_item_sets_media' . $routeExt;
+                    $this->routes[$routeName] = [
+                        'route' => $route . ':item_set_identifier/:resource_identifier',
+                        'constraints' => [
+                            'item_set_identifier' => $itemSetsRegex,
+                        ],
+                        'defaults' => [
+                            'route_name' => $routeName,
+                            '__NAMESPACE__' => $namespaceController,
+                            $space => true,
+                            'controller' => 'CleanUrlController',
+                            'action' => 'route-item-set-media',
+                            'site-slug' => $siteSlug,
+                        ],
+                    ];
+                }
+
+                // Match item set route.
+                $routeName = 'cleanurl_item_sets' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route . ':resource_identifier',
                     'constraints' => [
-                        'item_set_identifier' => $itemSetsRegex,
+                        'resource_identifier' => $itemSetsRegex,
                     ],
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
                         $space => true,
                         'controller' => 'CleanUrlController',
-                        'action' => 'route-media',
+                        'action' => 'item-set-show',
+                        'site-slug' => $siteSlug,
+                    ],
+                ];
+            }
+
+            // Match generic route for items.
+            if (in_array('generic', $allowedForItems)) {
+                $route = $baseRoute . $mainPath . $itemGeneric;
+                $routeName = 'cleanurl_generic_item' . $routeExt;
+                $this->routes[$routeName] = [
+                    'route' => $route . ':resource_identifier',
+                    'constraints' => [
+                    ],
+                    'defaults' => [
+                        'route_name' => $routeName,
+                        '__NAMESPACE__' => $namespaceController,
+                        $space => true,
+                        'controller' => 'CleanUrlController',
+                        'action' => 'route-item',
                         'item_set_id' => null,
+                        'site-slug' => $siteSlug,
+                    ],
+                ];
+
+                $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
+                $routeName = 'cleanurl_generic_items_browse' . $routeExt;
+                $this->routes[$routeName] = [
+                    'route' => $route,
+                    'constraints' => [
+                    ],
+                    'defaults' => [
+                        'route_name' => $routeName,
+                        '__NAMESPACE__' => $namespaceController,
+                        $space => true,
+                        'controller' => 'CleanUrlController',
+                        'action' => 'items-browse',
                         'site-slug' => $siteSlug,
                     ],
                 ];
@@ -276,7 +295,6 @@ class CleanRoute implements RouteInterface
                 $this->routes[$routeName] = [
                     'route' => $route . ':item_identifier/:resource_identifier',
                     'constraints' => [
-                        'item_set_identifier' => $itemSetsRegex,
                     ],
                     'defaults' => [
                         'route_name' => $routeName,
@@ -290,38 +308,20 @@ class CleanRoute implements RouteInterface
                 ];
             }
 
-            // Match generic route for items.
-            if (in_array('generic', $allowedForItems)) {
-                $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
-                $routeName = 'cleanurl_generic_items_browse' . $routeExt;
-                $this->routes[$routeName] = [
-                    'route' => $route,
-                    'constraints' => [
-                        'item_set_identifier' => $itemSetsRegex,
-                    ],
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'items-browse',
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-
-                $route = $baseRoute . $mainPath . $itemGeneric;
-                $routeName = 'cleanurl_generic_item' . $routeExt;
+            // Match generic route for media.
+            if (in_array('generic', $allowedForMedia)) {
+                $route = $baseRoute . $mainPath . $mediaGeneric;
+                $routeName = 'cleanurl_generic_media' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route . ':resource_identifier',
                     'constraints' => [
-                        'item_set_identifier' => $itemSetsRegex,
                     ],
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
                         $space => true,
                         'controller' => 'CleanUrlController',
-                        'action' => 'route-item',
+                        'action' => 'route-media',
                         'item_set_id' => null,
                         'site-slug' => $siteSlug,
                     ],
