@@ -146,7 +146,7 @@ class Module extends AbstractModule
                         'media_generic' => $settings->get('cleanurl_media_generic'),
                         'item_allowed' => $settings->get('cleanurl_item_allowed'),
                         'media_allowed' => $settings->get('cleanurl_media_allowed'),
-                        'use_admin' => $settings->get('cleanurl_use_admin'),
+                        'use_admin' => $settings->get('cleanurl_use_admin') && $services->get('Omeka\Status')->isAdminRequest(),
                         'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                     ],
                     'defaults' => [
