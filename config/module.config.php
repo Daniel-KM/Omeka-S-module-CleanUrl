@@ -97,7 +97,7 @@ return [
                     'page-browse' => [
                         'type' => \Zend\Router\Http\Literal::class,
                         'options' => [
-                            'route' => 'page',
+                            'route' => SLUG_PAGE ? rtrim(SLUG_PAGE, '/') : 'page',
                             'defaults' => [
                                 'controller' => 'Page',
                                 'action' => 'browse',
@@ -124,6 +124,11 @@ return [
             'site' => [
                 'type' => \CleanUrl\Router\Http\SegmentMain::class,
                 'child_routes' => [
+                    'page-browse' => [
+                        'options' => [
+                            'route' => '/' . (SLUG_PAGE ? rtrim(SLUG_PAGE, '/') : 'page'),
+                        ],
+                    ],
                     'page' => [
                         'type' => \CleanUrl\Router\Http\RegexPage::class,
                         'options' => [
