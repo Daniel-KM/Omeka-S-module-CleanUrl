@@ -36,9 +36,9 @@ class GetResourceFullIdentifier extends AbstractHelper
      *
      * @param \Omeka\Api\Representation\AbstractResourceRepresentation|array $resource
      * @param string $siteSlug May be required on main public pages.
+     * @param string $withBasePath Can be empty, "admin", "public" or "current".
+     * If any, implies main path.
      * @param bool $withMainPath
-     * @param string $withBasePath Can be empty, 'admin', 'public' or
-     * 'current'. If any, implies main path.
      * @param bool $absoluteUrl If true, implies current / admin or public
      * path and main path.
      * @param string $format Format of the identifier (default one if empty).
@@ -47,8 +47,8 @@ class GetResourceFullIdentifier extends AbstractHelper
     public function __invoke(
         $resource,
         $siteSlug = null,
-        $withMainPath = true,
         $withBasePath = 'current',
+        $withMainPath = true,
         $absolute = false,
         $format = null
     ) {
@@ -96,7 +96,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 }
 
                 $generic = $view->setting('cleanurl_item_set_generic');
-                return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
+                return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
             case 'items':
                 if (empty($format)) {
@@ -117,7 +117,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'generic_item':
                     case 'generic_item_full':
                         $generic = $view->setting('cleanurl_item_generic');
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
                     case 'item_set_item':
                     case 'item_set_item_full':
@@ -130,12 +130,12 @@ class GetResourceFullIdentifier extends AbstractHelper
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('items');
                             if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
                             }
                             return '';
                         }
 
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
 
                     default:
                         break;
@@ -161,7 +161,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                     case 'generic_media':
                     case 'generic_media_full':
                         $generic = $view->setting('cleanurl_media_generic');
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
                     case 'generic_item_media':
                     case 'generic_item_full_media':
@@ -175,7 +175,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         if (!$itemIdentifier) {
                             $itemIdentifier = $item->id();
                         }
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $itemIdentifier . '/' . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $itemIdentifier . '/' . $identifier;
 
                     case 'item_set_media':
                     case 'item_set_media_full':
@@ -189,11 +189,11 @@ class GetResourceFullIdentifier extends AbstractHelper
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
                             if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
                             }
                             return '';
                         }
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $identifier;
 
                     case 'item_set_item_media':
                     case 'item_set_item_full_media':
@@ -209,7 +209,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
                             if ($genericFormat) {
-                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withMainPath, $withBasePath, $absolute, $genericFormat);
+                                return $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, $genericFormat);
                             }
                             return '';
                         }
@@ -219,7 +219,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         if (!$itemIdentifier) {
                             $itemIdentifier = $item->id();
                         }
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $itemSetIdentifier . '/' . $itemIdentifier . '/' . $identifier;
 
                     default:
                         break;
@@ -238,11 +238,11 @@ class GetResourceFullIdentifier extends AbstractHelper
      * Return beginning of the resource name if needed.
      *
      * @param string $siteSlug
-     * @param bool $withMainPath
      * @param bool $withBasePath Implies main path.
+     * @param bool $withMainPath
      * @return string The string ends with '/'.
      */
-    protected function _getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath)
+    protected function _getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath)
     {
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
