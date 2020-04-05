@@ -91,6 +91,8 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
         $settings->set('cleanurl_main_path_full_encoded', $this->encode(rtrim($mainPath, '/')) . '/');
     }
 
+    $settings->set('cleanurl_main_short', false);
+
     $settings->set('cleanurl_item_item_set_included', 'no');
     $settings->set('cleanurl_media_item_set_included', 'no');
     $settings->set('cleanurl_media_item_included', 'no');

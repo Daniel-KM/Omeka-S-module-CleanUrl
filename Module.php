@@ -139,6 +139,7 @@ class Module extends AbstractModule
                         'default_site' => $settings->get('default_site'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
                         'main_path_full_encoded' => $settings->get('cleanurl_main_path_full_encoded'),
+                        'main_short' => $settings->get('cleanurl_main_short'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
                         'media_generic' => $settings->get('cleanurl_media_generic'),
@@ -354,6 +355,8 @@ class Module extends AbstractModule
                 }
             }
         }
+
+        $params['cleanurl_main_short'] = (bool) $params['cleanurl_main_short'];
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];

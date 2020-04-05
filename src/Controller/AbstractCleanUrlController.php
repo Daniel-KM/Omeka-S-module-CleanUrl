@@ -60,7 +60,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $this->_item_set_identifier = $this->params('resource_identifier');
         $result = $this->_setItemSetId();
         if (empty($result)) {
-            throw new NotFoundException;
+            return $this->notFound();
         }
         return $this->forward()->dispatch($this->namespaceItem, [
             '__NAMESPACE__' => $this->namespace,
@@ -100,7 +100,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
         if (is_null($result)) {
-            throw new NotFoundException;
+            return $this->notFound();
         }
 
         $this->_resource_name = 'items';
@@ -112,7 +112,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             try {
                 $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                throw new NotFoundException;
+                return $this->notFound();
             }
 
             $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
@@ -145,7 +145,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         if (!$id) {
             $media = $this->retrieveMedia();
             if (!$media) {
-                throw new NotFoundException;
+                return $this->notFound();
             }
         }
 
@@ -186,14 +186,14 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // If 0, this is possible (item without item set, or generic route).
         $itemSetId = $this->_setItemSetId();
         if (is_null($itemSetId)) {
-            throw new NotFoundException;
+            return $this->notFound();
         }
         $this->_item_identifier = $this->params('item_identifier');
         // TODO Check if it is still the case.
         // If 0, this is possible (generic route).
         $itemId = $this->_setItemId();
         if (is_null($itemId)) {
-            throw new NotFoundException;
+            return $this->notFound();
         }
         $this->_resource_name = 'media';
         $id = $this->_routeResource();
@@ -203,19 +203,19 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         if (!$id) {
             $resource = $this->retrieveMedia($itemId);
             if (!$resource) {
-                throw new NotFoundException;
+                return $this->notFound();
             }
 
             $id = $resource->id();
 
             // Check if the found media belongs to the item set.
             if (!$this->_checkItemSetMedia($resource)) {
-                throw new NotFoundException;
+                return $this->notFound();
             }
 
             // Check if the found file belongs to the item.
             if (!$this->_checkItemMedia($resource)) {
-                throw new NotFoundException;
+                return $this->notFound();
             }
         }
 
@@ -232,12 +232,11 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     }
 
     /**
-     * Routes a clean url of an item or a media to the default url.
+     * Get id from the resource identifier.
      *
-     * Item sets are managed directly in itemSetShowAction().
      * @todo Use the standard getResourceFromIdentifier().
      *
-     * @return int Id of the record.
+     * @return int Id of the resource.
      */
     protected function _routeResource()
     {
@@ -311,13 +310,128 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             $identifiers[] = $this->_resource_identifier;
         }
 
-        // Use of ordered placeholders.
-        $bind = [];
+        $result = $this->queryResource($identifiers, $this->_item_set_id, $this->_item_id, $this->_resource_name);
+        return $result ? $result['id'] : null;
+    }
+
+    /**
+     * Try to catch flat identifier before returning a not found.
+     *
+     * @return array|null Id and type of the resource.
+     */
+    protected function notFound()
+    {
+        // Manage the case where the same format is used by multiple routes, for
+        // example for a root identifier, or routes generic/resource_identifier
+        // with the same generic name.
+        $settings = $this->settings();
+
+        // The difference with _routeResource() is that the resource name is
+        // unknown and probably wrong.
+        $includeItemSetIdentifierItem = $settings->get('cleanurl_item_item_set_included');
+        $includeItemSetIdentifierMedia = $settings->get('cleanurl_media_item_set_included');
+        $includeItemIdentifier = $settings->get('cleanurl_media_item_included');
+
+        $itemSetIdentifier = $this->_item_set_identifier
+            ? $this->_item_set_identifier  . '/'
+            : '';
+        $itemIdentifier = $this->_item_identifier
+            ? $this->_item_identifier  . '/'
+            : '';
+
+        $identifiers = [];
+
+        // Check the identifier of the record (commonly dcterms:identifier).
+        $prefix = $settings->get('cleanurl_identifier_prefix');
+        $identifiers[] = $prefix . $this->_resource_identifier;
+        if ($includeItemIdentifier !== 'no') {
+            $identifiers[] = $prefix . $itemIdentifier . $this->_resource_identifier;
+        }
+        if ($includeItemSetIdentifierItem !== 'no' || $includeItemSetIdentifierMedia !== 'no') {
+            $identifiers[] = $prefix . $itemSetIdentifier . $this->_resource_identifier;
+            if ($includeItemIdentifier !== 'no') {
+                $identifiers[] = $prefix . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier;
+            }
+        }
+
+        // Check with a space between prefix and identifier too.
+        $identifiers[] = $prefix . ' ' . $this->_resource_identifier;
+        if ($includeItemIdentifier !== 'no') {
+            $identifiers[] = $prefix . ' ' . $itemIdentifier . $this->_resource_identifier;
+        }
+        if ($includeItemSetIdentifierItem !== 'no' || $includeItemSetIdentifierMedia !== 'no') {
+            $identifiers[] = $prefix . ' ' . $itemSetIdentifier . $this->_resource_identifier;
+            if ($includeItemIdentifier !== 'no') {
+                $identifiers[] = $prefix . ' ' . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier;
+            }
+        }
+
+        // Check prefix with a space and a no-break space.
+        if ($settings->get('cleanurl_identifier_unspace')) {
+            $unspace = str_replace([' ', ' '], '', $prefix);
+            if ($prefix != $unspace) {
+                $identifiers[] = $unspace . $this->_resource_identifier;
+                $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
+                if ($includeItemIdentifier !== 'no') {
+                    $identifiers[] = $unspace . $itemIdentifier . $this->_resource_identifier;
+                    $identifiers[] = $unspace . ' ' . $itemIdentifier . $this->_resource_identifier;
+                }
+                if ($includeItemSetIdentifierItem !== 'no' || $includeItemSetIdentifierMedia !== 'no') {
+                    $identifiers[] = $unspace . $itemSetIdentifier . $this->_resource_identifier;
+                    $identifiers[] = $unspace . ' ' . $itemSetIdentifier . $this->_resource_identifier;
+                    if ($includeItemIdentifier !== 'no') {
+                        $identifiers[] = $unspace . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier;
+                        $identifiers[] = $unspace . ' ' . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier;
+                    }
+                }
+            }
+        }
+
+        $identifiers[] = $this->_resource_identifier;
+
+        $result = $this->queryResource($identifiers, $this->_item_set_id, $this->_item_id);
+        if (!$result) {
+            throw new NotFoundException;
+        }
+
+        if ($result['type'] === \Omeka\Entity\ItemSet::class) {
+            return $this->forward()->dispatch($this->namespaceItem, [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceItem,
+                'action' => 'browse',
+                'site-slug' => $this->params('site-slug'),
+                'item-set-id' => $result['id'],
+            ]);
+        }
+
+        return $this->forward()->dispatch($this->namespaceMedia, [
+            '__NAMESPACE__' => $this->namespace,
+            $this->space => true,
+            'controller' => $result['type'] === \Omeka\Entity\Media::class ? $this->namespaceMedia : $this->namespaceItem,
+            'action' => 'show',
+            'site-slug' => $this->params('site-slug'),
+            'id' => $result['id'],
+        ]);
+    }
+
+    /**
+     * Get a resource id from a list of identifiers.
+     *
+     * @todo Use the standard getResourceFromIdentifier().
+     *
+     * @return array|null Id and type of the resource.
+     */
+    protected function queryResource(array $identifiers, $itemSetId = null, $itemId = null, $resourceName = null)
+    {
+        $settings = $this->settings();
 
         $propertyId = (int) $settings->get('cleanurl_identifier_property');
 
-        $identifiers = array_unique(array_filter($identifiers));
+        // Use of ordered placeholders.
+        $bind = [];
 
+        $identifiers = array_unique(array_filter($identifiers));
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
         $sqlFrom = 'FROM resource';
@@ -337,14 +451,14 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         // Checks if url contains generic or true item set.
         $sqlWhereItemSet = '';
-        if ($this->_item_set_id) {
-            switch ($this->_resource_name) {
+        if ($itemSetId) {
+            switch ($resourceName) {
                 case 'items':
                     $sqlFrom .= '
                         JOIN item_item_set ON (resource.id = item_item_set.item_id)
                     ';
                     $sqlWhereItemSet = 'AND item_item_set.item_set_id = ?';
-                    $bind[] = $this->_item_set_id;
+                    $bind[] = $itemSetId;
                     break;
 
                 case 'media':
@@ -353,18 +467,21 @@ abstract class AbstractCleanUrlController extends AbstractActionController
                         JOIN item_item_set ON (media.item_id = item_item_set.item_id)
                     ';
                     $sqlWhereItemSet = 'AND item_item_set.item_set_id = ?';
-                    $bind[] = $this->_item_set_id;
+                    $bind[] = $itemSetId;
                     break;
             }
         }
 
-        $apiAdapter = $this->apiAdapterManager->get($this->_resource_name);
-        $resourceType = $apiAdapter->getEntityClass();
-        $sqlWhereResourceType = 'AND resource.resource_type = ?';
-        $bind[] = $resourceType;
+        $sqlWhereResourceType = '';
+        if ($resourceName) {
+            $apiAdapter = $this->apiAdapterManager->get($resourceName);
+            $resourceType = $apiAdapter->getEntityClass();
+            $sqlWhereResourceType = 'AND resource.resource_type = ?';
+            $bind[] = $resourceType;
+        }
 
         $sql = "
-            SELECT resource.id
+            SELECT resource.id, resource.resource_type AS type
             $sqlFrom
                 JOIN value ON (resource.id = value.resource_id)
             WHERE value.property_id = '$propertyId'
@@ -373,14 +490,15 @@ abstract class AbstractCleanUrlController extends AbstractActionController
                 $sqlWhereResourceType
             LIMIT 1
         ";
-        $id = $this->connection->fetchColumn($sql, $bind);
+
+        $result = $this->connection->fetchAssoc($sql, $bind);
 
         // Additional check for item identifier: the media should belong to item.
         // TODO Include this in the query.
-        if ($id && !empty($this->_item_identifier) && $this->_resource_name == 'media') {
+        if ($result && $resourceName == 'media' && !empty($this->_item_identifier)) {
             // Check if the found file belongs to the item.
             try {
-                $media = $this->api()->read('media', $id)->getContent();
+                $media = $this->api()->read('media', $result['id'])->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
                 return null;
             }
@@ -389,7 +507,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             }
         }
 
-        return $id;
+        return $result;
     }
 
     /**
