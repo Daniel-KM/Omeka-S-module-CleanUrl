@@ -2,6 +2,7 @@
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
+use const CleanUrl\SLUG_SITE;
 
 use Traversable;
 use Zend\I18n\Translator\TranslatorInterface as Translator;
@@ -146,7 +147,7 @@ class CleanRoute implements RouteInterface
 
         $baseRoutes = [];
         $baseRoutes['_public'] = [
-            '/s/:site-slug/',
+            '/' . SLUG_SITE . ':site-slug/',
             '__SITE__',
             'CleanUrl\Controller\Site',
             null,
