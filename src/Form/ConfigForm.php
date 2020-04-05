@@ -247,6 +247,17 @@ class ConfigForm extends Form implements TranslatorAwareInterface
         $adminFieldset = $this->get('clean_url_pages');
         $adminFieldset
             ->add([
+                'name' => 'cleanurl_site_skip_main',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Skip "s/site-slug/" for default site', // @translate
+                    'info' => 'The main site is defined in the main settings.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_site_skip_main',
+                ],
+            ])
+            ->add([
                 'name' => 'cleanurl_site_slug',
                 'type' => Element\Text::class,
                 'options' => [
