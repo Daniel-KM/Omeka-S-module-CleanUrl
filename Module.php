@@ -204,6 +204,22 @@ class Module extends AbstractModule
 
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SiteAdapter::class,
+            'api.create.post',
+            [$this, 'handleSaveSite']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SiteAdapter::class,
+            'api.update.post',
+            [$this, 'handleSaveSite']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SiteAdapter::class,
+            'api.delete.post',
+            [$this, 'handleSaveSite']
+        );
+
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SiteAdapter::class,
             'api.create.pre',
             [$this, 'handleCheckSlug']
         );
@@ -381,6 +397,16 @@ class Module extends AbstractModule
     public function handleSaveItemSet(Event $event)
     {
         $this->cacheItemSetsRegex();
+    }
+
+    /**
+     * Process after saving or deleting a site.
+     *
+     * @param Event $event
+     */
+    public function handleSaveSite(Event $event)
+    {
+        $this->cacheCleanData();
     }
 
     /**
