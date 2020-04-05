@@ -68,6 +68,7 @@ class Module extends AbstractModule
         $config = $services->get('Config');
         $settings = $services->get('Omeka\Settings');
 
+        // TODO Clean filling of the config form.
         $data = [];
         $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
         foreach ($defaultSettings as $name => $value) {
@@ -266,205 +267,40 @@ class Module extends AbstractModule
      */
     protected function addRoutes()
     {
-        $serviceLocator = $this->getServiceLocator();
-        $router = $serviceLocator->get('Router');
+        $services = $this->getServiceLocator();
+        $router = $services->get('Router');
         if (!$router instanceof \Zend\Router\Http\TreeRouteStack) {
             return;
         }
 
-        $settings = $serviceLocator->get('Omeka\Settings');
+        $settings = $services->get('Omeka\Settings');
+        $basePath = $services->get('ViewHelperManager')->get('basePath');
 
-        $mainPath = $settings->get('cleanurl_main_path');
-        $itemSetGeneric = $settings->get('cleanurl_item_set_generic');
-        $itemGeneric = $settings->get('cleanurl_item_generic');
-        $mediaGeneric = $settings->get('cleanurl_media_generic');
-
-        $allowedForItems = $settings->get('cleanurl_item_allowed');
-        $allowedForMedia = $settings->get('cleanurl_media_allowed');
-
-        $itemSetsRegex = $settings->get('cleanurl_item_set_regex');
-
-        // Note: order of routes is important: Zend checks from the last one
-        // (most specific) to the first one (most generic).
-
-        $baseRoutes = [];
-        if (SLUG_MAIN_SITE) {
-            $baseRoutes['_top'] = [
-                '/',
-                '__SITE__',
-                'CleanUrl\Controller\Site',
-                SLUG_MAIN_SITE,
-            ];
-        }
-        $baseRoutes['_public'] = [
-            '/s/:site-slug/',
-            '__SITE__',
-            'CleanUrl\Controller\Site',
-            null,
-        ];
-        if ($settings->get('cleanurl_use_admin')) {
-            $baseRoutes['_admin'] = [
-                '/admin/',
-                '__ADMIN__',
-                'CleanUrl\Controller\Admin',
-                null,
-            ];
-        }
-
-        foreach ($baseRoutes as $routeExt => $array) {
-            list($baseRoute, $space, $namespaceController, $siteSlug) = $array;
-            if (!empty($itemSetsRegex)) {
-                // Add an item set route.
-                $route = $baseRoute . $mainPath . $itemSetGeneric;
-                // Use one regex for all item sets. Default is case insensitve.
-                $router->addRoute('cleanurl_item_sets' . $routeExt, [
-                    'type' => \Zend\Router\Http\Segment::class,
-                    'options' => [
-                        'route' => $route . ':resource_identifier',
-                        'constraints' => [
-                            'resource_identifier' => $itemSetsRegex,
-                        ],
-                        'defaults' => [
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'item-set-show',
-                            'site-slug' => $siteSlug,
-                        ],
+        $router
+            ->addRoute('clean-url', [
+                'type' => \CleanUrl\Router\Http\CleanRoute::class,
+                // Check clean url first.
+                'priority' => 10,
+                'options' => [
+                    // TODO Save all these settings in one array.
+                    'base_path' => $basePath(),
+                    'settings' => [
+                        'default_site' => $settings->get('default_site'),
+                        'main_path' => $settings->get('cleanurl_main_path'),
+                        'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
+                        'item_generic' => $settings->get('cleanurl_item_generic'),
+                        'media_generic' => $settings->get('cleanurl_media_generic'),
+                        'item_allowed' => $settings->get('cleanurl_item_allowed'),
+                        'media_allowed' => $settings->get('cleanurl_media_allowed'),
+                        'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
+                        'use_admin' => $settings->get('cleanurl_use_admin'),
                     ],
-                ]);
-
-                // Add an item set route for media.
-                if (in_array('item_set', $allowedForMedia)) {
-                    $router->addRoute('cleanurl_item_sets_media' . $routeExt, [
-                        'type' => \Zend\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => $route . ':item_set_identifier/:resource_identifier',
-                            'constraints' => [
-                                'item_set_identifier' => $itemSetsRegex,
-                            ],
-                            'defaults' => [
-                                '__NAMESPACE__' => $namespaceController,
-                                $space => true,
-                                'controller' => 'CleanUrlController',
-                                'action' => 'route-item-set-media',
-                                'site-slug' => $siteSlug,
-                            ],
-                        ],
-                    ]);
-                }
-
-                // Add an item set / item route for media.
-                if (in_array('item_set_item', $allowedForMedia)) {
-                    $router->addRoute('cleanurl_item_sets_item_media' . $routeExt, [
-                        'type' => \Zend\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
-                            'constraints' => [
-                                'item_set_identifier' => $itemSetsRegex,
-                            ],
-                            'defaults' => [
-                                '__NAMESPACE__' => $namespaceController,
-                                $space => true,
-                                'controller' => 'CleanUrlController',
-                                'action' => 'route-item-set-item-media',
-                                'site-slug' => $siteSlug,
-                            ],
-                        ],
-                    ]);
-                }
-
-                // Add an item set route for items.
-                if (in_array('item_set', $allowedForItems)) {
-                    $router->addRoute('cleanurl_item_sets_item' . $routeExt, [
-                        'type' => \Zend\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => $route . ':item_set_identifier/:resource_identifier',
-                            'constraints' => [
-                                'item_set_identifier' => $itemSetsRegex,
-                            ],
-                            'defaults' => [
-                                '__NAMESPACE__' => $namespaceController,
-                                $space => true,
-                                'controller' => 'CleanUrlController',
-                                'action' => 'route-item-set-item',
-                                'site-slug' => $siteSlug,
-                            ],
-                        ],
-                    ]);
-                }
-            }
-
-            // Add a generic route for media.
-            if (in_array('generic', $allowedForMedia)) {
-                $route = $baseRoute . $mainPath . $mediaGeneric;
-                $router->addRoute('cleanurl_generic_media' . $routeExt, [
-                    'type' => \Zend\Router\Http\Segment::class,
-                    'options' => [
-                        'route' => $route . ':resource_identifier',
-                        'defaults' => [
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-media',
-                            'item_set_id' => null,
-                            'site-slug' => $siteSlug,
-                        ],
+                    'defaults' => [
+                        'controller' => 'CleanUrlController',
+                        'action' => 'index',
                     ],
-                ]);
-            }
-
-            // Add a generic / item route for media.
-            if (in_array('generic_item', $allowedForMedia)) {
-                $route = $baseRoute . $mainPath . $mediaGeneric;
-                $router->addRoute('cleanurl_generic_item_media' . $routeExt, [
-                    'type' => \Zend\Router\Http\Segment::class,
-                    'options' => [
-                        'route' => $route . ':item_identifier/:resource_identifier',
-                        'defaults' => [
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-media',
-                            'item_set_id' => null,
-                            'site-slug' => $siteSlug,
-                        ],
-                    ],
-                ]);
-            }
-
-            // Add a generic route for items.
-            if (in_array('generic', $allowedForItems)) {
-                $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
-                $router->addRoute('cleanurl_generic_items_browse' . $routeExt, [
-                    'type' => \Zend\Router\Http\Segment::class,
-                    'options' => [
-                        'route' => $route,
-                        'defaults' => [
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'items-browse',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ],
-                ]);
-                $router->addRoute('cleanurl_generic_item' . $routeExt, [
-                    'type' => \Zend\Router\Http\Segment::class,
-                    'options' => [
-                        'route' => $route . '/:resource_identifier',
-                        'defaults' => [
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item',
-                            'item_set_id' => null,
-                            'site-slug' => $siteSlug,
-                        ],
-                    ],
-                ]);
-            }
-        }
+                ],
+            ]);
     }
 
     /**
