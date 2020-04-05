@@ -169,6 +169,16 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_main_path_3',
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_main_short',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Allow short url without main path', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_main_short',
+                ],
             ]);
 
         $this

@@ -56,6 +56,7 @@ class CleanRoute implements RouteInterface
         $this->settings = $settings + [
             'main_path_full' => null,
             'main_path_full_encoded' => null,
+            'main_short' => null,
             'item_set_generic' => null,
             'item_generic' => null,
             'media_generic' => null,
@@ -91,6 +92,27 @@ class CleanRoute implements RouteInterface
     {
         $this->routes = [];
 
+        $this->loopRoutes(false);
+
+        $mainShort = $this->settings['main_short'];
+        if ($mainShort) {
+            $mainPathFull = $this->settings['main_path_full'];
+            $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
+            $regexMainPathFull = $this->settings['regex']['main_path_full'];
+            $this->settings['main_path_full'] = '';
+            $this->settings['main_path_full_encoded'] = '';
+            $this->settings['regex']['main_path_full'] = '';
+
+            $this->loopRoutes(true);
+
+            $this->settings['main_path_full'] = $mainPathFull;
+            $this->settings['main_path_full_encoded'] = $mainPathFullEncoded;
+            $this->settings['regex']['main_path_full'] = $regexMainPathFull;
+        }
+    }
+
+    protected function loopRoutes($short)
+    {
         $mainPathFull = $this->settings['main_path_full'];
         $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
 
@@ -143,6 +165,8 @@ class CleanRoute implements RouteInterface
             ];
         }
 
+        $routeShort = $short ? '_short' : '';
+
         foreach ($baseRoutes as $routeExt => $array) {
             list($baseRoute, $space, $namespaceController, $siteSlug, $regexBaseRoute, $specBaseRoute) = $array;
 
@@ -152,7 +176,7 @@ class CleanRoute implements RouteInterface
                     ['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'],
                     $allowedForMedia
                 )) {
-                    $routeName = 'cleanurl_item_set_item_media' . $routeExt;
+                    $routeName = 'cleanurl_item_set_item_media' . $routeExt . $routeShort;
                     $this->routes[$routeName] = [
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
@@ -178,7 +202,7 @@ class CleanRoute implements RouteInterface
                     ['item_set_item', 'item_set_item_full'],
                     $allowedForItems
                 )) {
-                    $routeName = 'cleanurl_item_set_item' . $routeExt;
+                    $routeName = 'cleanurl_item_set_item' . $routeExt . $routeShort;
                     $this->routes[$routeName] = [
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
@@ -204,7 +228,7 @@ class CleanRoute implements RouteInterface
                     ['item_set_media', 'item_set_media_full'],
                     $allowedForMedia
                 )) {
-                    $routeName = 'cleanurl_item_set_media' . $routeExt;
+                    $routeName = 'cleanurl_item_set_media' . $routeExt . $routeShort;
                     $this->routes[$routeName] = [
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
@@ -230,7 +254,7 @@ class CleanRoute implements RouteInterface
                 ['generic_item', 'generic_item_full'],
                 $allowedForItems
             )) {
-                $routeName = 'cleanurl_generic_item' . $routeExt;
+                $routeName = 'cleanurl_generic_item' . $routeExt . $routeShort;
                 $this->routes[$routeName] = [
                     'regex' => $regexBaseRoute
                         . $regex['main_path_full']
@@ -250,7 +274,7 @@ class CleanRoute implements RouteInterface
 
                 $route = $baseRoute . $mainPathFull . rtrim($genericItem, '/');
                 if ($route !== '/' && $route !== $baseRoute) {
-                    $routeName = 'cleanurl_generic_items_browse' . $routeExt;
+                    $routeName = 'cleanurl_generic_items_browse' . $routeExt . $routeShort;
                     $this->routes[$routeName] = [
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
@@ -273,7 +297,7 @@ class CleanRoute implements RouteInterface
                 ['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'],
                 $allowedForMedia
             )) {
-                $routeName = 'cleanurl_generic_item_media' . $routeExt;
+                $routeName = 'cleanurl_generic_item_media' . $routeExt . $routeShort;
                 $this->routes[$routeName] = [
                     'regex' => $regexBaseRoute
                         . $regex['main_path_full']
@@ -298,7 +322,7 @@ class CleanRoute implements RouteInterface
                 ['generic_media', 'generic_media_full'],
                 $allowedForMedia
             )) {
-                $routeName = 'cleanurl_generic_media' . $routeExt;
+                $routeName = 'cleanurl_generic_media' . $routeExt . $routeShort;
                 $this->routes[$routeName] = [
                     'regex' => $regexBaseRoute
                         . $regex['main_path_full']
@@ -320,7 +344,7 @@ class CleanRoute implements RouteInterface
             if ($hasItemSets) {
                 // Match item set route.
                 // This clean url is the same when the generic path is the same.
-                $routeName = 'cleanurl_item_set' . $routeExt;
+                $routeName = 'cleanurl_item_set' . $routeExt . $routeShort;
                 $this->routes[$routeName] = [
                     'regex' => $regexBaseRoute
                         . $regex['main_path_full']
