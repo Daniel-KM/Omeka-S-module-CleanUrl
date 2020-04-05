@@ -45,7 +45,7 @@ prefix "/s/site-slug" is useless and not seo and user friendly.
 
 To set the main site:
 - first, set the default site in the main settings of Omeka;
-- second, copy the file [config/routes.main_slug.php] in the Omeka config folder;
+- second, copy the file [config/clean_url.config.php] in the Omeka config folder;
 - third, fill the slug of the main site as const `MAIN_SITE_SLUG`.
 
 ### Identifiers ###
@@ -180,7 +180,7 @@ Omeka S has been built for [Paris Sciences et Lettres (PSL)].
 [Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
-[config/routes.main_slug.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/routes.main_slug.php#L9
+[config/clean_url.config.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
