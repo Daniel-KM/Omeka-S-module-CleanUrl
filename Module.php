@@ -185,20 +185,32 @@ class Module extends AbstractModule
             'view.details',
             [$this, 'displayViewEntityIdentifier']
         );
+
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.create.post',
-            [$this, 'afterSaveItemSet']
+            [$this, 'handleSaveItemSet']
         );
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.update.post',
-            [$this, 'afterSaveItemSet']
+            [$this, 'handleSaveItemSet']
         );
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             'api.delete.post',
-            [$this, 'afterSaveItemSet']
+            [$this, 'handleSaveItemSet']
+        );
+
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SiteAdapter::class,
+            'api.create.pre',
+            [$this, 'handleCheckSlug']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SiteAdapter::class,
+            'api.update.pre',
+            [$this, 'handleCheckSlug']
         );
     }
 
@@ -356,9 +368,37 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function afterSaveItemSet(Event $event)
+    public function handleSaveItemSet(Event $event)
     {
         $this->cacheItemSetsRegex();
+    }
+
+    /**
+     * Check a site before saving it.
+     *
+     * @param Event $event
+     */
+    public function handleCheckSlug(Event $event)
+    {
+        /** @var \Omeka\Api\Request $request */
+        $request = $event->getParam('request');
+        $data = $request->getContent();
+        $slug = $data['o:slug'];
+        if (!mb_strlen($slug)) {
+            return;
+        }
+
+        if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . $slug . '|') === false) {
+            return;
+        }
+
+        $data['o:slug'] .= '_' . substr(str_replace(['+', '/'], '', base64_encode(random_bytes(20))), 0, 4);
+        $request->setContent($data);
+
+        $message = new \Omeka\Stdlib\Message('The slug "%s" is used or reserved. A random string has been automatically appended.', $slug); // @translate
+        $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+        $messenger->addWarning($message);
+        // throw new \Omeka\Api\Exception\ValidationException($message);
     }
 
     /**
