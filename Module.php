@@ -212,6 +212,16 @@ class Module extends AbstractModule
             'api.update.pre',
             [$this, 'handleCheckSlug']
         );
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SitePageAdapter::class,
+            'api.create.pre',
+            [$this, 'handleCheckSlug']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\SitePageAdapter::class,
+            'api.update.pre',
+            [$this, 'handleCheckSlug']
+        );
     }
 
     public function getConfigForm(PhpRenderer $renderer)
