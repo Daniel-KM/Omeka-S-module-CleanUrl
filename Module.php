@@ -112,7 +112,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Defines public routes "main_path / my_item_set | generic / dcterms:identifier".
+     * Defines public routes like "main_path / main_path_2 / my_item_set | generic / item dcterms:identifier / media dcterms:identifier".
      *
      * @todo Rechecks performance of routes definition.
      */
@@ -138,6 +138,8 @@ class Module extends AbstractModule
                     'settings' => [
                         'default_site' => $settings->get('default_site'),
                         'main_path' => $settings->get('cleanurl_main_path'),
+                        'main_path_2' => $settings->get('cleanurl_main_path_2'),
+                        'main_path_full' => $settings->get('cleanurl_main_path_full'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
                         'media_generic' => $settings->get('cleanurl_media_generic'),
@@ -323,6 +325,7 @@ class Module extends AbstractModule
         $params['cleanurl_identifier_prefix'] = trim($params['cleanurl_identifier_prefix']);
         foreach ([
             'cleanurl_main_path',
+            'cleanurl_main_path_2',
             'cleanurl_item_set_generic',
             'cleanurl_item_generic',
             'cleanurl_media_generic',
@@ -334,6 +337,13 @@ class Module extends AbstractModule
         }
 
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
+
+        if (!mb_strlen($params['cleanurl_main_path']) && mb_strlen($params['cleanurl_main_path_2'])) {
+            $params['cleanurl_main_path'] = $params['cleanurl_main_path_2'];
+            $params['cleanurl_main_path_2'] = '';
+        }
+        // Prepare a hidden params with the full path, to avoid checks later.
+        $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'];
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];

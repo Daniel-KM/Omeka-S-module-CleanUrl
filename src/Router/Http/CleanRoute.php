@@ -98,6 +98,8 @@ class CleanRoute implements RouteInterface
         $this->basePath = $basePath;
         $this->settings = $settings + [
             'main_path' => null,
+            'main_path_2' => null,
+            'main_path_full' => null,
             'item_set_generic' => null,
             'item_generic' => null,
             'media_generic' => null,
@@ -135,6 +137,8 @@ class CleanRoute implements RouteInterface
         $this->routes = [];
 
         $mainPath = $this->settings['main_path'];
+        $mainPath2 = $this->settings['main_path_2'];
+        $mainPathFull = $this->settings['main_path_full'];
 
         $itemSetGeneric = $this->settings['item_set_generic'];
         $itemGeneric = $this->settings['item_generic'];
@@ -174,7 +178,7 @@ class CleanRoute implements RouteInterface
 
             // TODO Move some item set routes under item routes.
             if (!empty($itemSetsRegex)) {
-                $route = $baseRoute . $mainPath . $itemSetGeneric;
+                $route = $baseRoute . $mainPathFull . $itemSetGeneric;
 
                 // Match item set / item route for media.
                 if (array_intersect(
@@ -267,7 +271,7 @@ class CleanRoute implements RouteInterface
                 ['generic_item', 'generic_item_full'],
                 $allowedForItems
             )) {
-                $route = $baseRoute . $mainPath . $itemGeneric;
+                $route = $baseRoute . $mainPathFull . $itemGeneric;
                 $routeName = 'cleanurl_generic_item' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route . ':resource_identifier',
@@ -284,7 +288,7 @@ class CleanRoute implements RouteInterface
                     ],
                 ];
 
-                $route = $baseRoute . $mainPath . trim($itemGeneric, '/');
+                $route = $baseRoute . $mainPathFull . trim($itemGeneric, '/');
                 $routeName = 'cleanurl_generic_items_browse' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route,
@@ -306,7 +310,7 @@ class CleanRoute implements RouteInterface
                 ['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'],
                 $allowedForMedia
             )) {
-                $route = $baseRoute . $mainPath . $mediaGeneric;
+                $route = $baseRoute . $mainPathFull . $mediaGeneric;
                 $routeName = 'cleanurl_generic_item_media' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route . ':item_identifier/:resource_identifier',
@@ -329,7 +333,7 @@ class CleanRoute implements RouteInterface
                 ['generic_media', 'generic_media_full'],
                 $allowedForMedia
             )) {
-                $route = $baseRoute . $mainPath . $mediaGeneric;
+                $route = $baseRoute . $mainPathFull . $mediaGeneric;
                 $routeName = 'cleanurl_generic_media' . $routeExt;
                 $this->routes[$routeName] = [
                     'route' => $route . ':resource_identifier',

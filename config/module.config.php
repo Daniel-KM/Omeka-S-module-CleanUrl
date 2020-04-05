@@ -177,7 +177,9 @@ return [
             'cleanurl_identifier_unspace' => false,
             'cleanurl_case_insensitive' => false,
             'cleanurl_main_path' => '',
-            'cleanurl_item_set_regex' => '',
+            'cleanurl_main_path_2' => '',
+            'cleanurl_main_path_full' => '', // hidden
+            'cleanurl_item_set_regex' => '', // hidden
             'cleanurl_item_set_generic' => '',
             'cleanurl_item_default' => 'generic_item',
             'cleanurl_item_allowed' => [
