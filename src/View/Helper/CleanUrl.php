@@ -19,6 +19,8 @@ class CleanUrl extends Url
     /**
      * Generates a clean or a standard url given the name of a route.
      *
+     * @todo Assemble urls with clean url routes.
+     *
      * @uses \Zend\View\Helper\Url
      * @see \Zend\Router\RouteInterface::assemble()
      * @param  string $name Name of the route
@@ -170,6 +172,7 @@ class CleanUrl extends Url
      *
      * @param string $context "public" or "admin"
      * @param array $params
+     * @param array $options
      * @return string Identifier of the resource if any, else empty string.
      */
     protected function getCleanUrl($context, $params, $options)
@@ -232,7 +235,7 @@ class CleanUrl extends Url
         if ($params['controller'] === 'CleanUrlController'
             && !empty($params['resource_identifier'])
         ) {
-            /* @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource*/
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $this->view->getResourceFromIdentifier($params['resource_identifier']);
             if (!$resource) {
                 $resource = $this->view->api()->read('resources', $params['resource_identifier'])->getContent();
