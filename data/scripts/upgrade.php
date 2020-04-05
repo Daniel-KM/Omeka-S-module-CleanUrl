@@ -62,6 +62,9 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $settings->set('cleanurl_site_slug', 's/');
     $settings->set('cleanurl_page_slug', 'page/');
 
+    $settings->set('cleanurl_identifier_case_insensitive', $settings->get('cleanurl_case_insensitive'));
+    $settings->delete('cleanurl_case_insensitive');
+
     $settings->set('cleanurl_admin_show_identifier', $settings->get('cleanurl_display_admin_show_identifier'));
     $settings->delete('cleanurl_display_admin_show_identifier');
 
