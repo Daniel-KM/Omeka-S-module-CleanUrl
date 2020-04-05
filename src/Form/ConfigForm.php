@@ -369,6 +369,34 @@ class ConfigForm extends Form
                     'id' => 'cleanurl_media_item_undefined',
                     'required' => true,
                 ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_media_undefined',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'When media identifier is undefined', // @translate
+                    'value_options' => [
+                        'id' => 'Use media id', // @translate
+                        'position' => 'Use position with format below', // @translate
+                        'undefined' => 'Use main undefined setting', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_media_undefined',
+                    'required' => true,
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_format_position',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Format of the media position', // @translate
+                    'info' => 'A "sprintf" string that will format the position. It is recommended to use a format with a leading letter to avoid confusion with numeric media id. Furthermore, the position may not be stable: a scanned image may be missing.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_format_position',
+                    'placeholder' => 'p%d',
+                ],
             ]);
 
         $this
@@ -504,6 +532,10 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_media_item_undefined',
+                'required' => true,
+            ])
+            ->add([
+                'name' => 'cleanurl_media_media_undefined',
                 'required' => true,
             ]);
 

@@ -462,6 +462,25 @@ class Module extends AbstractModule
             }
         }
 
+        if ($params['cleanurl_media_media_undefined'] === 'position') {
+            $hasGeneric = (bool) array_intersect(['generic_media', 'generic_media_full', 'generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'], $params['cleanurl_media_allowed']);
+            $hasNoGenericItem = (bool) array_intersect(['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'], $params['cleanurl_media_allowed']);
+            if ($hasGeneric && !$hasNoGenericItem) {
+                $params['cleanurl_media_allowed'][] = 'generic_item_media';
+                $message = new \Omeka\Stdlib\Message('The option "media position" requires to set a generic route with an item id. One route was added.'); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addWarning($message);
+            }
+            $hasItemSet = (bool) array_intersect(['item_set_media', 'item_set_media_full', 'item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'], $params['cleanurl_media_allowed']);
+            $hasNoItemSetItem = (bool) array_intersect(['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'], $params['cleanurl_media_allowed']);
+            if ($hasItemSet && !$hasNoItemSetItem) {
+                $params['cleanurl_media_allowed'][] = 'item_set_item_media';
+                $message = new \Omeka\Stdlib\Message('The option "media position" requires to set an item set route with an item id. One route was added.'); // @translate
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addWarning($message);
+            }
+        }
+
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
         foreach ($params as $name => $value) {

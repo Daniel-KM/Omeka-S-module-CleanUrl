@@ -159,13 +159,45 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                 $skipPrefixMedia = !strpos($format, 'media_full');
                 $identifier = $view->getResourceIdentifier($resource, true, $skipPrefixMedia);
+                $requireItemIdentifier = false;
                 if (!$identifier) {
-                    return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                    switch ($view->setting('cleanurl_media_media_undefined')) {
+                        case 'id':
+                            $identifier = $resource->id();
+                            break;
+                        case 'position':
+                            // Don't use $item->media() to avoid a different
+                            // position for public/private.
+                            // $view->api() cannot set a response content.
+                            $api = $this->application->getServiceManager()->get('Omeka\ApiManager');
+                            $position = $api->read('media', ['id' => $resource->id()], [], ['responseContent' => 'resource'])->getContent()
+                                ->getPosition();
+                            if ($position) {
+                                $requireItemIdentifier = true;
+                                $identifier = sprintf($view->setting('cleanurl_media_format_position') ?: 'p%d', $position);
+                                break;
+                            }
+                            // no break.
+                        default:
+                            return $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                    }
                 }
 
                 switch ($format) {
                     case 'generic_media':
                     case 'generic_media_full':
+                        if ($requireItemIdentifier) {
+                            $allowedForMedia = $this->view->setting('cleanurl_media_allowed', []);
+                            $result = array_intersect([
+                                'generic_item_media',
+                                'generic_item_full_media',
+                                'generic_item_media_full',
+                                'generic_item_full_media_full',
+                            ], $allowedForMedia);
+                            return $result
+                                ? $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, reset($result))
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
                         $generic = $view->setting('cleanurl_media_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
@@ -189,6 +221,19 @@ class GetResourceFullIdentifier extends AbstractHelper
 
                     case 'item_set_media':
                     case 'item_set_media_full':
+                        if ($requireItemIdentifier) {
+                            $allowedForMedia = $this->view->setting('cleanurl_media_allowed', []);
+                            $result = array_intersect([
+                                'item_set_item_media',
+                                'item_set_item_full_media',
+                                'item_set_item_media_full',
+                                'item_set_item_full_media_full',
+                            ], $allowedForMedia);
+                            return $result
+                                ? $view->getResourceFullIdentifier($resource, $siteSlug, $withBasePath, $withMainPath, $absolute, reset($result))
+                                : $this->urlNoIdentifier($resource, $siteSlug, $absolute, $withBasePath, $withMainPath);
+                        }
+
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
                         if (empty($itemSets)) {
@@ -327,11 +372,11 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = $this->view->setting('cleanurl_item_allowed');
+                $allowedForItems = $this->view->setting('cleanurl_item_allowed', []);
                 return in_array($format, $allowedForItems);
 
             case 'media':
-                $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
+                $allowedForMedia = $this->view->setting('cleanurl_media_allowed', []);
                 return in_array($format, $allowedForMedia);
 
             default:
@@ -349,33 +394,28 @@ class GetResourceFullIdentifier extends AbstractHelper
     {
         switch ($resourceName) {
             case 'items':
-                $allowedForItems = $this->view->setting('cleanurl_item_allowed');
-                if (in_array('generic_item', $allowedForItems)) {
-                    return 'generic_item';
-                }
-                return in_array('generic_item_full', $allowedForItems)
-                    ? 'generic_item_full'
+                $allowedForItems = $this->view->setting('cleanurl_item_allowed', []);
+                $result = array_intersect([
+                    'generic_item',
+                    'generic_item_full',
+                ], $allowedForItems);
+                return $result
+                    ? reset($result)
                     : null;
 
             case 'media':
-                $allowedForMedia = $this->view->setting('cleanurl_media_allowed');
-                if (in_array('generic_item_media', $allowedForMedia)) {
-                    return 'generic_item_media';
-                }
-                if (in_array('generic_item_full_media', $allowedForMedia)) {
-                    return 'generic_item_full_media';
-                }
-                if (in_array('generic_item_media_full', $allowedForMedia)) {
-                    return 'generic_item_media_full';
-                }
-                if (in_array('generic_item_full_media_full', $allowedForMedia)) {
-                    return 'generic_item_full_media_full';
-                }
-                if (in_array('generic_media', $allowedForMedia)) {
-                    return 'generic_media';
-                }
-                return in_array('generic_media_full', $allowedForMedia)
-                    ? 'generic_media_full'
+                $allowedForMedia = $this->view->setting('cleanurl_media_allowed', []);
+                $result = array_intersect([
+                    // With item first and short first.
+                    'generic_item_media',
+                    'generic_item_full_media',
+                    'generic_item_media_full',
+                    'generic_item_full_media_full',
+                    'generic_media',
+                    'generic_media_full',
+                ], $allowedForMedia);
+                return $result
+                    ? reset($result)
                     : null;
 
             default:
