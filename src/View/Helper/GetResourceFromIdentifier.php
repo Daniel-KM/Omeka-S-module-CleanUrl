@@ -68,7 +68,7 @@ class GetResourceFromIdentifier extends AbstractHelper
 
         if ($withPrefix) {
             // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('cleanurl_case_insensitive')) {
+            if ($this->view->setting('cleanurl_identifier_case_insensitive')) {
                 $bind[] = strtolower($identifier);
                 $sqlWhereText = 'AND LOWER(value.value) = ?';
             }
@@ -95,7 +95,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             $in = implode(',', array_fill(0, count($identifiers), '?'));
 
             // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('cleanurl_case_insensitive')) {
+            if ($this->view->setting('cleanurl_identifier_case_insensitive')) {
                 $identifiers = array_map('strtolower', $identifiers);
                 $sqlWhereText = "AND LOWER(value.value) IN ($in)";
             }

@@ -283,7 +283,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
         // If the table is case sensitive, lower-case the search.
-        if ($settings->get('cleanurl_case_insensitive')) {
+        if ($settings->get('cleanurl_identifier_case_insensitive')) {
             $identifiers = array_map('mb_strtolower', $identifiers);
             $sqlWhereValue =
                 "AND LOWER(value.value) IN ($in)";
