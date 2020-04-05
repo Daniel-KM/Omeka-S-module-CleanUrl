@@ -32,11 +32,6 @@ class CleanRoute implements RouteInterface
     protected $settings;
 
     /**
-     * @var array
-     */
-    protected $defaults;
-
-    /**
      * List of routes.
      *
      * Each route is a segment route that contains keys "route", "constraints",
@@ -47,56 +42,18 @@ class CleanRoute implements RouteInterface
     protected $routes = [];
 
     /**
-     * Cache for the encode output.
-     *
-     * @var array
-     */
-    protected static $cacheEncode = [];
-
-    /**
-     * Map of allowed special chars in path segments.
-     *
-     * http://tools.ietf.org/html/rfc3986#appendix-A
-     * segement      = *pchar
-     * pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-     * unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-     * sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-     *               / "*" / "+" / "," / ";" / "="
-     *
-     * @var array
-     */
-    protected static $urlencodeCorrectionMap = [
-        '%21' => "!", // sub-delims
-        '%24' => "$", // sub-delims
-        '%26' => "&", // sub-delims
-        '%27' => "'", // sub-delims
-        '%28' => "(", // sub-delims
-        '%29' => ")", // sub-delims
-        '%2A' => "*", // sub-delims
-        '%2B' => "+", // sub-delims
-        '%2C' => ",", // sub-delims
-//      '%2D' => "-", // unreserved - not touched by rawurlencode
-//      '%2E' => ".", // unreserved - not touched by rawurlencode
-        '%3A' => ":", // pchar
-        '%3B' => ";", // sub-delims
-        '%3D' => "=", // sub-delims
-        '%40' => "@", // pchar
-//      '%5F' => "_", // unreserved - not touched by rawurlencode
-//      '%7E' => "~", // unreserved - not touched by rawurlencode
-    ];
-
-    /**
      * List of assembled parameters.
      *
      * @var array
      */
     protected $assembledParams = [];
 
-    public function __construct($basePath = '', array $settings = [], array $defaults = [])
+    public function __construct($basePath = '', array $settings = [])
     {
         $this->basePath = $basePath;
         $this->settings = $settings + [
             'main_path_full' => null,
+            'main_path_full_encoded' => null,
             'item_set_generic' => null,
             'item_generic' => null,
             'media_generic' => null,
@@ -106,7 +63,6 @@ class CleanRoute implements RouteInterface
             'item_set_regex' => null,
             'regex' => null,
         ];
-        $this->defaults = $defaults;
         $this->prepareCleanRoutes();
     }
 
@@ -124,10 +80,9 @@ class CleanRoute implements RouteInterface
         $options += [
             'base_path' => '',
             'settings' => [],
-            'defaults' => [],
         ];
 
-        return new static($options['base_path'], $options['settings'], $options['defaults']);
+        return new static($options['base_path'], $options['settings']);
     }
 
     protected function prepareCleanRoutes()
@@ -135,6 +90,7 @@ class CleanRoute implements RouteInterface
         $this->routes = [];
 
         $mainPathFull = $this->settings['main_path_full'];
+        $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
 
         $genericItemSet = $this->settings['item_set_generic'];
         $genericItem = $this->settings['item_generic'];
@@ -198,7 +154,7 @@ class CleanRoute implements RouteInterface
                             . $regexItemSetIdentifier . '/'
                             . $regexItemIdentifier . '/'
                             . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%item_identifier%/%resource_identifier%',
+                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%item_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -222,7 +178,7 @@ class CleanRoute implements RouteInterface
                             . $regex['item_set_generic']
                             . $regexItemSetIdentifier . '/'
                             . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
+                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -234,8 +190,7 @@ class CleanRoute implements RouteInterface
                     ];
                 }
 
-                // This clean url is same than the one above, but it's a choice
-                // of the admin.
+                // This clean url is same than the one above.
                 // Match item set route for media.
                 if (array_intersect(
                     ['item_set_media', 'item_set_media_full'],
@@ -248,7 +203,7 @@ class CleanRoute implements RouteInterface
                             . $regex['item_set_generic']
                             . $regexItemSetIdentifier . '/'
                             . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
+                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -272,7 +227,7 @@ class CleanRoute implements RouteInterface
                         . $regex['main_path_full']
                         . $regex['item_generic']
                         . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFull . $genericItem . '%resource_identifier%',
+                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItem . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -291,7 +246,7 @@ class CleanRoute implements RouteInterface
                         'regex' => $regexBaseRoute
                             . $regex['main_path_full']
                             . rtrim($regex['item_generic'], '\/'),
-                        'spec' => $specBaseRoute . $mainPathFull . rtrim($genericItem, '/'),
+                        'spec' => $specBaseRoute . $mainPathFullEncoded . rtrim($genericItem, '/'),
                         'defaults' => [
                             'route_name' => $routeName,
                             '__NAMESPACE__' => $namespaceController,
@@ -316,7 +271,7 @@ class CleanRoute implements RouteInterface
                         . $regex['media_generic']
                         . $regexItemIdentifier . '/'
                         . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFull . $genericMedia . '%item_identifier%/%resource_identifier%',
+                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericMedia . '%item_identifier%/%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -340,7 +295,7 @@ class CleanRoute implements RouteInterface
                         . $regex['main_path_full']
                         . $regex['media_generic']
                         . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFull . $genericMedia . '%resource_identifier%',
+                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericMedia . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -362,7 +317,7 @@ class CleanRoute implements RouteInterface
                         . $regex['main_path_full']
                         . $regex['item_set_generic']
                         . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFull . $genericItemSet . '%resource_identifier%',
+                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%resource_identifier%',
                     'defaults' => [
                         'route_name' => $routeName,
                         '__NAMESPACE__' => $namespaceController,
@@ -435,10 +390,9 @@ class CleanRoute implements RouteInterface
         }
 
         $url = $this->routes[$routeName]['spec'];
-        $mergedParams = array_merge($this->defaults, $params);
         $this->assembledParams = [];
 
-        foreach ($mergedParams as $key => $value) {
+        foreach ($params as $key => $value) {
             $spec = '%' . $key . '%';
             if (strpos($url, $spec) !== false) {
                 $url = str_replace($spec, $this->encode($value), $url);
@@ -457,16 +411,32 @@ class CleanRoute implements RouteInterface
     /**
      * Encode a path segment.
      *
+     * @see \Zend\Router\Http\Segment::encode()
+     *
      * @param  string $value
      * @return string
      */
     protected function encode($value)
     {
-        $key = (string) $value;
-        if (! isset(static::$cacheEncode[$key])) {
-            static::$cacheEncode[$key] = rawurlencode($value);
-            static::$cacheEncode[$key] = strtr(static::$cacheEncode[$key], static::$urlencodeCorrectionMap);
-        }
-        return static::$cacheEncode[$key];
+        $urlencodeCorrectionMap = [
+            '%21' => "!", // sub-delims
+            '%24' => "$", // sub-delims
+            '%26' => "&", // sub-delims
+            '%27' => "'", // sub-delims
+            '%28' => "(", // sub-delims
+            '%29' => ")", // sub-delims
+            '%2A' => "*", // sub-delims
+            '%2B' => "+", // sub-delims
+            '%2C' => ",", // sub-delims
+            // '%2D' => "-", // unreserved - not touched by rawurlencode
+            // '%2E' => ".", // unreserved - not touched by rawurlencode
+            '%3A' => ":", // pchar
+            '%3B' => ";", // sub-delims
+            '%3D' => "=", // sub-delims
+            '%40' => "@", // pchar
+            // '%5F' => "_", // unreserved - not touched by rawurlencode
+            // '%7E' => "~", // unreserved - not touched by rawurlencode
+        ];
+        return strtr(rawurlencode($value), $urlencodeCorrectionMap);
     }
 }

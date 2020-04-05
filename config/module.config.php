@@ -181,6 +181,7 @@ return [
             'cleanurl_main_path_2' => '',
             'cleanurl_main_path_3' => '',
             'cleanurl_main_path_full' => '', // hidden
+            'cleanurl_main_path_full_encoded' => '', // hidden
             'cleanurl_item_set_regex' => '', // hidden
             'cleanurl_item_set_generic' => '',
             'cleanurl_item_default' => 'generic_item',

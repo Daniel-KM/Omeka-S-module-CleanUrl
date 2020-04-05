@@ -138,6 +138,7 @@ class Module extends AbstractModule
                     'settings' => [
                         'default_site' => $settings->get('default_site'),
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
+                        'main_path_full_encoded' => $settings->get('cleanurl_main_path_full_encoded'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
                         'media_generic' => $settings->get('cleanurl_media_generic'),
@@ -146,10 +147,6 @@ class Module extends AbstractModule
                         'admin_use' => $settings->get('cleanurl_admin_use') && $services->get('Omeka\Status')->isAdminRequest(),
                         'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                         'regex' => $settings->get('cleanurl_regex'),
-                    ],
-                    'defaults' => [
-                        'controller' => 'CleanUrlController',
-                        'action' => 'index',
                     ],
                 ],
             ]);
@@ -346,8 +343,17 @@ class Module extends AbstractModule
             $params['cleanurl_main_path'] = $params['cleanurl_main_path_2'];
             $params['cleanurl_main_path_2'] = '';
         }
-        // Prepare a hidden params with the full path, to avoid checks later.
+        // Prepare hidden params with the full path, to avoid checks later.
         $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
+        if (mb_strlen($params['cleanurl_main_path'])) {
+            $params['cleanurl_main_path_full_encoded'] = $this->encode(rtrim($params['cleanurl_main_path'], '/')) . '/';
+            if (mb_strlen($params['cleanurl_main_path_2'])) {
+                $params['cleanurl_main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
+                if (mb_strlen($params['cleanurl_main_path_3'])) {
+                    $params['cleanurl_main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                }
+            }
+        }
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];
@@ -734,5 +740,37 @@ class Module extends AbstractModule
                 'prefix' => $prefix,
             ]
         );
+    }
+
+    /**
+     * Encode a path segment.
+     *
+     * @see \Zend\Router\Http\Segment::encode()
+     *
+     * @param  string $value
+     * @return string
+     */
+    protected function encode($value)
+    {
+        $urlencodeCorrectionMap = [
+            '%21' => "!", // sub-delims
+            '%24' => "$", // sub-delims
+            '%26' => "&", // sub-delims
+            '%27' => "'", // sub-delims
+            '%28' => "(", // sub-delims
+            '%29' => ")", // sub-delims
+            '%2A' => "*", // sub-delims
+            '%2B' => "+", // sub-delims
+            '%2C' => ",", // sub-delims
+            // '%2D' => "-", // unreserved - not touched by rawurlencode
+            // '%2E' => ".", // unreserved - not touched by rawurlencode
+            '%3A' => ":", // pchar
+            '%3B' => ";", // sub-delims
+            '%3D' => "=", // sub-delims
+            '%40' => "@", // pchar
+            // '%5F' => "_", // unreserved - not touched by rawurlencode
+            // '%7E' => "~", // unreserved - not touched by rawurlencode
+        ];
+        return strtr(rawurlencode($value), $urlencodeCorrectionMap);
     }
 }
