@@ -88,7 +88,7 @@ class GetResourceFullIdentifier extends AbstractHelper
 
         switch ($resource->resourceName()) {
             case 'item_sets':
-                $identifier = $view->getResourceIdentifier($resource);
+                $identifier = $view->getResourceIdentifier($resource, true, true);
                 if (empty($identifier)) {
                     return '';
                 }
@@ -97,7 +97,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'items':
-                $identifier = $view->getResourceIdentifier($resource);
+                $identifier = $view->getResourceIdentifier($resource, true, true);
                 if (empty($identifier)) {
                     $identifier = $resource->id();
                 }
@@ -120,7 +120,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
                         }
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('items');
@@ -138,7 +138,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 break;
 
             case 'media':
-                $identifier = $view->getResourceIdentifier($resource);
+                $identifier = $view->getResourceIdentifier($resource, true, true);
                 if (empty($identifier)) {
                     $identifier = $resource->id();
                 }
@@ -160,7 +160,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $generic = $view->setting('cleanurl_media_generic');
 
                         $item = $resource->item();
-                        $item_identifier = $view->getResourceIdentifier($item);
+                        $item_identifier = $view->getResourceIdentifier($item, true, true);
                         if (!$item_identifier) {
                             $item_identifier = $item->id();
                         }
@@ -172,7 +172,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
                         }
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
@@ -189,7 +189,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                         $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
                             $itemSet = reset($itemSets);
-                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet);
+                            $itemSetIdentifier = $view->getResourceIdentifier($itemSet, true, true);
                         }
                         if (empty($itemSetIdentifier)) {
                             $genericFormat = $this->_getGenericFormat('media');
@@ -198,7 +198,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                             }
                             return '';
                         }
-                        $itemIdentifier = $view->getResourceIdentifier($item);
+                        $itemIdentifier = $view->getResourceIdentifier($item, true, true);
                         if (!$itemIdentifier) {
                             $itemIdentifier = $item->id();
                         }

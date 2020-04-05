@@ -373,7 +373,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         if (!empty($this->_item_identifier)) {
             // Get the item identifier.
             $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
-            $item_identifier = $getResourceIdentifier($item, false);
+            // It's useless to skip the prefix, it is just a check.
+            $item_identifier = $getResourceIdentifier($item, false, false);
             // Check identifier and id of item.
             if (strtolower($this->_item_identifier) != strtolower($item_identifier)
                     && $this->_item_identifier != $item->id()) {

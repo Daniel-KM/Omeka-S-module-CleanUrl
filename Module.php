@@ -486,7 +486,7 @@ class Module extends AbstractModule
         $translator = $services->get('MvcTranslator');
         $getResourceIdentifier = $services->get('ViewHelperManager')
             ->get('getResourceIdentifier');
-        $identifier = $getResourceIdentifier($resource, false);
+        $identifier = $getResourceIdentifier($resource, false, true);
 
         echo '<div class="meta-group"><h4>'
             . $translator->translate('CleanUrl identifier') // @translate
@@ -623,13 +623,13 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         // Get all item set identifiers with one query.
         $viewHelpers = $services->get('ViewHelperManager');
-        // The view helper is not available during intall, upgrade and tests.
+        // The view helper is not available during install, upgrade and tests.
         if ($viewHelpers->has('getResourceTypeIdentifiers')) {
             $getResourceTypeIdentifiers = $viewHelpers->get('getResourceTypeIdentifiers');
-            $itemSetIdentifiers = $getResourceTypeIdentifiers('item_sets', false);
+            $itemSetIdentifiers = $getResourceTypeIdentifiers('item_sets', false, true);
         } else {
             $getResourceTypeIdentifiers = $this->getViewHelperRTI($services);
-            $itemSetIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false);
+            $itemSetIdentifiers = $getResourceTypeIdentifiers->__invoke('item_sets', false, true);
         }
 
         $regex = $this->prepareRegex($itemSetIdentifiers);
