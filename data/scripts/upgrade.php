@@ -51,17 +51,27 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     if (file_exists($oldPath) && !file_exists($newPath)) {
         $result = @rename($oldPath, $newPath);
         if ($result) {
-            $content = file_get_contents($newPath);
-            if (strpos($content, 'SLUG_MAIN_SITE') === false) {
-                $content .= PHP_EOL . PHP_EOL
-                    . '// MAIN_SITE_SLUG is deprecated.' . PHP_EOL
-                    . 'const SLUG_MAIN_SITE = MAIN_SITE_SLUG;' . PHP_EOL;
-                $result = file_put_contents($newPath, $content);
-                if (!$result) {
-                    $t = $services->get('MvcTranslator');
-                    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
-                    $messenger->addWarning($t->translate('Automatic update of main config failed. You should rename the constant "MAIN_SITE_SLUG" to "SLUG_MAIN_SITE" in the file "config/clean_url.config.php" in the config directory of Omeka.')); // @translate
+            if (is_writeable($newPath)) {
+                $content = file_get_contents($newPath);
+                if (strpos($content, 'SLUG_MAIN_SITE') === false) {
+                    $content .= PHP_EOL . PHP_EOL . <<<PHP
+// In order to have a main site without "/s/site-slug", fill your main site slug
+// here, so it won’t be used.
+const SLUG_MAIN_SITE = false;
+PHP;
+                    file_put_contents($newPath, $content);
                 }
+
+                $content .= PHP_EOL . PHP_EOL . <<<PHP
+// Rename or remove /page/ from the urls of pages.
+const SLUG_PAGE = 'page/';
+PHP;
+                file_put_contents($newPath, $content);
+
+            } else {
+                $t = $services->get('MvcTranslator');
+                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+                $messenger->addWarning($t->translate('Automatic filling of "config/clean_url.config.php" failed. Config it manually in the config directory of Omeka.')); // @translate
             }
         } else {
             $t = $services->get('MvcTranslator');

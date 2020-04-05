@@ -77,6 +77,7 @@ class Module extends AbstractModule
             $data['clean_url_item_sets'][$name] = $settings->get($name, $value);
             $data['clean_url_items'][$name] = $settings->get($name, $value);
             $data['clean_url_medias'][$name] = $settings->get($name, $value);
+            $data['clean_url_pages'][$name] = $settings->get($name, $value);
             $data['clean_url_admin'][$name] = $settings->get($name, $value);
         }
 
@@ -119,12 +120,14 @@ class Module extends AbstractModule
             return false;
         }
 
+        // TODO Normalize the filling of the config form.
         $params = array_merge(
             $params['clean_url_identifiers'],
             $params['clean_url_main_path'],
             $params['clean_url_item_sets'],
             $params['clean_url_items'],
             $params['clean_url_medias'],
+            $params['clean_url_pages'],
             $params['clean_url_admin']
         );
 
@@ -150,14 +153,16 @@ class Module extends AbstractModule
         $params['cleanurl_media_allowed'][] = $params['cleanurl_media_default'];
         $params['cleanurl_media_allowed'] = array_values(array_unique($params['cleanurl_media_allowed']));
 
-        $defaultSettings = $config[strtolower(__NAMESPACE__)]['config'];
+        $params['cleanurl_page_slug'] = SLUG_PAGE;
+
+        $defaultSettings = $config['cleanurl']['config'];
+        $params = array_intersect_key($params, $defaultSettings);
         foreach ($params as $name => $value) {
-            if (array_key_exists($name, $defaultSettings)) {
-                $settings->set($name, $value);
-            }
+            $settings->set($name, $value);
         }
 
         $this->cacheItemSetsRegex();
+        return true;
     }
 
     /**
@@ -292,8 +297,8 @@ class Module extends AbstractModule
                         'media_generic' => $settings->get('cleanurl_media_generic'),
                         'item_allowed' => $settings->get('cleanurl_item_allowed'),
                         'media_allowed' => $settings->get('cleanurl_media_allowed'),
-                        'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                         'use_admin' => $settings->get('cleanurl_use_admin'),
+                        'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
                     ],
                     'defaults' => [
                         'controller' => 'CleanUrlController',

@@ -8,3 +8,6 @@ namespace CleanUrl;
 // In order to have a main site without "/s/site-slug", fill your main site slug
 // here, so it won’t be used.
 const SLUG_MAIN_SITE = false;
+
+// Rename or remove /page/ from the urls of pages.
+const SLUG_PAGE = 'page/';
