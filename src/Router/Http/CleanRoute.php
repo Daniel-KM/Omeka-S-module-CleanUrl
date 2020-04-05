@@ -372,7 +372,7 @@ class CleanRoute implements RouteInterface
                     0,
                     $currentPos
                 )) {
-                    throw new Exception\RuntimeException('Found empty parameter name');
+                    throw new Exception\RuntimeException(sprintf('Found empty parameter name for route definition "%s".', $def));
                 }
 
                 $levelParts[$level][] = [
@@ -384,7 +384,7 @@ class CleanRoute implements RouteInterface
                 $currentPos += strlen($matches[0]);
             } elseif ($matches['token'] === '{') {
                 if (! preg_match('(\G(?P<literal>[^}]+)\})', $def, $matches, 0, $currentPos)) {
-                    throw new Exception\RuntimeException('Translated literal missing closing bracket');
+                    throw new Exception\RuntimeException(sprintf('Translated literal missing closing bracket for route definition "%s".', $def));
                 }
 
                 $currentPos += strlen($matches[0]);
@@ -400,7 +400,7 @@ class CleanRoute implements RouteInterface
                 $level--;
 
                 if ($level < 0) {
-                    throw new Exception\RuntimeException('Found closing bracket without matching opening bracket');
+                    throw new Exception\RuntimeException(sprintf('Found closing bracket without matching opening bracket for route definition "%s".', $def));
                 }
             } else {
                 break;
@@ -408,7 +408,7 @@ class CleanRoute implements RouteInterface
         }
 
         if ($level > 0) {
-            throw new Exception\RuntimeException('Found unbalanced brackets');
+            throw new Exception\RuntimeException(sprintf('Found unbalanced brackets in route definition "%s".', $def));
         }
 
         return $parts;
