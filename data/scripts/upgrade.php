@@ -44,3 +44,16 @@ if (version_compare($oldVersion, '3.15.5', '<')) {
     $settings->set('cleanurl_use_admin',
         $config[strtolower(__NAMESPACE__)]['config']['cleanurl_use_admin']);
 }
+
+if (version_compare($oldVersion, '3.15.13', '<')) {
+    $oldPath = OMEKA_PATH . '/config/routes.main_slug.php';
+    $newPath = OMEKA_PATH . '/config/clean_url.config.php';
+    if (file_exists($oldPath) && !file_exists($newPath)) {
+        $result = @rename($oldPath, $newPath);
+        if (!$result) {
+            $t = $services->get('MvcTranslator');
+            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+            $messenger->addWarning($t->translate('Automatic renaming failed. You should rename manually "config/routes.main_slug.php" as "config/clean_url.config.php" in the config directory of Omeka.')); // @translate
+        }
+    }
+}

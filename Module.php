@@ -17,9 +17,9 @@ if (!class_exists(\Generic\AbstractModule::class)) {
         : __DIR__ . '/src/Generic/AbstractModule.php';
 }
 
-require_once file_exists(OMEKA_PATH . '/config/routes.main_slug.php')
-    ? OMEKA_PATH . '/config/routes.main_slug.php'
-    : __DIR__ . '/config/routes.main_slug.php';
+require_once file_exists(OMEKA_PATH . '/config/clean_url.config.php')
+    ? OMEKA_PATH . '/config/clean_url.config.php'
+    : __DIR__ . '/config/clean_url.config.php';
 
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
@@ -82,7 +82,7 @@ class Module extends AbstractModule
             . '<br />'
             . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), '<strong>', '</strong>') // @translate
             . '<br />'
-            . $translate('To keep the original routes, the main site slug must be set in the file "routes.main_slug.php".') // @translate
+            . $translate('To keep the original routes, the main site slug must be set in the file "clean_url.config.php".') // @translate
             . $view->formCollection($form);
         return $html;
     }
