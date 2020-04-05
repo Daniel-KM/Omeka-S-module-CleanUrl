@@ -273,6 +273,22 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
+                'name' => 'cleanurl_item_item_set_included',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'The identifier includes the item set identifier', // @translate
+                    'value_options' => [
+                        'no' => 'No', // @translate
+                        'maybe' => 'Maybe', // @translate
+                        'yes' => 'Yes', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_item_set_included',
+                    'required' => false,
+                ],
+            ])
+            ->add([
                 'name' => 'cleanurl_item_item_set_undefined',
                 'type' => Element\Radio::class,
                 'options' => [
@@ -369,6 +385,39 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_keep_raw',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_set_included',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'The identifier includes the item set identifier', // @translate
+                    'value_options' => [
+                        'no' => 'No', // @translate
+                        'maybe' => 'Maybe', // @translate
+                        'yes' => 'Yes', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_item_set_included',
+                    'required' => false,
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_included',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'The identifier includes the item identifier', // @translate
+                    'info' => 'This option may be needed when the resource contains the parent identifier, like ark media identifiers.', // @translate
+                    'value_options' => [
+                        'no' => 'No', // @translate
+                        'maybe' => 'Maybe', // @translate
+                        'yes' => 'Yes', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_item_included',
+                    'required' => false,
                 ],
             ])
             ->add([
@@ -539,6 +588,10 @@ class ConfigForm extends Form
                 'required' => false,
             ])
             ->add([
+                'name' => 'cleanurl_item_item_set_included',
+                'required' => false,
+            ])
+            ->add([
                 'name' => 'cleanurl_item_item_set_undefined',
                 'required' => true,
             ]);
@@ -555,6 +608,14 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_media_generic',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_set_included',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_media_item_included',
                 'required' => false,
             ])
             ->add([
