@@ -50,6 +50,7 @@ return [
                     ],
                 ],
                 'may_terminate' => true,
+                // TODO Find a way to avoid to copy all the site routes, in particular for modules.
                 // Allows to access main site resources and pages.
                 // Same routes than "site", except initial "/" and routes,
                 // without starting "/".
@@ -109,6 +110,8 @@ return [
                         'options' => [
                             // Forbid any reserved words.
                             'regex' => SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
+                                // Common modules and reserved words.
+                                . SLUG_RESERVED
                                 // Capturing group ("-" cannot be used).
                                 . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
                             'spec' => '%page-slug%',
@@ -135,6 +138,8 @@ return [
                             // Forbid any reserved words.
                             // Warning: this is the same regex than for top page, but with an initial "/".
                             'regex' => '/' . SLUG_PAGE . '(?:files|s|item|item-set|media|page|api|api-context|admin|login|logout|create-password|forgot-password|maintenance|migrate|install'
+                                // Common modules and reserved words.
+                                . SLUG_RESERVED
                                 // Capturing group ("-" cannot be used).
                                 . '|(?P<page_slug>[a-zA-Z0-9_-]+))',
                             'spec' => '/%page-slug%',
