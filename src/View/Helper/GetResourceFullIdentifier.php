@@ -107,17 +107,20 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $identifier = $view->getResourceIdentifier($resource, true, true);
+                $skipPrefixItem = !strpos($format, 'item_full');
+                $identifier = $view->getResourceIdentifier($resource, true, $skipPrefixItem);
                 if (empty($identifier)) {
                     $identifier = $resource->id();
                 }
 
                 switch ($format) {
                     case 'generic_item':
+                    case 'generic_item_full':
                         $generic = $view->setting('cleanurl_item_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'item_set_item':
+                    case 'item_set_item_full':
                         $itemSets = $resource->itemSets();
                         $itemSetIdentifier = null;
                         if (!empty($itemSets)) {
@@ -148,27 +151,34 @@ class GetResourceFullIdentifier extends AbstractHelper
                     return '';
                 }
 
-                $identifier = $view->getResourceIdentifier($resource, true, true);
+                $skipPrefixMedia = !strpos($format, 'media_full');
+                $identifier = $view->getResourceIdentifier($resource, true, $skipPrefixMedia);
                 if (empty($identifier)) {
                     $identifier = $resource->id();
                 }
 
                 switch ($format) {
                     case 'generic_media':
+                    case 'generic_media_full':
                         $generic = $view->setting('cleanurl_media_generic');
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item_media':
+                    case 'generic_item_full_media':
+                    case 'generic_item_media_full':
+                    case 'generic_item_full_media_full':
                         $generic = $view->setting('cleanurl_media_generic');
 
                         $item = $resource->item();
-                        $item_identifier = $view->getResourceIdentifier($item, true, true);
-                        if (!$item_identifier) {
-                            $item_identifier = $item->id();
+                        $skipPrefixItem = !strpos($format, 'item_full');
+                        $itemIdentifier = $view->getResourceIdentifier($item, true, $skipPrefixItem);
+                        if (!$itemIdentifier) {
+                            $itemIdentifier = $item->id();
                         }
-                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $item_identifier . '/' . $identifier;
+                        return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $generic . $itemIdentifier . '/' . $identifier;
 
                     case 'item_set_media':
+                    case 'item_set_media_full':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
                         $itemSetIdentifier = null;
@@ -186,6 +196,9 @@ class GetResourceFullIdentifier extends AbstractHelper
                         return $this->_getUrlPath($siteSlug, $absolute, $withMainPath, $withBasePath) . $itemSetIdentifier . '/' . $identifier;
 
                     case 'item_set_item_media':
+                    case 'item_set_item_full_media':
+                    case 'item_set_item_media_full':
+                    case 'item_set_item_full_media_full':
                         $item = $resource->item();
                         $itemSets = $item->itemSets();
                         $itemSetIdentifier = null;
@@ -200,7 +213,9 @@ class GetResourceFullIdentifier extends AbstractHelper
                             }
                             return '';
                         }
-                        $itemIdentifier = $view->getResourceIdentifier($item, true, true);
+
+                        $skipPrefixItem = !strpos($format, 'item_full');
+                        $itemIdentifier = $view->getResourceIdentifier($item, true, $skipPrefixItem);
                         if (!$itemIdentifier) {
                             $itemIdentifier = $item->id();
                         }
@@ -318,8 +333,11 @@ class GetResourceFullIdentifier extends AbstractHelper
         switch ($resourceName) {
             case 'items':
                 $allowedForItems = $this->view->setting('cleanurl_item_allowed');
-                return in_array('generic_item', $allowedForItems)
-                    ? 'generic_item'
+                if (in_array('generic_item', $allowedForItems)) {
+                    return 'generic_item';
+                }
+                return in_array('generic_item_full', $allowedForItems)
+                    ? 'generic_item_full'
                     : null;
 
             case 'media':
@@ -327,8 +345,20 @@ class GetResourceFullIdentifier extends AbstractHelper
                 if (in_array('generic_item_media', $allowedForMedia)) {
                     return 'generic_item_media';
                 }
-                return in_array('generic_media', $allowedForMedia)
-                    ? 'generic_media'
+                if (in_array('generic_item_full_media', $allowedForMedia)) {
+                    return 'generic_item_full_media';
+                }
+                if (in_array('generic_item_media_full', $allowedForMedia)) {
+                    return 'generic_item_media_full';
+                }
+                if (in_array('generic_item_full_media_full', $allowedForMedia)) {
+                    return 'generic_item_full_media_full';
+                }
+                if (in_array('generic_media', $allowedForMedia)) {
+                    return 'generic_media';
+                }
+                return in_array('generic_media_full', $allowedForMedia)
+                    ? 'generic_media_full'
                     : null;
 
             default:

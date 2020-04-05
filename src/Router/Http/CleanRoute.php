@@ -177,7 +177,10 @@ class CleanRoute implements RouteInterface
                 $route = $baseRoute . $mainPath . $itemSetGeneric;
 
                 // Match item set / item route for media.
-                if (in_array('item_set_item_media', $allowedForMedia)) {
+                if (array_intersect(
+                    ['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'],
+                    $allowedForMedia
+                )) {
                     $routeName = 'cleanurl_item_set_item_media' . $routeExt;
                     $this->routes[$routeName] = [
                         'route' => $route . ':item_set_identifier/:item_identifier/:resource_identifier',
@@ -196,7 +199,10 @@ class CleanRoute implements RouteInterface
                 }
 
                 // Match item set route for items.
-                if (in_array('item_set_item', $allowedForItems)) {
+                if (array_intersect(
+                    ['item_set_item', 'item_set_item_full'],
+                    $allowedForItems
+                )) {
                     $routeName = 'cleanurl_item_set_item' . $routeExt;
                     $this->routes[$routeName] = [
                         'route' => $route . ':item_set_identifier/:resource_identifier',
@@ -217,7 +223,10 @@ class CleanRoute implements RouteInterface
                 // This clean url is same than the one above, but it's a choice
                 // of the admin.
                 // Match item set route for media.
-                if (in_array('item_set_media', $allowedForMedia)) {
+                if (array_intersect(
+                    ['item_set_media', 'item_set_media_full'],
+                    $allowedForMedia
+                )) {
                     $routeName = 'cleanurl_item_set_media' . $routeExt;
                     $this->routes[$routeName] = [
                         'route' => $route . ':item_set_identifier/:resource_identifier',
@@ -254,7 +263,10 @@ class CleanRoute implements RouteInterface
             }
 
             // Match generic route for items.
-            if (in_array('generic_item', $allowedForItems)) {
+            if (array_intersect(
+                ['generic_item', 'generic_item_full'],
+                $allowedForItems
+            )) {
                 $route = $baseRoute . $mainPath . $itemGeneric;
                 $routeName = 'cleanurl_generic_item' . $routeExt;
                 $this->routes[$routeName] = [
@@ -290,7 +302,10 @@ class CleanRoute implements RouteInterface
             }
 
             // Match generic / item route for media.
-            if (in_array('generic_item_media', $allowedForMedia)) {
+            if (array_intersect(
+                ['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'],
+                $allowedForMedia
+            )) {
                 $route = $baseRoute . $mainPath . $mediaGeneric;
                 $routeName = 'cleanurl_generic_item_media' . $routeExt;
                 $this->routes[$routeName] = [
@@ -310,7 +325,10 @@ class CleanRoute implements RouteInterface
             }
 
             // Match generic route for media.
-            if (in_array('generic_media', $allowedForMedia)) {
+            if (array_intersect(
+                ['generic_media', 'generic_media_full'],
+                $allowedForMedia
+            )) {
                 $route = $baseRoute . $mainPath . $mediaGeneric;
                 $routeName = 'cleanurl_generic_media' . $routeExt;
                 $this->routes[$routeName] = [

@@ -175,7 +175,9 @@ class ConfigForm extends Form
                     'info' => 'Select the default format of the url for items.', // @translate
                     'value_options' => [
                         'generic_item' => '/ generic / item identifier', // @translate
+                        'generic_item_full' => '/ generic / full item identifier', // @translate
                         'item_set_item' => '/ item set identifier / item identifier', // @translate
+                        'item_set_item_full' => '/ item set identifier / full item identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -191,7 +193,9 @@ class ConfigForm extends Form
                     'info' => 'Select the allowed formats for urls of items, for example to allow a permalink and a seo link.', // @translate
                     'value_options' => [
                         'generic_item' => '/ generic / item identifier', // @translate
+                        'generic_item_full' => '/ generic / full item identifier', // @translate
                         'item_set_item' => '/ item set identifier / item identifier', // @translate
+                        'item_set_item_full' => '/ item set identifier / full item identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -228,9 +232,17 @@ class ConfigForm extends Form
                     'info' => 'Select the default format of the url for medias.', // @translate
                     'value_options' => [
                         'generic_media' => '/ generic / media identifier', // @translate
+                        'generic_media_full' => '/ generic / full media identifier', // @translate
                         'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
+                        'generic_item_full_media' => '/ generic / full item identifier / media identifier', // @translate
+                        'generic_item_media_full' => '/ generic / item identifier / full media identifier', // @translate
+                        'generic_item_full_media_full' => '/ generic / full item identifier / full media identifier', // @translate
                         'item_set_media' => '/ item_set identifier / media identifier', // @translate
+                        'item_set_media_full' => '/ item_set identifier / full media identifier', // @translate
                         'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
+                        'item_set_item_full_media' => '/ item set identifier / full item identifier / media identifier', // @translate
+                        'item_set_item_media_full' => '/ item set identifier / item identifier / full media identifier', // @translate
+                        'item_set_item_full_media_full' => '/ item set identifier / full item identifier / full media identifier', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -246,9 +258,17 @@ class ConfigForm extends Form
                     'info' => 'Select the allowed formats for urls of medias, for example to allow a permalink and a seo link.', // @translate
                     'value_options' => [
                         'generic_media' => '/ generic / media identifier', // @translate
+                        'generic_media_full' => '/ generic / full media identifier', // @translate
                         'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
+                        'generic_item_full_media' => '/ generic / full item identifier / media identifier', // @translate
+                        'generic_item_media_full' => '/ generic / item identifier / full media identifier', // @translate
+                        'generic_item_full_media_full' => '/ generic / full item identifier / full media identifier', // @translate
                         'item_set_media' => '/ item_set identifier / media identifier', // @translate
+                        'item_set_media_full' => '/ item_set identifier / full media identifier', // @translate
                         'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
+                        'item_set_item_full_media' => '/ item set identifier / full item identifier / media identifier', // @translate
+                        'item_set_item_media_full' => '/ item set identifier / item identifier / full media identifier', // @translate
+                        'item_set_item_full_media_full' => '/ item set identifier / full item identifier / full media identifier', // @translate
                     ],
                 ],
                 'attributes' => [
