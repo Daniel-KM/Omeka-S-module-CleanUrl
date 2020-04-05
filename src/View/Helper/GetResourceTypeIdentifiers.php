@@ -29,9 +29,10 @@ class GetResourceTypeIdentifiers extends AbstractHelper
      * @param string $resourceName Should be "item_sets", "items" or "media"
      * or equivalent resource type.
      * @param bool $rawUrlEncode Sanitize the identifiers for http or not.
+     * @param bool $skipPrefix Keep the prefix or not.
      * @return array List of identifiers.
      */
-    public function __invoke($resourceName, $rawUrlEncode = true)
+    public function __invoke($resourceName, $rawUrlEncode = true, $skipPrefix = false)
     {
         $resourceTypes = [
             'item_sets' => \Omeka\Entity\ItemSet::class,
@@ -68,11 +69,19 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             ->addOrderBy('value.id', 'ASC');
 
         if ($this->prefix) {
+            if ($skipPrefix) {
+                $qb
+                    ->select([
+                        // $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($this->prefix) + 1)),
+                        '(TRIM(SUBSTR(value.value, ' . (mb_strlen($this->prefix) + 1) . ')))',
+                    ]);
+            } else {
+                $qb
+                    ->select([
+                        'value.value',
+                    ]);
+            }
             $qb
-                ->select([
-                    // $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($this->prefix) + 1)),
-                    '(TRIM(SUBSTR(value.value, ' . (mb_strlen($this->prefix) + 1) . ')))',
-                ])
                 ->andWhere('value.value LIKE :value_value')
                 ->setParameter('value_value', $this->prefix . '%');
         } else {

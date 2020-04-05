@@ -34,9 +34,10 @@ class GetResourceIdentifier extends AbstractHelper
      *
      * @param AbstractResourceRepresentation|Resource $resource
      * @param bool $rawUrlEncode Sanitize the identifier for http or not.
+     * @param bool $skipPrefix Keep the prefix or not.
      * @return string Identifier of the record, if any, else empty string.
      */
-    public function __invoke($resource, $rawUrlEncode = true)
+    public function __invoke($resource, $rawUrlEncode = true, $skipPrefix = false)
     {
         $resourceTypes = [
             ItemSetRepresentation::class => ItemSet::class,
@@ -98,7 +99,7 @@ class GetResourceIdentifier extends AbstractHelper
 
         // Keep only the identifier without the configured prefix.
         if ($identifier) {
-            if ($prefix) {
+            if ($prefix && $skipPrefix) {
                 $length = $checkUnspace && mb_strpos($identifier, $unspace) === 0
                     // May be a prefix with space.
                     ? mb_strlen($unspace)
