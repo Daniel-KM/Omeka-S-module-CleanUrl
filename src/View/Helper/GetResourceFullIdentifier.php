@@ -290,7 +290,7 @@ class GetResourceFullIdentifier extends AbstractHelper
                 $basePath = '';
         }
 
-        $mainPath = $withMainPath ? $this->view->setting('cleanurl_main_path') : '';
+        $mainPath = $withMainPath ? $this->view->setting('cleanurl_main_path_full') : '';
 
         return ($absolute ? $this->view->serverUrl() : '') . $basePath . '/' . $mainPath;
     }

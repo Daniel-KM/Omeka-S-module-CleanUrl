@@ -125,10 +125,21 @@ class ConfigForm extends Form
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Main path for resources', // @translate
-                    'info' => 'The main path to add in the beginning of the url, for example "library/" or "archives/". Let empty if you do not want any.', // @translate
+                    'info' => 'The main path to add in the beginning of the url for resources, for example "library/", "archives/", or "ark:/". Let empty if you do not want any.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_main_path',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_main_path_2',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Sub-main path for resources', // @translate
+                    'info' => 'The main path to add a second path in the beginning of the url for resources, for example the ark naan. Let empty if you do not want any.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_main_path_2',
                 ],
             ]);
 
@@ -352,13 +363,6 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_case_insensitive',
-                'required' => false,
-            ]);
-
-        $mainPathFilter = $inputFilter->get('clean_url_main_path');
-        $mainPathFilter
-            ->add([
-                'name' => 'cleanurl_main_path',
                 'required' => false,
             ]);
 
