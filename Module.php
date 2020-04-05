@@ -43,6 +43,21 @@ class Module extends AbstractModule
 
     protected function postInstall()
     {
+        $services = $this->getServiceLocator();
+        $t = $services->get('MvcTranslator');
+
+        $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+        $messenger->addWarning($t->translate('Some settings may be configured in the file "config/clean_url.config.php" in the root of Omeka.')); // @translate
+
+        $configPath = __DIR__ . '/config/clean_url.config.php';
+        $omekaConfigPath = OMEKA_PATH . '/config/clean_url.config.php';
+        if (file_exists($configPath) && !file_exists($omekaConfigPath)) {
+            $result = @copy($configPath, $omekaConfigPath);
+            if (!$result) {
+                $messenger->addWarning($t->translate('Unable to copy the special config file "config/clean_url.config.php" in Omeka config directory.')); // @translate
+            }
+        }
+
         $this->cacheItemSetsRegex();
     }
 
