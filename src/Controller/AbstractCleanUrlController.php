@@ -394,7 +394,10 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $result = $this->queryResource($identifiers, $this->_item_set_id, $this->_item_id);
         if (!$result) {
             if ($this->_resource_name !== 'media') {
-                throw new NotFoundException;
+                throw new NotFoundException(sprintf(
+                    'Resource not found. Check if the url "%s" should be skipped in Clean Url.', // @translate
+                    strtok($this->getRequest()->getRequestUri(), '?')
+                ));
             }
             // An exception may be thrown.
             $media = $this->notFoundMedia();
@@ -437,7 +440,10 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             }
         }
 
-        throw new NotFoundException;
+        throw new NotFoundException(sprintf(
+            'Resource not found. Check if the url "%s" should be skipped in Clean Url.', // @translate
+            strtok($this->getRequest()->getRequestUri(), '?')
+        ));
     }
 
     /**
