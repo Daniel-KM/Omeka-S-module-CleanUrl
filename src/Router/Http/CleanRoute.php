@@ -413,6 +413,11 @@ class CleanRoute implements RouteInterface
         // So the check all the remaining path. Routes will be reordered.
         $path = mb_substr($path, $pathOffset);
 
+        // Check if it is a top url first.
+        if (mb_stripos('|' . SLUGS_SITE . '|', '|' . trim(mb_substr($path, mb_strlen(SLUG_SITE)), '/') . '|') !== false) {
+            return null;
+        }
+
         foreach ($this->routes as $routeName => $data) {
             $regex = $this->routes[$routeName]['regex'];
 
@@ -434,8 +439,9 @@ class CleanRoute implements RouteInterface
 
                 // Check if the resource identifiers is a reserved word.
                 // They are managed here currently for simplicity.
+                $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
                 foreach ($params as $key => $value) {
-                    if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . $value . '|') !== false) {
+                    if (mb_stripos($reserved, '|' . $value . '|') !== false) {
                         continue 2;
                     }
                 }
