@@ -121,10 +121,16 @@ class GetResourceFromIdentifier extends AbstractHelper
 
         $resource = null;
         if ($result) {
-            $resource = $this->view->api()->read($resourceName, $result['resource_id'])->getContent();
-        } elseif ($resourceName) {
+            $resourceTypes = [
+                \Omeka\Entity\ItemSet::class => 'item_sets',
+                \Omeka\Entity\Item::class => 'items',
+                \Omeka\Entity\Media::class => 'media',
+            ];
+            $resource = $this->view->api()->read($resourceTypes[$result['resource_type']], $result['resource_id'])->getContent();
+        } else {
             // Return the resource via the Omeka id.
             $id = (int) $identifier;
+            $resourceName = $resourceName ?: 'resources';
             if ($id !== 0) {
                 $resource = $this->view->api()->read($resourceName, $id)->getContent();
             }
