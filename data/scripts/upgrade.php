@@ -111,4 +111,16 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
 if (version_compare($oldVersion, '3.15.15', '<')) {
     $mainShort = $settings->get('cleanurl_main_short');
     $settings->set('cleanurl_main_short', $mainShort ? 'main' : 'no');
+
+    $settings->delete('cleanurl_main_path_full');
+    $settings->delete('cleanurl_main_path_full_encoded');
+    $settings->delete('cleanurl_main_short_path_full');
+    $settings->delete('cleanurl_main_short_path_full_encoded');
+    $settings->delete('cleanurl_main_short_path_full_regex');
+    $settings->delete('cleanurl_item_set_regex');
+    $settings->delete('cleanurl_regex');
+
+    $this->cacheRouteSettings();
+    $this->cacheCleanData();
+    $this->cacheItemSetsRegex();
 }

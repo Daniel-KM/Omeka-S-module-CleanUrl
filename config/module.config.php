@@ -180,12 +180,6 @@ return [
             'cleanurl_main_path_2' => '',
             'cleanurl_main_path_3' => '',
             'cleanurl_main_short' => 'no',
-            'cleanurl_main_short_path_full' => '', // hidden
-            'cleanurl_main_short_path_full_encoded' => '', // hidden
-            'cleanurl_main_short_path_full_regex' => '', // hidden
-            'cleanurl_main_path_full' => '', // hidden
-            'cleanurl_main_path_full_encoded' => '', // hidden
-            'cleanurl_item_set_regex' => '', // hidden
             'cleanurl_item_set_generic' => '',
             'cleanurl_item_set_keep_raw' => false,
             'cleanurl_item_default' => 'generic_item',
@@ -213,7 +207,8 @@ return [
             'cleanurl_admin_use' => true,
             'cleanurl_admin_show_identifier' => true,
             'cleanurl_admin_reserved' => [],
-            'cleanurl_regex' => [], // hidden
+            // Allow to save settings for quick routing.
+            'cleanurl_quick_settings' => [],
         ],
     ],
 ];

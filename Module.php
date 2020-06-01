@@ -144,28 +144,7 @@ class Module extends AbstractModule
                 'options' => [
                     'api' => $services->get('Omeka\ApiManager'),
                     'base_path' => $basePath(),
-                    // TODO Save all these settings in one array.
-                    // See \CleanUrl\View\Helper\CleanUrl::getCleanRoute() too.
-                    'settings' => [
-                        'default_site' => $settings->get('default_site'),
-                        'main_path_full' => $settings->get('cleanurl_main_path_full'),
-                        'main_path_full_encoded' => $settings->get('cleanurl_main_path_full_encoded'),
-                        'main_short' => $settings->get('cleanurl_main_short'),
-                        'main_short_path_full' => $settings->get('cleanurl_main_short_path_full'),
-                        'main_short_path_full_encoded' => $settings->get('cleanurl_main_short_path_full_encoded'),
-                        'main_short_path_full_regex' => $settings->get('cleanurl_main_short_path_full_regex'),
-                        'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
-                        'item_generic' => $settings->get('cleanurl_item_generic'),
-                        'media_generic' => $settings->get('cleanurl_media_generic'),
-                        'item_allowed' => $settings->get('cleanurl_item_allowed'),
-                        'media_allowed' => $settings->get('cleanurl_media_allowed'),
-                        // 'is_public' => $status->isSiteRequest(),
-                        // 'is_admin' => $status->isAdminRequest(),
-                        'admin_use' => $settings->get('cleanurl_admin_use'),
-                        'item_set_regex' => $settings->get('cleanurl_item_set_regex'),
-                        'regex' => $settings->get('cleanurl_regex'),
-                        'admin_reserved' => $settings->get('cleanurl_admin_reserved'),
-                    ],
+                    'settings' => $settings->get('cleanurl_quick_settings', []),
                 ],
             ]);
     }
@@ -328,6 +307,8 @@ class Module extends AbstractModule
         // TODO Normalize the filling of the config form.
         $params = $form->getData();
 
+        $params['cleanurl_quick_settings'] = [];
+
         // Make the params a flat array.
         $params = array_merge(
             $params['clean_url_pages'],
@@ -367,50 +348,6 @@ class Module extends AbstractModule
         if (!mb_strlen($params['cleanurl_main_path']) && mb_strlen($params['cleanurl_main_path_2'])) {
             $params['cleanurl_main_path'] = $params['cleanurl_main_path_2'];
             $params['cleanurl_main_path_2'] = '';
-        }
-
-        // Prepare hidden params with the full path to avoid checks later.
-        $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
-        if (mb_strlen($params['cleanurl_main_path'])) {
-            $params['cleanurl_main_path_full_encoded'] = $this->encode(rtrim($params['cleanurl_main_path'], '/')) . '/';
-            if (mb_strlen($params['cleanurl_main_path_2'])) {
-                $params['cleanurl_main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
-                if (mb_strlen($params['cleanurl_main_path_3'])) {
-                    $params['cleanurl_main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
-                }
-            }
-        }
-
-        // Prepare hidden params with the short path to avoid checks later.
-        $params['cleanurl_main_short_path_full'] = '';
-        $params['cleanurl_main_short_path_full_encoded'] = '';
-        $params['cleanurl_main_short_path_full_regex'] = '';
-        switch ($params['cleanurl_main_short']) {
-            default:
-                $params['cleanurl_main_short'] = 'no';
-                break;
-            case 'no':
-                break;
-            case 'main':
-                $params['cleanurl_main_short_path_full'] = $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
-                if (mb_strlen($params['cleanurl_main_path_2'])) {
-                    $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
-                    if (mb_strlen($params['cleanurl_main_path_3'])) {
-                        $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
-                    }
-                }
-                break;
-            case 'main_sub':
-                $params['cleanurl_main_short_path_full'] = $params['cleanurl_main_path_3'];
-                if (mb_strlen($params['cleanurl_main_path_3'])) {
-                    $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
-                }
-                break;
-            case 'main_sub_sub':
-                break;
-        }
-        if (strlen($params['cleanurl_main_short_path_full'])) {
-            $result['cleanurl_main_short_path_full_regex'] = str_replace('\\-', '-', preg_quote($params['cleanurl_main_short_path_full']));
         }
 
         // The default url should be allowed for items and media.
@@ -555,9 +492,6 @@ class Module extends AbstractModule
             }
         }
 
-        // Prepare the regexes one time.
-        $params['cleanurl_regex'] = $this->prepareRegexes($params);
-
         // Save all the params.
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
@@ -565,8 +499,10 @@ class Module extends AbstractModule
             $settings->set($name, $value);
         }
 
+        $this->cacheRouteSettings();
         $this->cacheCleanData();
         $this->cacheItemSetsRegex();
+
         return true;
     }
 
@@ -657,6 +593,87 @@ class Module extends AbstractModule
         $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
         $messenger->addWarning($message);
         // throw new \Omeka\Api\Exception\ValidationException($message);
+    }
+
+    /**
+     * Prepare the quick settings and regex one time.
+     */
+    protected function cacheRouteSettings()
+    {
+        $settings = $this->getServiceLocator()->get('Omeka\Settings');
+        $params = [
+            'cleanurl_main_path' => $settings->get('cleanurl_main_path'),
+            'cleanurl_main_path_2' => $settings->get('cleanurl_main_path_2'),
+            'cleanurl_main_path_3' => $settings->get('cleanurl_main_path_3'),
+            'cleanurl_main_short' => $settings->get('cleanurl_main_short'),
+            'cleanurl_item_set_generic' => $settings->get('cleanurl_item_set_generic'),
+            'cleanurl_item_generic' => $settings->get('cleanurl_item_generic'),
+            'cleanurl_media_generic' => $settings->get('cleanurl_media_generic'),
+        ];
+
+        $quickSettings = [
+            'default_site' => $settings->get('default_site'),
+            'main_path_full' => '',
+            'main_path_full_encoded' => '',
+            'main_short' => $settings->get('cleanurl_main_short'),
+            'main_short_path_full' => '',
+            'main_short_path_full_encoded' => '',
+            'main_short_path_full_regex' => '',
+            'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
+            'item_generic' => $settings->get('cleanurl_item_generic'),
+            'media_generic' => $settings->get('cleanurl_media_generic'),
+            'item_allowed' => $settings->get('cleanurl_item_allowed'),
+            'media_allowed' => $settings->get('cleanurl_media_allowed'),
+            'admin_use' => $settings->get('cleanurl_admin_use'),
+            // Item set regex is managed separately.
+            'item_set_regex' => '',
+            'regex' => '',
+            'admin_reserved' => $settings->get('cleanurl_admin_reserved'),
+        ];
+
+        // Prepare hidden params with the full path to avoid checks later.
+        $quickSettings['main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
+        if (mb_strlen($params['cleanurl_main_path'])) {
+            $quickSettings['main_path_full_encoded'] = $this->encode(rtrim($params['cleanurl_main_path'], '/')) . '/';
+            if (mb_strlen($params['cleanurl_main_path_2'])) {
+                $quickSettings['main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
+                if (mb_strlen($params['cleanurl_main_path_3'])) {
+                    $quickSettings['main_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                }
+            }
+        }
+
+        // Prepare hidden params with the short path to avoid checks later.
+        switch ($params['cleanurl_main_short']) {
+            default:
+            case 'no':
+                break;
+            case 'main':
+                $quickSettings['main_short_path_full'] = $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
+                if (mb_strlen($params['cleanurl_main_path_2'])) {
+                    $quickSettings['main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
+                    if (mb_strlen($params['cleanurl_main_path_3'])) {
+                        $quickSettings['main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                    }
+                }
+                break;
+            case 'main_sub':
+                $quickSettings['main_short_path_full'] = $params['cleanurl_main_path_3'];
+                if (mb_strlen($params['cleanurl_main_path_3'])) {
+                    $quickSettings['main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                }
+                break;
+            case 'main_sub_sub':
+                break;
+        }
+        if (strlen($quickSettings['main_short_path_full'])) {
+            $quickSettings['main_short_path_full_regex'] = str_replace('\\-', '-', preg_quote($quickSettings['main_short_path_full']));
+        }
+
+        $params['main_path_full'] = $quickSettings['main_path_full'];
+        $quickSettings['regex'] = $this->prepareRegexes($params);
+
+        $settings->set('cleanurl_quick_settings', $quickSettings);
     }
 
     /**
@@ -751,7 +768,9 @@ class Module extends AbstractModule
         $regex = $this->prepareRegex($itemSetIdentifiers);
 
         $settings = $services->get('Omeka\Settings');
-        $settings->set('cleanurl_item_set_regex', $regex);
+        $quickSettings = $settings->get('cleanurl_quick_settings', []);
+        $quickSettings['item_set_regex'] = $regex;
+        $settings->set('cleanurl_quick_settings', $quickSettings);
     }
 
     protected function prepareRegex(array $list)
@@ -779,7 +798,7 @@ class Module extends AbstractModule
     {
         // No need to preg quote "/".
         $result = [];
-        $result['main_path_full'] = str_replace('\\-', '-', preg_quote($params['cleanurl_main_path_full']));
+        $result['main_path_full'] = str_replace('\\-', '-', preg_quote($params['main_path_full']));
         $result['item_set_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_item_set_generic']));
         $result['item_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_item_generic']));
         $result['media_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_media_generic']));

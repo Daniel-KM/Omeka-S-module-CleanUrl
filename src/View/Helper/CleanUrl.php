@@ -201,26 +201,7 @@ class CleanUrl extends Url
             $options = [
                 'api' => $services->get('Omeka\ApiManager'),
                 'base_path' => $this->view->basePath(),
-                // See \CleanUrl\Module::addRoutes()
-                'settings' => [
-                    'default_site' => $setting('default_site'),
-                    'main_path_full' => $setting('cleanurl_main_path_full'),
-                    'main_path_full_encoded' => $setting('cleanurl_main_path_full_encoded'),
-                    'main_short' => $setting('cleanurl_main_short'),
-                    'main_short_path_full' => $setting('cleanurl_main_short_path_full'),
-                    'main_short_path_full_encoded' => $setting('cleanurl_main_short_path_full_encoded'),
-                    'main_short_path_full_regex' => $setting('cleanurl_main_short_path_full_regex'),
-                    'item_set_generic' => $setting('cleanurl_item_set_generic'),
-                    'item_generic' => $setting('cleanurl_item_generic'),
-                    'media_generic' => $setting('cleanurl_media_generic'),
-                    'item_allowed' => $setting('cleanurl_item_allowed'),
-                    'media_allowed' => $setting('cleanurl_media_allowed'),
-                    // 'is_public' => $status->isSiteRequest(),
-                    // 'is_admin' => $status->isAdminRequest(),
-                    'admin_use' => $setting('cleanurl_admin_use'),
-                    'item_set_regex' => $setting('cleanurl_item_set_regex'),
-                    'regex' => $setting('cleanurl_regex'),
-                ],
+                'settings' => $setting('cleanurl_quick_settings', []),
                 'helpers' => [
                     'basePath' => $plugins->get('basePath'),
                     'getResourceIdentifier' => $plugins->get('getResourceIdentifier'),
