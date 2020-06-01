@@ -172,12 +172,20 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_main_short',
-                'type' => Element\Checkbox::class,
+                'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Allow short url without main path', // @translate
+                    'label' => 'Allow short url', // @translate
+                    'value_options' => [
+                        'no' => 'No', // @translate
+                        'main' => 'Without main path', // @translate
+                        'main_sub' => 'Without main and sub-path', // @translate
+                        'main_sub_sub' => 'Without main, sub-path and sub-sub-path', // @translate
+                    ],
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_main_short',
+                    'required' => true,
+                    'value' => 'none',
                 ],
             ]);
 
@@ -586,6 +594,10 @@ class ConfigForm extends Form
             ->add([
                 'name' => 'cleanurl_main_path_3',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_main_short',
+                'required' => true,
             ]);
 
         $itemSetsFilter = $inputFilter->get('clean_url_item_sets');

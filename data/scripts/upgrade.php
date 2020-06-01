@@ -107,3 +107,8 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $this->cacheCleanData();
     $this->cacheItemSetsRegex();
 }
+
+if (version_compare($oldVersion, '3.15.15', '<')) {
+    $mainShort = $settings->get('cleanurl_main_short');
+    $settings->set('cleanurl_main_short', $mainShort ? 'main' : 'no');
+}
