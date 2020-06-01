@@ -64,14 +64,27 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         if (empty($result)) {
             return $this->notFound();
         }
-        return $this->forward()->dispatch($this->namespaceItem, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $this->namespaceItem,
-            'action' => 'browse',
-            'site-slug' => $this->params('site-slug'),
-            'item-set-id' => $this->_item_set_id,
-        ]);
+        return $this->itemSetShow();
+    }
+
+    protected function itemSetShow()
+    {
+        return $this->space === '__ADMIN__'
+           ? $this->forward()->dispatch($this->namespaceItemSet, [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceItemSet,
+                'action' => 'show',
+                'id' => $this->_item_set_id,
+            ])
+            : $this->forward()->dispatch($this->namespaceItem, [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceItem,
+                'action' => 'browse',
+                'site-slug' => $this->params('site-slug'),
+                'item-set-id' => $this->_item_set_id,
+            ]);
     }
 
     public function itemsBrowseAction()
@@ -111,15 +124,38 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // If no identifier exists, the module tries to use the resource id
         // directly.
         if (!$id) {
+            // When there is no difference between the identifier of an item and
+            // identifier of another resource, for example when there is an ark
+            // for an item set), the route of the resource goes here.
             try {
-                $resource = $this->api()->read($this->_resource_name, $this->_resource_identifier)->getContent();
+                $resource = $this->api()->read('resources', $this->_resource_identifier)->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
                 return $this->notFound();
             }
 
-            $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
-
-            $id = $this->_resource_identifier;
+            $this->_resource_name = $resource->resourceName();
+            $this->_resource_id = $resource->id();
+            switch ($this->_resource_name) {
+                case 'item_sets':
+                    $this->_item_set_id = $this->_resource_id;
+                    return $this->itemSetShow();
+                case 'media':
+                    $this->_media_id = $this->_resource_id;
+                    return $this->forward()->dispatch($this->namespaceMedia, [
+                        '__NAMESPACE__' => $this->namespace,
+                        $this->space => true,
+                        'controller' => $this->namespaceMedia,
+                        'action' => 'show',
+                        'site-slug' => $this->params('site-slug'),
+                        'id' => $this->_resource_id,
+                    ]);
+                    break;
+                case 'items':
+                    $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
+                    break;
+                default:
+                    return $this->notFound();
+            }
         }
 
         $this->_resource_id = $id;
@@ -234,7 +270,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     }
 
     /**
-     * Get id from the resource identifier.
+     * Get id from the resource identifier (item or media).
      *
      * @todo Use the standard getResourceFromIdentifier().
      *
@@ -408,14 +444,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         }
 
         if ($result['type'] === \Omeka\Entity\ItemSet::class) {
-            return $this->forward()->dispatch($this->namespaceItem, [
-                '__NAMESPACE__' => $this->namespace,
-                $this->space => true,
-                'controller' => $this->namespaceItem,
-                'action' => 'browse',
-                'site-slug' => $this->params('site-slug'),
-                'item-set-id' => $result['id'],
-            ]);
+            $this->_item_set_id = $result['id'];
+            return $this->itemSetShow();
         }
 
         return $this->forward()->dispatch($this->namespaceMedia, [
@@ -447,7 +477,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     }
 
     /**
-     * Get a resource id from a list of identifiers.
+     * Get a resource id from a list of identifiers (item set, item or media).
      *
      * @todo Use the standard getResourceFromIdentifier().
      *
