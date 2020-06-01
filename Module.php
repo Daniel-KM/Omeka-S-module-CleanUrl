@@ -71,7 +71,7 @@ class Module extends AbstractModule
             if (!$result) {
                 $success = false;
                 $message = $t->translate('Unable to copy the file "config/clean_url.dynamic.php" in Omeka config directory. It should be kept writeable by the server.') // @translate
-                    . ' ' . $t->translate('Without this file, it won‘t be possible to modify or remove the "s/".'); // @translate
+                    . ' ' . $t->translate('Without this file, it won’t be possible to modify or remove the "s/".'); // @translate
                 $messenger->addWarning($message);
             }
         }
@@ -83,7 +83,7 @@ class Module extends AbstractModule
             if (!$result) {
                 $success = false;
                 $message = $t->translate('Unable to copy the special config file "config/clean_url.config.php" in Omeka config directory.') // @translate
-                    . ' ' . $t->translate('Without this file, it won‘t be possible to modify or remove the "s/" and "page/" or to define a main site.'); // @translate
+                    . ' ' . $t->translate('Without this file, it won’t be possible to modify or remove the "s/" and "page/" or to define a main site.'); // @translate
                 $messenger->addWarning($message);
             }
         }
@@ -243,7 +243,7 @@ class Module extends AbstractModule
         $settings = $services->get('Omeka\Settings');
 
         // The params are cached on load and save, to manage the case the user
-        // doesn‘t save the config.
+        // doesn’t save the config.
         $this->cacheCleanData();
         $this->cacheItemSetsRegex();
 
@@ -280,7 +280,7 @@ class Module extends AbstractModule
                 '<strong>', '</strong>'
             )
             . '<br />'
-            . sprintf($translate('%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the same resource.'), // @translate
+            . sprintf($translate('%sNote%s: For a good seo, it’s not recommended to have multiple urls for the same resource.'), // @translate
                 '<strong>', '</strong>'
             )
             . $view->formCollection($form);
