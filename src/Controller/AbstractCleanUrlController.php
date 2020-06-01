@@ -12,7 +12,7 @@ use Zend\Mvc\Controller\AbstractActionController;
 /**
  * The module controller for index pages.
  *
- * @todo Rebuild and simplify this controller.
+ * @todo Rebuild and simplify this controller, designed for Omeka Classic.
  *
  * @package CleanUrl
  */
