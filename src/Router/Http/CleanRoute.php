@@ -75,21 +75,27 @@ class CleanRoute implements RouteInterface
         $this->basePath = $basePath;
         $this->helpers = $helpers;
         $this->settings = $settings + [
-            'main_path_full' => null,
-            'main_path_full_encoded' => null,
-            'main_short' => null,
-            'main_short_path_full' => null,
-            'main_short_path_full_encoded' => null,
-            'main_short_path_full_regex' => null,
-            'item_set_generic' => null,
-            'item_generic' => null,
-            'media_generic' => null,
-            'item_allowed' => null,
-            'media_allowed' => null,
-            'admin_use' => null,
-            'item_set_regex' => null,
-            'regex' => null,
-            'admin_reserved' => null,
+            'default_site' => '',
+            'main_path_full' => '',
+            'main_path_full_encoded' => '',
+            'main_short' => '',
+            'main_short_path_full' => '',
+            'main_short_path_full_encoded' => '',
+            'main_short_path_full_regex' => '',
+            'item_set_generic' => '',
+            'item_generic' => '',
+            'media_generic' => '',
+            'item_allowed' => [],
+            'media_allowed' => [],
+            'admin_use' => false,
+            'item_set_regex' => '',
+            'regex' => [
+                'main_path_full' => '',
+                'item_set_generic' => '',
+                'item_generic' => '',
+                'media_generic' => '',
+            ],
+            'admin_reserved' => [],
         ];
         $this->prepareCleanRoutes();
     }
