@@ -8,7 +8,7 @@ standard Dublin Core metadata, or from any specific field, so they are easy to
 manage. It supports [Ark] and short urls too.
 
 Furthermore, it makes possible to use a main site and additional sites, like in
-Omeka Classic, so the main site won‘t start with "/s/site-slug". The slug "/page/"
+Omeka Classic, so the main site won’t start with "/s/site-slug". The slug "/page/"
 can be removed too.
 
 This [Omeka S] module was initially based on a rewrite of the [Clean Url plugin]

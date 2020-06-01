@@ -42,7 +42,7 @@ msgid ""
 msgstr ""
 
 #: Module.php:74
-msgid "Without this file, it won‘t be possible to modify or remove the \"s/\"."
+msgid "Without this file, it won’t be possible to modify or remove the \"s/\"."
 msgstr ""
 
 #: Module.php:85
@@ -53,7 +53,7 @@ msgstr ""
 
 #: Module.php:86
 msgid ""
-"Without this file, it won‘t be possible to modify or remove the \"s/\" and "
+"Without this file, it won’t be possible to modify or remove the \"s/\" and "
 "\"page/\" or to define a main site."
 msgstr ""
 
@@ -79,7 +79,7 @@ msgstr ""
 #: Module.php:283
 #, php-format
 msgid ""
-"%sNote%s: For a good seo, it‘s not recommended to have multiple urls for the "
+"%sNote%s: For a good seo, it’s not recommended to have multiple urls for the "
 "same resource."
 msgstr ""
 
@@ -257,7 +257,7 @@ msgstr ""
 msgid ""
 "If checked, all resources will be available via an insensitive url too. This "
 "option is generally useless, because databases are case insensitive by "
-"default. When this option is set, it‘s recommended to add an index for lower "
+"default. When this option is set, it’s recommended to add an index for lower "
 "strings."
 msgstr ""
 
