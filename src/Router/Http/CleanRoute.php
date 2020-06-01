@@ -78,6 +78,9 @@ class CleanRoute implements RouteInterface
             'main_path_full' => null,
             'main_path_full_encoded' => null,
             'main_short' => null,
+            'main_short_path_full' => null,
+            'main_short_path_full_encoded' => null,
+            'main_short_path_full_regex' => null,
             'item_set_generic' => null,
             'item_generic' => null,
             'media_generic' => null,
@@ -119,16 +122,18 @@ class CleanRoute implements RouteInterface
         $this->loopRoutes(false);
 
         $mainShort = $this->settings['main_short'];
-        if ($mainShort) {
+        if (in_array($mainShort, ['main', 'main_sub', 'main_sub_sub'])) {
+            // Set specific settings temporary to create routes.
             $mainPathFull = $this->settings['main_path_full'];
             $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
             $regexMainPathFull = $this->settings['regex']['main_path_full'];
-            $this->settings['main_path_full'] = '';
-            $this->settings['main_path_full_encoded'] = '';
-            $this->settings['regex']['main_path_full'] = '';
+            $this->settings['main_path_full'] = $this->settings['main_short_path_full'];
+            $this->settings['main_path_full_encoded'] = $this->settings['main_short_path_full_encoded'];
+            $this->settings['regex']['main_path_full'] = $this->settings['main_short_path_full_regex'];
 
             $this->loopRoutes(true);
 
+            // Reset to original settings.
             $this->settings['main_path_full'] = $mainPathFull;
             $this->settings['main_path_full_encoded'] = $mainPathFullEncoded;
             $this->settings['regex']['main_path_full'] = $regexMainPathFull;
@@ -453,7 +458,8 @@ class CleanRoute implements RouteInterface
 
                 // Check for page when there is no page prefix and no main path.
                 $siteSlug = isset($params['site-slug']) ? $params['site-slug'] : SLUG_MAIN_SITE;
-                $noPath = $this->settings['main_short'] || !mb_strlen($this->settings['main_path_full']);
+                $noPath = in_array($this->settings['main_short'], ['main', 'main_sub', 'main_sub_sub'])
+                    || !mb_strlen($this->settings['main_path_full']);
                 $checkPage = $siteSlug
                     && !mb_strlen(SLUG_PAGE)
                     && $noPath;

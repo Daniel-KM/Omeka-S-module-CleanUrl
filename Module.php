@@ -151,6 +151,9 @@ class Module extends AbstractModule
                         'main_path_full' => $settings->get('cleanurl_main_path_full'),
                         'main_path_full_encoded' => $settings->get('cleanurl_main_path_full_encoded'),
                         'main_short' => $settings->get('cleanurl_main_short'),
+                        'main_short_path_full' => $settings->get('cleanurl_main_short_path_full'),
+                        'main_short_path_full_encoded' => $settings->get('cleanurl_main_short_path_full_encoded'),
+                        'main_short_path_full_regex' => $settings->get('cleanurl_main_short_path_full_regex'),
                         'item_set_generic' => $settings->get('cleanurl_item_set_generic'),
                         'item_generic' => $settings->get('cleanurl_item_generic'),
                         'media_generic' => $settings->get('cleanurl_media_generic'),
@@ -356,6 +359,7 @@ class Module extends AbstractModule
 
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
 
+        // Remove empty options for main path.
         if (!mb_strlen($params['cleanurl_main_path_2']) && mb_strlen($params['cleanurl_main_path_3'])) {
             $params['cleanurl_main_path_2'] = $params['cleanurl_main_path_3'];
             $params['cleanurl_main_path_3'] = '';
@@ -364,7 +368,8 @@ class Module extends AbstractModule
             $params['cleanurl_main_path'] = $params['cleanurl_main_path_2'];
             $params['cleanurl_main_path_2'] = '';
         }
-        // Prepare hidden params with the full path, to avoid checks later.
+
+        // Prepare hidden params with the full path to avoid checks later.
         $params['cleanurl_main_path_full'] = $params['cleanurl_main_path'] . $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
         if (mb_strlen($params['cleanurl_main_path'])) {
             $params['cleanurl_main_path_full_encoded'] = $this->encode(rtrim($params['cleanurl_main_path'], '/')) . '/';
@@ -376,7 +381,37 @@ class Module extends AbstractModule
             }
         }
 
-        $params['cleanurl_main_short'] = (bool) $params['cleanurl_main_short'];
+        // Prepare hidden params with the short path to avoid checks later.
+        $params['cleanurl_main_short_path_full'] = '';
+        $params['cleanurl_main_short_path_full_encoded'] = '';
+        $params['cleanurl_main_short_path_full_regex'] = '';
+        switch ($params['cleanurl_main_short']) {
+            default:
+                $params['cleanurl_main_short'] = 'no';
+                break;
+            case 'no':
+                break;
+            case 'main':
+                $params['cleanurl_main_short_path_full'] = $params['cleanurl_main_path_2'] . $params['cleanurl_main_path_3'];
+                if (mb_strlen($params['cleanurl_main_path_2'])) {
+                    $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_2'], '/')) . '/';
+                    if (mb_strlen($params['cleanurl_main_path_3'])) {
+                        $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                    }
+                }
+                break;
+            case 'main_sub':
+                $params['cleanurl_main_short_path_full'] = $params['cleanurl_main_path_3'];
+                if (mb_strlen($params['cleanurl_main_path_3'])) {
+                    $params['cleanurl_main_short_path_full_encoded'] .= $this->encode(rtrim($params['cleanurl_main_path_3'], '/')) . '/';
+                }
+                break;
+            case 'main_sub_sub':
+                break;
+        }
+        if (strlen($params['cleanurl_main_short_path_full'])) {
+            $result['cleanurl_main_short_path_full_regex'] = str_replace('\\-', '-', preg_quote($params['cleanurl_main_short_path_full']));
+        }
 
         // The default url should be allowed for items and media.
         $params['cleanurl_item_allowed'][] = $params['cleanurl_item_default'];
@@ -523,6 +558,7 @@ class Module extends AbstractModule
         // Prepare the regexes one time.
         $params['cleanurl_regex'] = $this->prepareRegexes($params);
 
+        // Save all the params.
         $defaultSettings = $config['cleanurl']['config'];
         $params = array_intersect_key($params, $defaultSettings);
         foreach ($params as $name => $value) {
@@ -742,14 +778,11 @@ class Module extends AbstractModule
     protected function prepareRegexes(array $params)
     {
         // No need to preg quote "/".
-        $replaces = [
-            '\\-' => '-',
-        ];
         $result = [];
-        $result['main_path_full'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_main_path_full']));
-        $result['item_set_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_item_set_generic']));
-        $result['item_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_item_generic']));
-        $result['media_generic'] = str_replace(array_keys($replaces), array_values($replaces), preg_quote($params['cleanurl_media_generic']));
+        $result['main_path_full'] = str_replace('\\-', '-', preg_quote($params['cleanurl_main_path_full']));
+        $result['item_set_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_item_set_generic']));
+        $result['item_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_item_generic']));
+        $result['media_generic'] = str_replace('\\-', '-', preg_quote($params['cleanurl_media_generic']));
         return $result;
     }
 
