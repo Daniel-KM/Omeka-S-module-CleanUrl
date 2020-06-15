@@ -41,7 +41,7 @@ class Module extends AbstractModule
     public function onBootstrap(MvcEvent $event)
     {
         parent::onBootstrap($event);
-        $this->addAclRules();
+        // The page controller is already allowed, because it's an override.
         $this->addRoutes();
     }
 
@@ -95,20 +95,6 @@ class Module extends AbstractModule
     {
         $this->cacheCleanData();
         $this->cacheItemSetsRegex();
-    }
-
-    /**
-     * Add ACL rules for this module.
-     */
-    protected function addAclRules()
-    {
-        // Allow all access to the controller, because there will be a forward.
-        $acl = $this->getServiceLocator()->get('Omeka\Acl');
-        $roles = $acl->getRoles();
-        $acl
-            ->allow(null, [Controller\Site\CleanUrlController::class])
-            ->allow($roles, [Controller\Admin\CleanUrlController::class])
-        ;
     }
 
     /**

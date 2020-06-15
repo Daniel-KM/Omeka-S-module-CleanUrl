@@ -1,23 +1,58 @@
 <?php
 
-namespace CleanUrl\Controller;
+namespace CleanUrl\Mvc;
 
-use Doctrine\DBAL\Connection;
-use Omeka\Api\Adapter\Manager as ApiAdapterManager;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\MediaRepresentation;
 use Omeka\Mvc\Exception\NotFoundException;
-use Zend\Mvc\Controller\AbstractActionController;
+use Zend\EventManager\AbstractListenerAggregate;
+use Zend\EventManager\EventManagerInterface;
+use Zend\Mvc\MvcEvent;
+use Zend\Router\Http\RouteMatch;
 
-/**
- * The module controller for index pages.
- *
- * @todo Rebuild and simplify this controller, designed for Omeka Classic.
- *
- * @package CleanUrl
- */
-abstract class AbstractCleanUrlController extends AbstractActionController
+class MvcListeners extends AbstractListenerAggregate
 {
+    /**
+     * @var \Doctrine\DBAL\Connection
+     */
+    protected $connection;
+
+    /**
+     * @var \Omeka\Api\Adapter\Manager
+     */
+    protected $apiAdapterManager;
+
+    /**
+     * @var \Omeka\Api\\Manager
+     */
+    protected $api;
+
+    /**
+     * @var \Omeka\Settings\Settings
+     */
+    protected $settings;
+
+    /**
+     * @var \CleanUrl\View\Helper\GetResourceIdentifier
+     */
+    protected $getResourceIdentifier;
+
+    /**
+     * @var \CleanUrl\View\Helper\GetResourceFromIdentifier
+     */
+    protected $getResourceFromIdentifier;
+
+    /**
+     * @var MvcEvent
+     */
+    protected $event;
+
+    /**
+     * @var array
+     */
+    protected $params;
+
+    protected $isAdmin = false;
     protected $space;
     protected $namespace;
     protected $namespaceItemSet;
@@ -37,29 +72,107 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     private $_item_id = 0;
     private $_file_id = 0;
 
-    /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @var ApiAdapterManager
-     */
-    protected $apiAdapterManager;
-
-    /**
-     * @param Connection $connection
-     * @param ApiAdapterManager $apiAdapterManager
-     */
-    public function __construct(Connection $connection, ApiAdapterManager $apiAdapterManager)
+    public function attach(EventManagerInterface $events, $priority = 1)
     {
-        $this->connection = $connection;
-        $this->apiAdapterManager = $apiAdapterManager;
+        $this->listeners[] = $events->attach(
+            MvcEvent::EVENT_ROUTE,
+            [$this, 'redirectTo']
+        );
     }
 
-    public function routeIitemSetAction()
+    public function redirectTo(MvcEvent $event)
     {
-        $this->_item_set_identifier = $this->params('resource_identifier');
+        $routeMatch = $event->getRouteMatch();
+        $matchedRouteName = $routeMatch->getMatchedRouteName();
+        if ($matchedRouteName !== 'clean-url') {
+            return;
+        }
+
+        $actions = [
+            'route-item-browse',
+            'route-item',
+            'route-item-set',
+            'route-item-set-item',
+            'route-item-set-item-media',
+            'route-item-set-media',
+            'route-media',
+            'route-item-media',
+        ];
+
+        $this->params = $routeMatch->getParams();
+        $action = $this->params['action'];
+        if (!in_array($action, $actions)) {
+            // TODO Remove the clean url controler for page.
+            // It may be a page, that is managed via controller currently.
+            return;
+        }
+
+        $this->event = $event;
+        $services = $event->getApplication()->getServiceManager();
+        $this->connection = $services->get('Omeka\Connection');
+        $this->apiAdapterManager = $services->get('Omeka\ApiAdapterManager');
+        $this->api = $services->get('Omeka\ApiManager');
+        $this->settings = $services->get('Omeka\Settings');
+        $viewHelpers = $services->get('ViewHelperManager');
+        $this->getResourceIdentifier = $viewHelpers->get('getResourceIdentifier');
+        $this->getResourceFromIdentifier = $viewHelpers->get('getResourceFromIdentifier');
+
+        $this->params += [
+            'resource_identifier' => null,
+            'site-slug' => null,
+            'item_set_identifier' => null,
+            'item_identifier' => null,
+            'media_identifier' => null,
+        ];
+
+        if (isset($this->params['__ADMIN__'])) {
+            $this->isAdmin = true;
+            $this->space = '__ADMIN__';
+            $this->namespace = 'Omeka\Controller\Admin';
+            $this->namespaceItemSet = 'Omeka\Controller\Admin\ItemSet';
+            $this->namespaceItem = 'Omeka\Controller\Admin\Item';
+            $this->namespaceMedia = 'Omeka\Controller\Admin\Media';
+        } else {
+            $this->space = '__SITE__';
+            $this->namespace = 'Omeka\Controller\Site';
+            $this->namespaceItemSet = 'Omeka\Controller\Site\ItemSet';
+            $this->namespaceItem = 'Omeka\Controller\Site\Item';
+            $this->namespaceMedia = 'Omeka\Controller\Site\Media';
+        }
+
+        switch ($this->params['action']) {
+            case 'route-item-browse':
+                return $this->routeItemBrowse();
+            case 'route-item':
+                return $this->routeItem();
+            case 'route-item-set':
+                return $this->routeItemSet();
+            case 'route-item-set-item':
+                return $this->routeItemSetItem();
+            case 'route-item-set-item-media':
+                return $this->routeItemSet();
+            case 'route-item-set-media':
+                return $this->routeItemSetMedia();
+            case 'route-media':
+                return $this->routeMedia();
+            case 'route-item-media':
+                return $this->routeItemMedia();
+            default:
+                return;
+        }
+    }
+
+    protected function forwardRouteMatch($routeName, array $params)
+    {
+        $routeMatch = new RouteMatch($params);
+        $routeMatch->setMatchedRouteName($routeName);
+        $this->event->setRouteMatch($routeMatch);
+        return $routeMatch;
+    }
+
+    protected function routeItemSet()
+    {
+        $this->_item_set_identifier = $this->params['resource_identifier'];
         $result = $this->_setItemSetId();
         if (empty($result)) {
             return $this->notFound();
@@ -69,49 +182,52 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     protected function itemSet()
     {
-        return $this->space === '__ADMIN__'
-           ? $this->forward()->dispatch($this->namespaceItemSet, [
+        return $this->isAdmin
+            ? $this->forwardRouteMatch('admin/id', [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
                 'controller' => $this->namespaceItemSet,
                 'action' => 'show',
                 'id' => $this->_item_set_id,
             ])
-            : $this->forward()->dispatch($this->namespaceItem, [
+            : $this->forwardRouteMatch('site/item-set', [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
                 'controller' => $this->namespaceItem,
                 'action' => 'browse',
-                'site-slug' => $this->params('site-slug'),
+                'site-slug' => $this->params['site-slug'],
                 'item-set-id' => $this->_item_set_id,
             ]);
     }
 
-    public function routeItemBrowseAction()
+    protected function routeItemBrowse()
     {
-        return $this->forward()->dispatch($this->namespaceItem, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $this->namespaceItem,
-            'action' => 'browse',
-            'site-slug' => $this->params('site-slug'),
-        ]);
+        return $this->forwardRouteMatch(
+            $this->isAdmin ? 'admin/default' : 'site/resource',
+            [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceItem,
+                'action' => 'browse',
+                'site-slug' => $this->params['site-slug'],
+            ]
+        );
     }
 
     /**
      * Routes a clean url of an item to the default url.
      */
-    public function routeItemAction()
+    protected function routeItem()
     {
-        return $this->routeItemSetItemAction();
+        return $this->routeItemSetItem();
     }
 
     /**
      * Routes a clean url of an item to the default url.
      */
-    public function routeItemSetItemAction()
+    protected function routeItemSetItem()
     {
-        $this->_item_set_identifier = $this->params('item_set_identifier');
+        $this->_item_set_identifier = $this->params['item_set_identifier'];
         // If 0, this is possible (item without item set, or generic route).
         $result = $this->_setItemSetId();
         if (is_null($result)) {
@@ -128,7 +244,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             // identifier of another resource, for example when there is an ark
             // for an item set), the route of the resource goes here.
             try {
-                $resource = $this->api()->read('resources', $this->_resource_identifier)->getContent();
+                $resource = $this->api->read('resources', $this->_resource_identifier)->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
                 return $this->notFound();
             }
@@ -141,14 +257,17 @@ abstract class AbstractCleanUrlController extends AbstractActionController
                     return $this->itemSet();
                 case 'media':
                     $this->_media_id = $this->_resource_id;
-                    return $this->forward()->dispatch($this->namespaceMedia, [
-                        '__NAMESPACE__' => $this->namespace,
-                        $this->space => true,
-                        'controller' => $this->namespaceMedia,
-                        'action' => 'show',
-                        'site-slug' => $this->params('site-slug'),
-                        'id' => $this->_resource_id,
-                    ]);
+                    return $this->forwardRouteMatch(
+                        $this->isAdmin ? 'admin/id' : 'site/resource-id',
+                        [
+                            '__NAMESPACE__' => $this->namespace,
+                            $this->space => true,
+                            'controller' => $this->namespaceMedia,
+                            'action' => 'show',
+                            'site-slug' => $this->params['site-slug'],
+                            'id' => $this->_resource_id,
+                        ]
+                    );
                     break;
                 case 'items':
                     $this->checkItemBelongsToItemSet($resource, $this->_item_set_id);
@@ -160,20 +279,23 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         $this->_resource_id = $id;
 
-        return $this->forward()->dispatch($this->namespaceItem, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $this->namespaceItem,
-            'action' => 'show',
-            'site-slug' => $this->params('site-slug'),
-            'id' => $this->_resource_id,
-        ]);
+        return $this->forwardRouteMatch(
+            $this->isAdmin ? 'admin/id' : 'site/resource-id',
+            [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceItem,
+                'action' => 'show',
+                'site-slug' => $this->params['site-slug'],
+                'id' => $this->_resource_id,
+            ]
+        );
     }
 
     /**
      * Routes a clean url of a media to the default url.
      */
-    public function routeMediaAction()
+    protected function routeMedia()
     {
         $this->_resource_name = 'media';
         $id = $this->_routeResource();
@@ -189,44 +311,47 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         $this->_resource_id = $media->id();
 
-        return $this->forward()->dispatch($this->namespaceMedia, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $this->namespaceMedia,
-            'action' => 'show',
-            'site-slug' => $this->params('site-slug'),
-            'id' => $this->_resource_id,
-        ]);
+        return $this->forwardRouteMatch(
+            $this->isAdmin ? 'admin/id' : 'site/resource-id',
+            [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceMedia,
+                'action' => 'show',
+                'site-slug' => $this->params['site-slug'],
+                'id' => $this->_resource_id,
+            ]
+        );
     }
 
     /**
      * Routes a clean url of a media with item to the default url.
      */
-    public function routeItemMediaAction()
+    protected function routeItemMedia()
     {
-        return $this->routeItemSetItemMediaAction();
+        return $this->routeItemSetItemMedia();
     }
 
     /**
      * Routes a clean url of a media with item to the default url.
      */
-    public function routeItemSetMediaAction()
+    protected function routeItemSetMedia()
     {
-        return $this->routeItemSetItemMediaAction();
+        return $this->routeItemSetItemMedia();
     }
 
     /**
      * Routes a clean url of a media with item set and item to the default url.
      */
-    public function routeItemSetItemMediaAction()
+    protected function routeItemSetItemMedia()
     {
-        $this->_item_set_identifier = $this->params('item_set_identifier');
+        $this->_item_set_identifier = $this->params['item_set_identifier'];
         // If 0, this is possible (item without item set, or generic route).
         $itemSetId = $this->_setItemSetId();
         if (is_null($itemSetId)) {
             return $this->notFound();
         }
-        $this->_item_identifier = $this->params('item_identifier');
+        $this->_item_identifier = $this->params['item_identifier'];
         // TODO Check if it is still the case.
         // If 0, this is possible (generic route).
         $itemId = $this->_setItemId();
@@ -259,14 +384,17 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         $this->_resource_id = $id;
 
-        return $this->forward()->dispatch($this->namespaceMedia, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $this->namespaceMedia,
-            'action' => 'show',
-            'site-slug' => $this->params('site-slug'),
-            'id' => $this->_resource_id,
-        ]);
+        return $this->forwardRouteMatch(
+            $this->isAdmin ? 'admin/id' : 'site/resource-id',
+            [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $this->namespaceMedia,
+                'action' => 'show',
+                'site-slug' => $this->params['site-slug'],
+                'id' => $this->_resource_id,
+            ]
+        );
     }
 
     /**
@@ -278,9 +406,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     protected function _routeResource()
     {
-        $settings = $this->settings();
-
-        $this->_resource_identifier = $this->params('resource_identifier');
+        $this->_resource_identifier = $this->params['resource_identifier'];
 
         $identifiers = [];
 
@@ -288,7 +414,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             case 'items':
                 $allowShortIdentifier = $this->allowShortIdentifierItem();
                 $allowFullIdentifier = $this->allowFullIdentifierItem();
-                $includeItemSetIdentifier = $settings->get('cleanurl_item_item_set_included');
+                $includeItemSetIdentifier = $this->settings->get('cleanurl_item_item_set_included');
                 $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
                     ? $this->_item_set_identifier  . '/'
                     : '';
@@ -298,11 +424,11 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             case 'media':
                 $allowShortIdentifier = $this->allowShortIdentifierMedia();
                 $allowFullIdentifier = $this->allowFullIdentifierMedia();
-                $includeItemSetIdentifier = $settings->get('cleanurl_media_item_set_included');
+                $includeItemSetIdentifier = $this->settings->get('cleanurl_media_item_set_included');
                 $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
                     ? $this->_item_set_identifier  . '/'
                     : '';
-                $includeItemIdentifier = $settings->get('cleanurl_media_item_included');
+                $includeItemIdentifier = $this->settings->get('cleanurl_media_item_included');
                 $itemIdentifier = $this->_item_identifier && $includeItemIdentifier !== 'no'
                     ? $this->_item_identifier  . '/'
                     : '';
@@ -316,7 +442,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         if ($allowShortIdentifier) {
             // Check the identifier of the record (commonly dcterms:identifier).
-            $prefix = $settings->get('cleanurl_identifier_prefix');
+            $prefix = $this->settings->get('cleanurl_identifier_prefix');
             $identifiers[] = $isNN ? $prefix . $this->_resource_identifier : null;
             $identifiers[] = $isNY ? $prefix . $itemIdentifier . $this->_resource_identifier : null;
             $identifiers[] = $isYN ? $prefix . $itemSetIdentifier . $this->_resource_identifier : null;
@@ -329,7 +455,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             $identifiers[] = $isYY ? $prefix . ' ' . $itemSetIdentifier . $itemIdentifier . $this->_resource_identifier : null;
 
             // Check prefix with a space and a no-break space.
-            if ($settings->get('cleanurl_identifier_unspace')) {
+            if ($this->settings->get('cleanurl_identifier_unspace')) {
                 $unspace = str_replace([' ', ' '], '', $prefix);
                 if ($prefix != $unspace) {
                     $identifiers[] = $isNN ? $unspace . $this->_resource_identifier : null;
@@ -362,13 +488,12 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         // Manage the case where the same format is used by multiple routes, for
         // example for a root identifier, or routes generic/resource_identifier
         // with the same generic name.
-        $settings = $this->settings();
 
         // The difference with _routeResource() is that the resource name is
         // unknown and probably wrong.
-        $includeItemSetIdentifierItem = $settings->get('cleanurl_item_item_set_included');
-        $includeItemSetIdentifierMedia = $settings->get('cleanurl_media_item_set_included');
-        $includeItemIdentifier = $settings->get('cleanurl_media_item_included');
+        $includeItemSetIdentifierItem = $this->settings->get('cleanurl_item_item_set_included');
+        $includeItemSetIdentifierMedia = $this->settings->get('cleanurl_media_item_set_included');
+        $includeItemIdentifier = $this->settings->get('cleanurl_media_item_included');
 
         $itemSetIdentifier = $this->_item_set_identifier
             ? $this->_item_set_identifier  . '/'
@@ -380,7 +505,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $identifiers = [];
 
         // Check the identifier of the record (commonly dcterms:identifier).
-        $prefix = $settings->get('cleanurl_identifier_prefix');
+        $prefix = $this->settings->get('cleanurl_identifier_prefix');
         $identifiers[] = $prefix . $this->_resource_identifier;
         if ($includeItemIdentifier !== 'no') {
             $identifiers[] = $prefix . $itemIdentifier . $this->_resource_identifier;
@@ -405,7 +530,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         }
 
         // Check prefix with a space and a no-break space.
-        if ($settings->get('cleanurl_identifier_unspace')) {
+        if ($this->settings->get('cleanurl_identifier_unspace')) {
             $unspace = str_replace([' ', ' '], '', $prefix);
             if ($prefix != $unspace) {
                 $identifiers[] = $unspace . $this->_resource_identifier;
@@ -432,7 +557,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             if ($this->_resource_name !== 'media') {
                 throw new NotFoundException(sprintf(
                     'Resource not found. Check if the url "%s" should be skipped in Clean Url.', // @translate
-                    strtok($this->getRequest()->getRequestUri(), '?')
+                    strtok($this->event->getRequest()->getRequestUri(), '?')
                 ));
             }
             // An exception may be thrown.
@@ -448,14 +573,17 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             return $this->itemSet();
         }
 
-        return $this->forward()->dispatch($this->namespaceMedia, [
-            '__NAMESPACE__' => $this->namespace,
-            $this->space => true,
-            'controller' => $result['type'] === \Omeka\Entity\Media::class ? $this->namespaceMedia : $this->namespaceItem,
-            'action' => 'show',
-            'site-slug' => $this->params('site-slug'),
-            'id' => $result['id'],
-        ]);
+        return $this->forwardRouteMatch(
+            $this->isAdmin ? 'admin/id' : 'site/resource-id',
+            [
+                '__NAMESPACE__' => $this->namespace,
+                $this->space => true,
+                'controller' => $result['type'] === \Omeka\Entity\Media::class ? $this->namespaceMedia : $this->namespaceItem,
+                'action' => 'show',
+                'site-slug' => $this->params['site-slug'],
+                'id' => $result['id'],
+            ]
+        );
     }
 
     protected function notFoundMedia()
@@ -472,7 +600,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         throw new NotFoundException(sprintf(
             'Resource not found. Check if the url "%s" should be skipped in Clean Url.', // @translate
-            strtok($this->getRequest()->getRequestUri(), '?')
+            strtok($this->event->getRequest()->getRequestUri(), '?')
         ));
     }
 
@@ -485,9 +613,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     protected function queryResource(array $identifiers, $itemSetId = null, $itemId = null, $resourceName = null)
     {
-        $settings = $this->settings();
-
-        $propertyId = (int) $settings->get('cleanurl_identifier_property');
+        $propertyId = (int) $this->settings->get('cleanurl_identifier_property');
 
         // Use of ordered placeholders.
         $bind = [];
@@ -498,7 +624,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $sqlFrom = 'FROM resource';
 
         // If the table is case sensitive, lower-case the search.
-        if ($settings->get('cleanurl_identifier_case_insensitive')) {
+        if ($this->settings->get('cleanurl_identifier_case_insensitive')) {
             $identifiers = array_map('mb_strtolower', $identifiers);
             $sqlWhereValue =
                 "AND LOWER(value.value) IN ($in)";
@@ -559,7 +685,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         if ($result && $resourceName == 'media' && !empty($this->_item_identifier)) {
             // Check if the found file belongs to the item.
             try {
-                $media = $this->api()->read('media', $result['id'])->getContent();
+                $media = $this->api->read('media', $result['id'])->getContent();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
                 return null;
             }
@@ -613,15 +739,14 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             }
 
             // Get the full item identifier.
-            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
-            $itemIdentifier = $getResourceIdentifier($item, false, false);
+            $getResourceIdentifierHelper = $this->getResourceIdentifier;
+            $itemIdentifier = $getResourceIdentifierHelper($item, false, false);
             if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
                 return true;
             }
 
             // Get the item identifier.
-            $getResourceIdentifier = $this->viewHelpers()->get('getResourceIdentifier');
-            $itemIdentifier = $getResourceIdentifier($item, false, true);
+            $itemIdentifier = $getResourceIdentifierHelper($item, false, true);
             if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
                 return true;
             }
@@ -654,9 +779,9 @@ abstract class AbstractCleanUrlController extends AbstractActionController
      */
     protected function retrieveMedia($mediaIdentifier, $itemId = null)
     {
-        $undefined = $this->settings()->get('cleanurl_media_media_undefined');
+        $undefined = $this->settings->get('cleanurl_media_media_undefined');
         if (!in_array($undefined, ['id', 'position'])) {
-            $undefined = $this->settings()->get('cleanurl_identifier_undefined');
+            $undefined = $this->settings->get('cleanurl_identifier_undefined');
         }
         switch ($undefined) {
             case 'exception':
@@ -679,7 +804,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
                 }
                 // The id may be private.
                 try {
-                    return $this->api()->read('media', $id)->getContent();
+                    return $this->api->read('media', $id)->getContent();
                 } catch (\Omeka\Api\Exception\NotFoundException $e) {
                     return null;
                 }
@@ -687,7 +812,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             case 'id':
             default:
                 try {
-                    return $this->api()->read('media', $mediaIdentifier);
+                    return $this->api->read('media', $mediaIdentifier);
                 } catch (\Omeka\Api\Exception\NotFoundException $e) {
                     return null;
                 }
@@ -697,8 +822,8 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     protected function _setItemSetId()
     {
         if ($this->_item_set_identifier) {
-            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
-            $resource = $getResourceFromIdentifier($this->_item_set_identifier, false, 'item_sets');
+            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
+            $resource = $getResourceFromIdentifierHelper($this->_item_set_identifier, false, 'item_sets');
             $this->_item_set_id = $resource ? $resource->id() : null;
         }
         return $this->_item_set_id;
@@ -707,14 +832,14 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     protected function _setItemId()
     {
         if ($this->_item_identifier) {
-            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
+            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
             if ($this->allowFullIdentifierItem()) {
-                $resource = $getResourceFromIdentifier($this->_item_identifier, true, 'items');
+                $resource = $getResourceFromIdentifierHelper($this->_item_identifier, true, 'items');
                 if (empty($resource) && $this->allowShortIdentifierItem()) {
-                    $resource = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
+                    $resource = $getResourceFromIdentifierHelper($this->_item_identifier, false, 'items');
                 }
             } else {
-                $resource = $getResourceFromIdentifier($this->_item_identifier, false, 'items');
+                $resource = $getResourceFromIdentifierHelper($this->_item_identifier, false, 'items');
             }
             $this->_item_id = $resource ? $resource->id() : null;
         }
@@ -724,14 +849,14 @@ abstract class AbstractCleanUrlController extends AbstractActionController
     protected function _setMediaId()
     {
         if ($this->_media_identifier) {
-            $getResourceFromIdentifier = $this->viewHelpers()->get('getResourceFromIdentifier');
+            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
             if ($this->allowFullIdentifierMedia()) {
-                $resource = $getResourceFromIdentifier($this->_media_identifier, true, 'media');
+                $resource = $getResourceFromIdentifierHelper($this->_media_identifier, true, 'media');
                 if (empty($resource) && $this->allowShortIdentifierMedia()) {
-                    $resource = $getResourceFromIdentifier($this->_media_identifier, false, 'media');
+                    $resource = $getResourceFromIdentifierHelper($this->_media_identifier, false, 'media');
                 }
             } else {
-                $resource = $getResourceFromIdentifier($this->_media_identifier, false, 'media');
+                $resource = $getResourceFromIdentifierHelper($this->_media_identifier, false, 'media');
             }
             $this->_media_id = $resource ? $resource->id() : null;
         }
@@ -740,7 +865,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     protected function allowShortIdentifierItem()
     {
-        return (bool) array_intersect(array_merge($this->settings()->get('cleanurl_item_allowed', []), $this->settings()->get('cleanurl_media_allowed', [])), [
+        return (bool) array_intersect(array_merge($this->settings->get('cleanurl_item_allowed', []), $this->settings->get('cleanurl_media_allowed', [])), [
             'generic_item',
             'generic_item_media',
             'generic_item_media_full',
@@ -752,7 +877,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     protected function allowFullIdentifierItem()
     {
-        return (bool) array_intersect(array_merge($this->settings()->get('cleanurl_item_allowed', []), $this->settings()->get('cleanurl_media_allowed', [])), [
+        return (bool) array_intersect(array_merge($this->settings->get('cleanurl_item_allowed', []), $this->settings->get('cleanurl_media_allowed', [])), [
             'generic_item_full',
             'generic_item_full_media',
             'generic_item_full_media_full',
@@ -764,7 +889,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     protected function allowShortIdentifierMedia()
     {
-        return (bool) array_intersect($this->settings()->get('cleanurl_media_allowed', []), [
+        return (bool) array_intersect($this->settings->get('cleanurl_media_allowed', []), [
             'generic_media',
             'generic_item_media',
             'generic_item_full_media',
@@ -776,7 +901,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
     protected function allowFullIdentifierMedia()
     {
-        return (bool) array_intersect($this->settings()->get('cleanurl_media_allowed', []), [
+        return (bool) array_intersect($this->settings->get('cleanurl_media_allowed', []), [
             'generic_media_full',
             'generic_item_media_full',
             'generic_item_full_media_full',
