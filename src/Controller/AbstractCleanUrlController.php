@@ -57,17 +57,17 @@ abstract class AbstractCleanUrlController extends AbstractActionController
         $this->apiAdapterManager = $apiAdapterManager;
     }
 
-    public function itemSetShowAction()
+    public function routeIitemSetAction()
     {
         $this->_item_set_identifier = $this->params('resource_identifier');
         $result = $this->_setItemSetId();
         if (empty($result)) {
             return $this->notFound();
         }
-        return $this->itemSetShow();
+        return $this->itemSet();
     }
 
-    protected function itemSetShow()
+    protected function itemSet()
     {
         return $this->space === '__ADMIN__'
            ? $this->forward()->dispatch($this->namespaceItemSet, [
@@ -87,7 +87,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             ]);
     }
 
-    public function itemsBrowseAction()
+    public function routeItemBrowseAction()
     {
         return $this->forward()->dispatch($this->namespaceItem, [
             '__NAMESPACE__' => $this->namespace,
@@ -138,7 +138,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
             switch ($this->_resource_name) {
                 case 'item_sets':
                     $this->_item_set_id = $this->_resource_id;
-                    return $this->itemSetShow();
+                    return $this->itemSet();
                 case 'media':
                     $this->_media_id = $this->_resource_id;
                     return $this->forward()->dispatch($this->namespaceMedia, [
@@ -445,7 +445,7 @@ abstract class AbstractCleanUrlController extends AbstractActionController
 
         if ($result['type'] === \Omeka\Entity\ItemSet::class) {
             $this->_item_set_id = $result['id'];
-            return $this->itemSetShow();
+            return $this->itemSet();
         }
 
         return $this->forward()->dispatch($this->namespaceMedia, [

@@ -329,7 +329,7 @@ class CleanRoute implements RouteInterface
                             '__NAMESPACE__' => $namespaceController,
                             $space => true,
                             'controller' => 'CleanUrlController',
-                            'action' => 'items-browse',
+                            'action' => 'route-item-browse',
                             'site-slug' => $siteSlug,
                         ],
                     ];
@@ -401,7 +401,7 @@ class CleanRoute implements RouteInterface
                         '__NAMESPACE__' => $namespaceController,
                         $space => true,
                         'controller' => 'CleanUrlController',
-                        'action' => 'item-set-show',
+                        'action' => 'route-item-set',
                         'site-slug' => $siteSlug,
                     ],
                 ];

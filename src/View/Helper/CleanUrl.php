@@ -110,14 +110,14 @@ class CleanUrl extends Url
                     $params['controller'] = $this->controllerName($params['resource']);
                 }
                 $actions = [
-                    'item-set-show' => 'show',
-                    'route-item-set-media' => 'show',
-                    'route-item-set-item-media' => 'show',
+                    'route-item-browse' => 'browse',
+                    'route-item' => 'show',
+                    'route-item-set' => 'show',
                     'route-item-set-item' => 'show',
+                    'route-item-set-item-media' => 'show',
+                    'route-item-set-media' => 'show',
                     'route-media' => 'show',
                     'route-item-media' => 'show',
-                    'items-browse' => 'browse',
-                    'route-item' => 'show',
                 ];
                 if (isset($params['action']) && isset($actions[$params['action']])) {
                     $params['action'] = $actions[$params['action']];
