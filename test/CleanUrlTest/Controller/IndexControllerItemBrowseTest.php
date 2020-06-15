@@ -2,7 +2,7 @@
 
 namespace CleanUrlTest\Controller;
 
-class IndexControllerItemsBrowseTest extends CleanUrlControllerTestCase
+class IndexControllerItemBrowseTest extends CleanUrlControllerTestCase
 {
     protected function getSettings()
     {
@@ -18,7 +18,7 @@ class IndexControllerItemsBrowseTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testRouteItemsBrowseAction()
+    public function testRouteItemBrowseAction()
     {
         $site_slug = $this->site->slug();
         $path = "/s/$site_slug/document";
@@ -26,7 +26,7 @@ class IndexControllerItemsBrowseTest extends CleanUrlControllerTestCase
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName(\CleanUrl\Controller\Site\CleanUrlController::class);
-        $this->assertActionName('items-browse');
+        $this->assertActionName('route-item-browse');
 
         $this->assertQueryContentContains('#content > h2', 'Items');
     }

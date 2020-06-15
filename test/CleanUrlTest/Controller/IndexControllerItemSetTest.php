@@ -2,7 +2,7 @@
 
 namespace CleanUrlTest\Controller;
 
-class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
+class IndexControllerItemSetTest extends CleanUrlControllerTestCase
 {
     protected function getSettings()
     {
@@ -17,7 +17,7 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testItemSetShowAction()
+    public function testItemSetAction()
     {
         $site_slug = $this->site->slug();
         $item_set_identifier = $this->item_set->value('dcterms:identifier');
@@ -26,11 +26,11 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName(\CleanUrl\Controller\Site\CleanUrlController::class);
-        $this->assertActionName('item-set-show');
+        $this->assertActionName('route-item-set');
         $this->assertQueryContentContains('#content > h2', 'Item Set 1');
     }
 
-    public function testItemSetShowActionForSecondItemSet()
+    public function testItemSetActionForSecondItemSet()
     {
         $site_slug = $this->site->slug();
         $item_set_identifier = $this->item_set_2->value('dcterms:identifier');
@@ -39,7 +39,7 @@ class IndexControllerItemSetShowTest extends CleanUrlControllerTestCase
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName(\CleanUrl\Controller\Site\CleanUrlController::class);
-        $this->assertActionName('item-set-show');
+        $this->assertActionName('route-item-set');
         $this->assertQueryContentContains('#content > h2', 'Item Set 2');
     }
 }
