@@ -25,6 +25,14 @@ $regexSitePage = SLUG_PAGE
     . '|(?P<page_slug>[a-zA-Z0-9_-]+))';
 
 return [
+    'service_manager' => [
+        'invokables' => [
+            'CleanUrl\MvcListeners' => Mvc\MvcListeners::class,
+        ],
+    ],
+    'listeners' => [
+        'CleanUrl\MvcListeners',
+    ],
     'view_manager' => [
         'controller_map' => [
             Controller\Site\PageController::class => 'omeka/site/page',
@@ -51,10 +59,6 @@ return [
         'invokables' => [
             // Override the page controller used for the root url.
             'Omeka\Controller\Site\Page' => Controller\Site\PageController::class,
-        ],
-        'factories' => [
-            Controller\Admin\CleanUrlController::class => Service\Controller\Admin\CleanUrlControllerFactory::class,
-            Controller\Site\CleanUrlController::class => Service\Controller\Site\CleanUrlControllerFactory::class,
         ],
     ],
     'router' => [
