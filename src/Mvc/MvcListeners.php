@@ -189,14 +189,16 @@ class MvcListeners extends AbstractListenerAggregate
                 'controller' => $this->namespaceItemSet,
                 'action' => 'show',
                 'id' => $this->_item_set_id,
+                'cleanurl_route' => $this->params['action'],
             ])
             : $this->forwardRouteMatch('site/item-set', [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $this->namespaceItem,
                 'action' => 'browse',
-                'site-slug' => $this->params['site-slug'],
                 'item-set-id' => $this->_item_set_id,
+                'cleanurl_route' => $this->params['action'],
             ]);
     }
 
@@ -207,9 +209,10 @@ class MvcListeners extends AbstractListenerAggregate
             [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $this->namespaceItem,
                 'action' => 'browse',
-                'site-slug' => $this->params['site-slug'],
+                'cleanurl_route' => $this->params['action'],
             ]
         );
     }
@@ -262,10 +265,11 @@ class MvcListeners extends AbstractListenerAggregate
                         [
                             '__NAMESPACE__' => $this->namespace,
                             $this->space => true,
+                            'site-slug' => $this->params['site-slug'],
                             'controller' => $this->namespaceMedia,
                             'action' => 'show',
-                            'site-slug' => $this->params['site-slug'],
                             'id' => $this->_resource_id,
+                            'cleanurl_route' => $this->params['action'],
                         ]
                     );
                     break;
@@ -284,10 +288,11 @@ class MvcListeners extends AbstractListenerAggregate
             [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $this->namespaceItem,
                 'action' => 'show',
-                'site-slug' => $this->params['site-slug'],
                 'id' => $this->_resource_id,
+                'cleanurl_route' => $this->params['action'],
             ]
         );
     }
@@ -316,10 +321,11 @@ class MvcListeners extends AbstractListenerAggregate
             [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $this->namespaceMedia,
                 'action' => 'show',
-                'site-slug' => $this->params['site-slug'],
                 'id' => $this->_resource_id,
+                'cleanurl_route' => $this->params['action'],
             ]
         );
     }
@@ -389,10 +395,11 @@ class MvcListeners extends AbstractListenerAggregate
             [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $this->namespaceMedia,
                 'action' => 'show',
-                'site-slug' => $this->params['site-slug'],
                 'id' => $this->_resource_id,
+                'cleanurl_route' => $this->params['action'],
             ]
         );
     }
@@ -578,10 +585,11 @@ class MvcListeners extends AbstractListenerAggregate
             [
                 '__NAMESPACE__' => $this->namespace,
                 $this->space => true,
+                'site-slug' => $this->params['site-slug'],
                 'controller' => $result['type'] === \Omeka\Entity\Media::class ? $this->namespaceMedia : $this->namespaceItem,
                 'action' => 'show',
-                'site-slug' => $this->params['site-slug'],
                 'id' => $result['id'],
+                'cleanurl_route' => $this->params['action'],
             ]
         );
     }
