@@ -169,6 +169,8 @@ create more than ten millions of unique names.
 
 To config it, use these params:
 - Resource identifiers: `prefix = ark:/12345/`.
+- Identifier are case sensitive: set true if you choose a format with a full
+  alphabet (uppercase and lowercase letters).
 - Main base path: `main path = ark:/` and `sub-main path = 12345/`; if another
   main path is added, set them as sub-main path and sub-sub-main path path.
 - Content: `default url = / generic / item identifier`, no generic path,

@@ -101,6 +101,17 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
+                'name' => 'cleanurl_identifier_case_sensitive',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Identifiers are case sensitive', // @translate
+                    'info' => 'Some formats of short identifiers are case sensitive, so search will be done in a binary way.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_identifier_case_sensitive',
+                ],
+            ])
+            ->add([
                 'name' => 'cleanurl_identifier_undefined',
                 'type' => Element\Radio::class,
                 'options' => [
@@ -561,6 +572,10 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_identifier_unspace',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'cleanurl_identifier_case_sensitive',
                 'required' => false,
             ])
             ->add([

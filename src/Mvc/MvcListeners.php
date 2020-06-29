@@ -638,16 +638,17 @@ class MvcListeners extends AbstractListenerAggregate
     {
         $propertyId = (int) $this->settings->get('cleanurl_identifier_property');
 
-        // Use of ordered placeholders.
-        $bind = [];
-
         $identifiers = array_unique(array_filter($identifiers));
         $in = implode(',', array_fill(0, count($identifiers), '?'));
 
+        // Use of ordered placeholders.
+        $bind = $identifiers;
+
         $sqlFrom = 'FROM resource';
 
-        $sqlWhereValue = "AND value.value IN ($in)";
-        $bind = array_merge($bind, $identifiers);
+        $sqlWhereValue = $this->settings->get('cleanurl_identifier_case_sensitive')
+            ? "AND value.value COLLATE utf8mb4_bin IN ($in)"
+            : "AND value.value IN ($in)";
 
         // Checks if url contains generic or true item set.
         $sqlWhereItemSet = '';

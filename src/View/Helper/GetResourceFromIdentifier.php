@@ -3,6 +3,7 @@
 namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
+use Omeka\Api\Exception\NotFoundException;
 use Zend\View\Helper\AbstractHelper;
 
 /**
@@ -67,9 +68,11 @@ class GetResourceFromIdentifier extends AbstractHelper
             $sqlWhereIsPublic = 'AND resource.is_public = 1';
         }
 
+        $collation = $this->view->setting('cleanurl_identifier_case_sensitive') ? 'COLLATE utf8mb4_bin' : '';
+
         if ($withPrefix) {
+            $sqlWhereText = "AND value.value $collation = ?";
             $bind[] = $identifier;
-            $sqlWhereText = 'AND value.value = ?';
         } else {
             $prefix = $this->view->setting('cleanurl_identifier_prefix');
             $identifiers = [
@@ -86,24 +89,23 @@ class GetResourceFromIdentifier extends AbstractHelper
                 }
             }
             $in = implode(',', array_fill(0, count($identifiers), '?'));
-
-            $sqlWhereText = "AND value.value IN ($in)";
+            $sqlWhereText = "AND value.value $collation IN ($in)";
             $bind = array_merge($bind, $identifiers);
         }
 
-        $sql = "
-            SELECT resource.resource_type, value.resource_id
-            FROM value
-                LEFT JOIN resource ON (value.resource_id = resource.id)
-            WHERE value.property_id = '$propertyId'
-                $sqlResourceType
-                $sqlWhereText
-                $sqlWhereIsPublic
-            $sqlOrder
-            LIMIT 1
-        ";
-        $result = $this->connection->fetchAssoc($sql, $bind);
+        $sql = <<<SQL
+SELECT resource.resource_type, value.resource_id
+FROM value
+LEFT JOIN resource ON (value.resource_id = resource.id)
+WHERE value.property_id = $propertyId
+    $sqlResourceType
+    $sqlWhereText
+    $sqlWhereIsPublic
+$sqlOrder
+LIMIT 1;
+SQL;
 
+        $result = $this->connection->fetchAssoc($sql, $bind);
         $resource = null;
         if ($result) {
             $resourceTypes = [
@@ -112,12 +114,13 @@ class GetResourceFromIdentifier extends AbstractHelper
                 \Omeka\Entity\Media::class => 'media',
             ];
             $resource = $this->view->api()->read($resourceTypes[$result['resource_type']], $result['resource_id'])->getContent();
-        } else {
+        } elseif (is_numeric($identifier) && $id = (int) $identifier) {
             // Return the resource via the Omeka id.
-            $id = (int) $identifier;
             $resourceName = $resourceName ?: 'resources';
-            if ($id !== 0) {
+            try {
                 $resource = $this->view->api()->read($resourceName, $id)->getContent();
+            } catch (NotFoundException $e) {
+                $resource = null;
             }
         }
 
