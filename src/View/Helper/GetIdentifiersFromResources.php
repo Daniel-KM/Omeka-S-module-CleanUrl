@@ -31,43 +31,41 @@ class GetIdentifiersFromResources extends AbstractHelper
      *
      * @todo Return public files when public is checked.
      *
-     * @param array|AbstractResourceEntityRepresentation|Resource $resources
+     * @param array|AbstractResourceEntityRepresentation|Resource|int $resources
      * A list of resources as object or as array of ids. Types shouldn't be
      * mixed. If object, it should be a resource.
      * @param string $resourceType The resource type or the resouce name if
      * $resources is an array.
      * @param bool $checkPublic Filter results by public (default).
-     * @return array|string List of strings with id as key and identifier as value.
+     * @return array|string|null List of strings with id as key and identifier as value.
      * Duplicates are not returned. If a single resource is provided, return a
      * single string. Order is not kept.
      */
     public function __invoke($resources, $resourceType = null, $checkPublic = true)
     {
-        // Check the list of resources.
-        if (empty($resources)) {
-            return;
+        $isSingle = !is_array($resources);
+        if ($isSingle) {
+            $resources = [$resources];
         }
 
-        $one = is_object($resources);
-        if ($one) {
-            $resources = [$resources];
+        // Check the list of resources.
+        if (empty($resources)) {
+            return $isSingle ? null : [];
         }
 
         // Extract internal ids from the list of resources.
         $first = reset($resources);
         if (is_object($first)) {
             if ($first instanceof AbstractResourceEntityRepresentation) {
-                $resourceType = $first->resourceName();
                 $resources = array_map(function ($v) {
                     return $v->id();
                 }, $resources);
             } elseif ($first instanceof Resource) {
-                $resourceType = $first->getResourceName();
                 $resources = array_map(function ($v) {
                     return $v->getId();
                 }, $resources);
             } else {
-                return;
+                return $isSingle ? null : [];
             }
         }
         // Cast to integer the resources in an array.
@@ -77,7 +75,7 @@ class GetIdentifiersFromResources extends AbstractHelper
 
         $resources = array_filter($resources);
         if (empty($resources)) {
-            return;
+            return $isSingle ? null : [];
         }
 
         // Check and normalize the resource type.
@@ -90,11 +88,13 @@ class GetIdentifiersFromResources extends AbstractHelper
             \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
             \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
         ];
-        if (!isset($resourceTypes[$resourceType])) {
-            return;
+        if ($resourceType && !isset($resourceTypes[$resourceType])) {
+            return $isSingle ? null : [];
         }
 
-        $resourceType = $resourceTypes[$resourceType];
+        $resourceType = $resourceType
+            ? $resourceTypes[$resourceType]
+            : null;
         $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
         $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
@@ -104,12 +104,16 @@ class GetIdentifiersFromResources extends AbstractHelper
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
             ->andWhere('value.property_id = :property_id')
             ->setParameter('property_id', $propertyId)
-            ->andWhere('resource.resource_type = :resource_type')
-            ->setParameter('resource_type', $resourceType)
             // Only one identifier by resource.
             ->groupBy(['value.resource_id'])
             ->addOrderBy('value.resource_id', 'ASC')
             ->addOrderBy('value.id', 'ASC');
+
+        if ($resourceType) {
+            $qb
+                ->andWhere('resource.resource_type = :resource_type')
+                ->setParameter('resource_type', $resourceType);
+        }
 
         if ($prefix) {
             $qb
@@ -136,7 +140,7 @@ class GetIdentifiersFromResources extends AbstractHelper
                 ->andWhere('resource.is_public = 1');
         }
 
-        if ($one) {
+        if ($isSingle) {
             $qb->setMaxResults(1);
         }
 
@@ -172,7 +176,7 @@ class GetIdentifiersFromResources extends AbstractHelper
 
         $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
         $result = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
-        return $one
+        return $isSingle
             ? array_shift($result)
             : $result;
     }
