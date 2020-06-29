@@ -130,19 +130,13 @@ class CleanRoute implements RouteInterface
         $mainShort = $this->settings['main_short'];
         if (in_array($mainShort, ['main', 'main_sub', 'main_sub_sub'])) {
             // Set specific settings temporary to create routes.
-            $mainPathFull = $this->settings['main_path_full'];
-            $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
-            $regexMainPathFull = $this->settings['regex']['main_path_full'];
+            $savedSettings = $this->settings;
             $this->settings['main_path_full'] = $this->settings['main_short_path_full'];
             $this->settings['main_path_full_encoded'] = $this->settings['main_short_path_full_encoded'];
             $this->settings['regex']['main_path_full'] = $this->settings['main_short_path_full_regex'];
-
             $this->loopRoutes(true);
-
             // Reset to original settings.
-            $this->settings['main_path_full'] = $mainPathFull;
-            $this->settings['main_path_full_encoded'] = $mainPathFullEncoded;
-            $this->settings['regex']['main_path_full'] = $regexMainPathFull;
+            $this->settings = $savedSettings;
         }
     }
 
@@ -185,7 +179,7 @@ class CleanRoute implements RouteInterface
                 'CleanUrl\Controller\Site',
                 null,
                 '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
-                '/' . SLUG_SITE . '/%site-slug%/',
+                '/' . SLUG_SITE . '%site-slug%/',
             ];
         }
         if ($isAdmin) {
