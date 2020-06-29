@@ -101,17 +101,6 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_identifier_case_insensitive',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Allow case insensitive identifier', // @translate
-                    'info' => 'If checked, all resources will be available via an insensitive url too. This option is generally useless, because databases are case insensitive by default. When this option is set, it’s recommended to add an index for lower strings.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_identifier_case_insensitive',
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_identifier_undefined',
                 'type' => Element\Radio::class,
                 'options' => [
@@ -572,10 +561,6 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_identifier_unspace',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_case_insensitive',
                 'required' => false,
             ])
             ->add([
