@@ -186,6 +186,7 @@ TODO
 
 - Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
 - Forward/Redirect to the canonical url
+- Replace the check with/without space by a job that cleans all identifiers.
 
 
 Warning
@@ -234,7 +235,8 @@ Copyright
 
 First version of this plugin has been built for [École des Ponts ParisTech].
 The upgrade for Omeka 2.0 has been built for [Mines ParisTech]. The upgrade for
-Omeka S was built by [BibLibre] for [Paris Sciences et Lettres (PSL)].
+Omeka S was built by [BibLibre] for [Paris Sciences et Lettres (PSL)]. Then, the
+module was rewritten to manage various requirements.
 
 
 [Clean Url]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
