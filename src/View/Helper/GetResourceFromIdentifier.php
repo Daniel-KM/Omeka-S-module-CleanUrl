@@ -69,12 +69,12 @@ class GetResourceFromIdentifier extends AbstractHelper
         }
 
         $collation = $this->view->setting('cleanurl_identifier_case_sensitive') ? 'COLLATE utf8mb4_bin' : '';
+        $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
-        if ($withPrefix) {
+        if ($withPrefix || !strlen($prefix)) {
             $sqlWhereText = "AND value.value $collation = ?";
             $bind[] = $identifier;
         } else {
-            $prefix = $this->view->setting('cleanurl_identifier_prefix');
             $identifiers = [
                 $prefix . $identifier,
                 $prefix . ' ' . $identifier, // Check with a space between prefix and identifier too.
