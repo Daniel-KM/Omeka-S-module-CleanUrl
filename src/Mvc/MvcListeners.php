@@ -632,67 +632,78 @@ class MvcListeners extends AbstractListenerAggregate
      *
      * @todo Use the standard getResourceFromIdentifier().
      *
+     * @param array $identifiers
+     * @param int $itemSetId
+     * @param int $itemId
+     * @param string $resourceName
      * @return array|null Id and type of the resource.
      */
     protected function queryResource(array $identifiers, $itemSetId = null, $itemId = null, $resourceName = null)
     {
-        $propertyId = (int) $this->settings->get('cleanurl_identifier_property');
-
+        // Adapted from \CleanUrl\View\Helper\GetResourcesFromIdentifiers().
         $identifiers = array_unique(array_filter($identifiers));
-        $in = implode(',', array_fill(0, count($identifiers), '?'));
+        if (!count($identifiers)) {
+            return null;
+        }
 
-        // Use of ordered placeholders.
-        $bind = $identifiers;
+        $propertyId = (int) $this->settings->get('cleanurl_identifier_property');
+        if (!$propertyId) {
+            return null;
+        }
 
-        $sqlFrom = 'FROM resource';
+        $parameters = [];
 
-        $sqlWhereValue = $this->settings->get('cleanurl_identifier_case_sensitive')
-            ? "AND value.value COLLATE utf8mb4_bin IN ($in)"
-            : "AND value.value IN ($in)";
+        $caseSensitiveIdentifier = (bool) $this->settings->get('cleanurl_identifier_case_sensitive');
+        $collation = $caseSensitiveIdentifier ? 'COLLATE utf8mb4_bin' : '';
+
+        $qb = $this->connection->createQueryBuilder();
+        $expr = $qb->expr();
+        $qb
+            ->select([
+                'resource.id',
+                'resource.resource_type AS type',
+            ])
+            ->from('resource', 'resource')
+            ->leftJoin('resource', 'value', 'value', 'value.resource_id = resource.id')
+            ->where($expr->eq('value.property_id', ':property_id'))
+            ->andWhere($expr->in("value.value $collation", array_map([$this->connection, 'quote'], $identifiers)))
+            ->addOrderBy('"id"', 'ASC')
+            ->setMaxResults(1);
+
+        $parameters['property_id'] = $propertyId;
 
         // Checks if url contains generic or true item set.
-        $sqlWhereItemSet = '';
         if ($itemSetId) {
             switch ($resourceName) {
                 case 'items':
-                    $sqlFrom .= '
-                        JOIN item_item_set ON (resource.id = item_item_set.item_id)
-                    ';
-                    $sqlWhereItemSet = 'AND item_item_set.item_set_id = ?';
-                    $bind[] = $itemSetId;
+                    $qb
+                        ->join('resource', 'item_item_set', 'item_item_set', 'resource.id = item_item_set.item_id')
+                        ->andWhere($expr->eq('item_item_set.item_set_id', ':item_set_id'));
+                    $parameters['item_set_id'] = $itemSetId;
                     break;
-
                 case 'media':
-                    $sqlFrom .= '
-                        JOIN media ON (resource.id = media.id)
-                        JOIN item_item_set ON (media.item_id = item_item_set.item_id)
-                    ';
-                    $sqlWhereItemSet = 'AND item_item_set.item_set_id = ?';
-                    $bind[] = $itemSetId;
+                    $qb
+                        ->join('resource', 'media', 'media', 'resource.id = media.id')
+                        ->join('resource', 'item_item_set', 'item_item_set', 'media.item_id = item_item_set.item_id')
+                        ->andWhere($expr->eq('item_item_set.item_set_id', ':item_set_id'));
+                    $parameters['item_set_id'] = $itemSetId;
                     break;
             }
         }
 
-        $sqlWhereResourceType = '';
         if ($resourceName) {
             $apiAdapter = $this->apiAdapterManager->get($resourceName);
             $resourceType = $apiAdapter->getEntityClass();
-            $sqlWhereResourceType = 'AND resource.resource_type = ?';
-            $bind[] = $resourceType;
+            $qb
+                ->andWhere($expr->eq('resource.resource_type', ':resource_type'));
+            $parameters['resource_type'] = $resourceType;
         }
 
-        $sql = "
-            SELECT resource.id, resource.resource_type AS type
-            $sqlFrom
-                JOIN value ON (resource.id = value.resource_id)
-            WHERE value.property_id = '$propertyId'
-                $sqlWhereValue
-                $sqlWhereItemSet
-                $sqlWhereResourceType
-            LIMIT 1
-        ";
+        $qb
+            ->setParameters($parameters);
 
-        $result = $this->connection->fetchAssoc($sql, $bind);
+        $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
+        $result = $stmt->fetch();
 
         // Additional check for item identifier: the media should belong to item.
         // TODO Include this in the query.
