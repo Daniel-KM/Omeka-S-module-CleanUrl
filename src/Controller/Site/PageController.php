@@ -7,6 +7,8 @@ class PageController extends \Omeka\Controller\Site\PageController
 {
     public function showAction()
     {
+        $view = new ViewModel;
+
         /** @var \Omeka\Api\Representation\SiteRepresentation $site */
         $site = $this->currentSite();
 
@@ -24,17 +26,14 @@ class PageController extends \Omeka\Controller\Site\PageController
             // Redirect to the configured homepage, if it exists.
             $page = method_exists($site, 'homepage') ? $site->homepage() : null;
             if (!$page) {
-                // Redirect to the first linked page, if it exists.
+                // Redirect to first linked page if any, else to list of sites.
                 $linkedPages = $site->linkedPages();
-                if ($linkedPages) {
-                    $page = current($linkedPages);
-                } else {
-                    $view = new ViewModel;
-                    $view
+                if (!count($linkedPages)) {
+                    return $view
                         ->setTemplate('omeka/site/index/index')
                         ->setVariable('site', $site);
-                    return $view;
                 }
+                $page = current($linkedPages);
             }
         }
 
@@ -42,7 +41,6 @@ class PageController extends \Omeka\Controller\Site\PageController
 
         $this->viewHelpers()->get('sitePagePagination')->setPage($page);
 
-        $view = new ViewModel;
         $view
             ->setVariable('site', $site)
             ->setVariable('page', $page)

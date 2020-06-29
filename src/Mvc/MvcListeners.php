@@ -104,6 +104,21 @@ class MvcListeners extends AbstractListenerAggregate
         if (!in_array($action, $actions)) {
             // TODO Remove the clean url controler for page.
             // It may be a page, that is managed via controller currently.
+            if ($action === 'top' && empty($this->params['page-slug'])) {
+                // @see \Omeka\Controller\Site\IndexController::indexAction()
+                /** @var \Omeka\Api\Representation\SiteRepresentation $site */
+                $site = $event->getApplication()->getServiceManager()->get('ControllerPluginManager')->get('currentSite')->__invoke();
+                $page = method_exists(\Omeka\Api\Representation\SiteRepresentation::class, 'homepage') ? $site->homepage() : null;
+                if (!$page) {
+                    $linkedPages = $site->linkedPages();
+                    if (!count($linkedPages)) {
+                        return;
+                    }
+                    $page = current($linkedPages);
+                }
+                $this->params['page-slug'] = $page->slug();
+                return $this->forwardRouteMatch('top', $this->params);
+            }
             return;
         }
 
