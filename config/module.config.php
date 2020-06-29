@@ -40,12 +40,12 @@ return [
     ],
     'view_helpers' => [
         'invokables' => [
+            'getResourceFromIdentifier' => View\Helper\GetResourceFromIdentifier::class,
             'url' => View\Helper\CleanUrl::class,
             'Url' => View\Helper\CleanUrl::class,
         ],
         'factories' => [
             'getIdentifiersFromResources' => Service\ViewHelper\GetIdentifiersFromResourcesFactory::class,
-            'getResourceFromIdentifier' => Service\ViewHelper\GetResourceFromIdentifierFactory::class,
             'getResourcesFromIdentifiers' => Service\ViewHelper\GetResourcesFromIdentifiersFactory::class,
             'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
             'getResourceIdentifier' => Service\ViewHelper\GetResourceIdentifierFactory::class,
