@@ -18,7 +18,6 @@ $connection = $services->get('Omeka\Connection');
 $entityManager = $services->get('Omeka\EntityManager');
 $plugins = $services->get('ControllerPluginManager');
 $api = $plugins->get('api');
-$space = strtolower(__NAMESPACE__);
 
 if (version_compare($oldVersion, '3.14', '<')) {
     $settings->set('clean_url_identifier_property',
@@ -53,7 +52,7 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
         $message = $t->translate('Unable to copy config files "config/clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka.'); // @translate
         $messenger->addWarning($message);
         $logger = $services->get('Omeka\Logger');
-        $logger->err('The file "clean_url.dynamic.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka is not writeable.'); // @translate
+        $logger->err('The file "clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka is not writeable.'); // @translate
     }
 
     $messenger->addWarning($t->translate('Check the new config file "config/clean_url.config.php" and remove the old one in the config directory of Omeka.')); // @translate
@@ -123,4 +122,19 @@ if (version_compare($oldVersion, '3.15.15', '<')) {
     $this->cacheRouteSettings();
     $this->cacheCleanData();
     $this->cacheItemSetsRegex();
+}
+
+if (version_compare($oldVersion, '3.15.17', '<')) {
+    $source = __DIR__ . '/../../config/clean_url.config.php';
+    $dest = OMEKA_PATH . '/config/clean_url.config.php';
+    $t = $services->get('MvcTranslator');
+    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+    $logger = $services->get('Omeka\Logger');
+    if (!is_readable($source) || !is_writeable(dirname($dest)) || !is_writeable($dest)) {
+        $message = $t->translate('Unable to copy config files "config/clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka.'); // @translate
+        $messenger->addWarning($message);
+        $logger->err('The file "clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka is not writeable.'); // @translate
+    } else {
+        copy($source, $dest);
+    }
 }
