@@ -327,9 +327,10 @@ class MvcListeners extends AbstractListenerAggregate
             if (!$media) {
                 return $this->notFound();
             }
+            $id = $media->id();
         }
 
-        $this->_resource_id = $media->id();
+        $this->_resource_id = $id;
 
         return $this->forwardRouteMatch(
             $this->isAdmin ? 'admin/id' : 'site/resource-id',
@@ -837,7 +838,7 @@ class MvcListeners extends AbstractListenerAggregate
             case 'id':
             default:
                 try {
-                    return $this->api->read('media', $mediaIdentifier);
+                    return $this->api->read('media', $mediaIdentifier)->getContent();
                 } catch (\Omeka\Api\Exception\NotFoundException $e) {
                     return null;
                 }
