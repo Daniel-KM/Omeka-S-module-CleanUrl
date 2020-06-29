@@ -46,6 +46,7 @@ return [
         'factories' => [
             'getIdentifiersFromResources' => Service\ViewHelper\GetIdentifiersFromResourcesFactory::class,
             'getResourceFromIdentifier' => Service\ViewHelper\GetResourceFromIdentifierFactory::class,
+            'getResourcesFromIdentifiers' => Service\ViewHelper\GetResourcesFromIdentifiersFactory::class,
             'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
             'getResourceIdentifier' => Service\ViewHelper\GetResourceIdentifierFactory::class,
         ],
