@@ -190,7 +190,6 @@ return [
             'cleanurl_identifier_property' => 10,
             'cleanurl_identifier_prefix' => 'document:',
             'cleanurl_identifier_unspace' => false,
-            'cleanurl_identifier_case_insensitive' => false,
             'cleanurl_identifier_undefined' => 'default',
             'cleanurl_main_path' => '',
             'cleanurl_main_path_2' => '',

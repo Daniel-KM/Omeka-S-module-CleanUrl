@@ -18,13 +18,14 @@ class GetResourceFromIdentifier extends AbstractHelper
     }
 
     /**
-     * Get resource from identifier
+     * Get a resource from an identifier.
+     *
+     * @todo Use entity manager, not connection.
      *
      * @param string $identifier The identifier of the resource to find.
      * @param bool $withPrefix Optional. If identifier begins with prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
-     * @return \Omeka\Api\Representation\AbstractResourceRepresentation|null The
-     * resource.
+     * @return \Omeka\Api\Representation\AbstractResourceRepresentation|null
      */
     public function __invoke($identifier, $withPrefix = false, $resourceName = null)
     {
@@ -49,7 +50,7 @@ class GetResourceFromIdentifier extends AbstractHelper
                 \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
             ];
             if (!isset($resourceTypes[$resourceName])) {
-                return;
+                return null;
             }
 
             $sqlResourceType = "AND resource.resource_type = ?";
@@ -67,16 +68,8 @@ class GetResourceFromIdentifier extends AbstractHelper
         }
 
         if ($withPrefix) {
-            // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('cleanurl_identifier_case_insensitive')) {
-                $bind[] = strtolower($identifier);
-                $sqlWhereText = 'AND LOWER(value.value) = ?';
-            }
-            // Default.
-            else {
-                $bind[] = $identifier;
-                $sqlWhereText = 'AND value.value = ?';
-            }
+            $bind[] = $identifier;
+            $sqlWhereText = 'AND value.value = ?';
         } else {
             $prefix = $this->view->setting('cleanurl_identifier_prefix');
             $identifiers = [
@@ -94,15 +87,7 @@ class GetResourceFromIdentifier extends AbstractHelper
             }
             $in = implode(',', array_fill(0, count($identifiers), '?'));
 
-            // If the table is case sensitive, lower-case the search.
-            if ($this->view->setting('cleanurl_identifier_case_insensitive')) {
-                $identifiers = array_map('strtolower', $identifiers);
-                $sqlWhereText = "AND LOWER(value.value) IN ($in)";
-            }
-            // Default.
-            else {
-                $sqlWhereText = "AND value.value IN ($in)";
-            }
+            $sqlWhereText = "AND value.value IN ($in)";
             $bind = array_merge($bind, $identifiers);
         }
 

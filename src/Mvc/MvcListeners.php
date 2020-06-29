@@ -646,17 +646,7 @@ class MvcListeners extends AbstractListenerAggregate
 
         $sqlFrom = 'FROM resource';
 
-        // If the table is case sensitive, lower-case the search.
-        if ($this->settings->get('cleanurl_identifier_case_insensitive')) {
-            $identifiers = array_map('mb_strtolower', $identifiers);
-            $sqlWhereValue =
-                "AND LOWER(value.value) IN ($in)";
-        }
-        // Default.
-        else {
-            $sqlWhereValue =
-                "AND value.value IN ($in)";
-        }
+        $sqlWhereValue = "AND value.value IN ($in)";
         $bind = array_merge($bind, $identifiers);
 
         // Checks if url contains generic or true item set.

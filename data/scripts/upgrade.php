@@ -137,4 +137,6 @@ if (version_compare($oldVersion, '3.15.17', '<')) {
     } else {
         copy($source, $dest);
     }
+
+    $settings->delete('cleanurl_identifier_case_insensitive');
 }
