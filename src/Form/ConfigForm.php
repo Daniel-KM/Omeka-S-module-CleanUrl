@@ -39,6 +39,7 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_site_slug',
+                    'placeholder' => 's/', // @translate
                 ],
             ])
             ->add([
@@ -49,6 +50,7 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_page_slug',
+                    'placeholder' => 'page/', // @translate
                 ],
             ]);
 
