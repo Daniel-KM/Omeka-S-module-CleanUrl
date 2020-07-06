@@ -321,7 +321,7 @@ class MvcListeners extends AbstractListenerAggregate
         $id = $this->_routeResource();
 
         // If no identifier exists, the module tries to use the identifier
-        // specified ini the config, or the resource id directly.
+        // specified in the config, or the resource id directly.
         if (!$id) {
             $media = $this->retrieveMedia($this->_resource_identifier);
             if (!$media) {
@@ -384,7 +384,7 @@ class MvcListeners extends AbstractListenerAggregate
         $id = $this->_routeResource();
 
         // If no identifier exists, the module tries to use the identifier
-        // specified ini the config, or the resource id directly.
+        // specified in the config, or the resource id directly.
         if (!$id) {
             $resource = $this->retrieveMedia($this->_resource_identifier, $itemId);
             if (!$resource) {
