@@ -22,13 +22,56 @@ class GetResourcesFromIdentifiers extends AbstractHelper
     protected $supportAnyValue;
 
     /**
+     * @var int
+     */
+    protected $propertyId;
+
+    /**
+     * @var string
+     */
+    protected $prefix;
+
+    /**
+     * @var bool
+     */
+    protected $unspace;
+
+    /**
+     * @var bool
+     */
+    protected $caseSensitiveIdentifier;
+
+    /**
+     * @var bool
+     */
+    protected $prefixIsPartOfIdentifier;
+
+    /**
+     *
      * @param Connection $connection
      * @param bool $supportAnyValue
+     * @param int $propertyId
+     * @param string $prefix
+     * @param bool $unspace
+     * @param bool $caseSensitiveIdentifier
+     * @param bool $prefixIsPartOfIdentifier
      */
-    public function __construct(Connection $connection, $supportAnyValue)
-    {
+    public function __construct(
+        Connection $connection,
+        $supportAnyValue,
+        $propertyId,
+        $prefix,
+        $unspace,
+        $caseSensitiveIdentifier,
+        $prefixIsPartOfIdentifier
+    ) {
         $this->connection = $connection;
         $this->supportAnyValue = $supportAnyValue;
+        $this->propertyId = $propertyId;
+        $this->prefix = $prefix;
+        $this->unspace = $unspace;
+        $this->caseSensitiveIdentifier = $caseSensitiveIdentifier;
+        $this->prefixIsPartOfIdentifier = $prefixIsPartOfIdentifier;
     }
 
     /**
@@ -39,18 +82,21 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      *
      * @param array $identifiers Identifiers to find. May be numeric Omeka ids.
      *   Identifiers are raw-url-decoded.
-     * @param bool $withPrefix Optional. If identifiers start with the prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
      * @return \Omeka\Api\Representation\AbstractResourceRepresentation[]
      *   Associative array of resources by identifier. The resource is null if
      *   not found. Note: the number of found resources may be lower than the
      *   identifiers in case of duplicate identifiers.
      */
-    public function __invoke(array $identifiers, $withPrefix = false, $resourceName = null)
+    public function __invoke(array $identifiers, $resourceName = null)
     {
         $identifiers = array_fill_keys(array_filter(array_map([$this, 'trimUnicode'], array_map('rawurldecode', $identifiers))), null);
         if (!count($identifiers)) {
             return [];
+        }
+
+        if (!$this->propertyId) {
+            return $identifiers;
         }
 
         $resourceType = $this->convertResourceNameToResourceType($resourceName);
@@ -59,45 +105,38 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         }
         $resourceName = $this->convertResourceTypeToResourceName($resourceType);
 
-        $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
-        if (!$propertyId) {
-            return $identifiers;
-        }
-
         $parameters = [];
 
-        $caseSensitiveIdentifier = (bool) $this->view->setting('cleanurl_identifier_case_sensitive');
-        $collation = $caseSensitiveIdentifier ? 'COLLATE utf8mb4_bin' : '';
+        $collation = $this->caseSensitiveIdentifier ? 'COLLATE utf8mb4_bin' : '';
 
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
         if ($this->supportAnyValue) {
             $qb
                 ->select([
-                    $caseSensitiveIdentifier ? 'ANY_VALUE(value.value) AS "identifier"' : "LOWER(ANY_VALUE(value.value)) AS 'identifier'",
+                    $this->caseSensitiveIdentifier
+                        ? 'ANY_VALUE(value.value) AS "identifier"'
+                        : "LOWER(ANY_VALUE(value.value)) AS 'identifier'",
                     'ANY_VALUE(value.resource_id) AS "id"',
-                ])
-                ->from('value', 'value')
-                ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
-                ->addGroupBy("value.value $collation")
-                ->addOrderBy('"id"', 'ASC');
-        // TODO Add order by value.id (for duplicate identifiers)?
+                ]);
         } else {
             $qb
                 ->select([
-                    $caseSensitiveIdentifier ? 'value.value AS "identifier"' : 'LOWER(value.value) AS "identifier"',
+                    $this->caseSensitiveIdentifier
+                        ? 'value.value AS "identifier"'
+                        : 'LOWER(value.value) AS "identifier"',
                     'value.resource_id AS "id"',
-                ])
-                ->from('value', 'value')
-                ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
-                ->addGroupBy("value.value $collation")
-                ->addOrderBy('"id"', 'ASC')
-                ->addOrderBy('value.id', 'ASC');
+                ]);
         }
 
         $qb
+            ->from('value', 'value')
+            ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
+            ->addGroupBy("value.value $collation")
+            ->addOrderBy('"id"', 'ASC')
+            ->addOrderBy('value.id', 'ASC')
             ->andWhere($expr->eq('value.property_id', ':property_id'));
-        $parameters['property_id'] = $propertyId;
+        $parameters['property_id'] = $this->propertyId;
 
         if ($resourceType) {
             $qb
@@ -113,63 +152,118 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 ->andWhere($expr->eq('resource.is_public', 1));
         }
 
-        $prefix = $this->view->setting('cleanurl_identifier_prefix');
-        $short = $withPrefix || !strlen($prefix);
-
         $variants = [];
 
-        // Many cases because support sensifive case, with or without prefix,
+        // Manage cases "identifier", "doc: identifier" and "ark:/xxx/identifier".
+        // The case "ark:%2Fxxx%2Fidentifier" is managed via url decode.
+        // The identifiers can be searched with or without prefix (so only
+        // "identifier" for ark, that has a prefix).
+
+        $lengthPrefix = mb_strlen($this->prefix);
+        $noPrefix = !$lengthPrefix;
+
+        // Many cases because support sensitive case, with or without prefix,
         // and with or without space. Nevertheless, the check is quick.
 
         // A quick check for performance.
-        if (count($identifiers) === 1 && $short) {
-            $parameters['identifier'] = $caseSensitiveIdentifier ? key($identifiers) : mb_strtolower(key($identifiers));
+        if (count($identifiers) === 1 && ($noPrefix)) {
+            $identifier = key($identifiers);
+            $parameters['identifier'] = $this->caseSensitiveIdentifier ? $identifier : mb_strtolower($identifier);
             $variants[$parameters['identifier']] = key($identifiers);
             $qb
                 ->andWhere($expr->eq("value.value $collation", ':identifier'));
         } else {
-            if ($short) {
-                if ($caseSensitiveIdentifier) {
+            if ($noPrefix) {
+                if ($this->caseSensitiveIdentifier) {
                     $variants = array_combine(array_keys($identifiers), array_keys($identifiers));
                 } else {
                     foreach (array_keys($identifiers) as $identifier) {
                         $variants[mb_strtolower($identifier)] = $identifier;
                     }
                 }
-            } else {
-                if ($caseSensitiveIdentifier) {
+            } elseif ($this->prefixIsPartOfIdentifier) {
+                if ($this->caseSensitiveIdentifier) {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[$prefix . $identifier] = $identifier;
-                        // Check with a space between prefix and identifier too.
-                        $variants[$prefix . ' ' . $identifier] = $identifier;
+                        if (mb_strpos($identifier, $this->prefix) === 0) {
+                            $variants[$identifier] = $identifier;
+                        } else {
+                            $variants[$this->prefix . $identifier] = $identifier;
+                            $variants[$this->prefix . ' ' . $identifier] = $identifier;
+                        }
                     }
                     // Check prefix with a space and a no-break space.
-                    if ($this->view->setting('cleanurl_identifier_unspace')) {
-                        $unspace = str_replace([' ', ' '], '', $prefix);
-                        if ($prefix != $unspace) {
+                    if ($this->unspace) {
+                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        if ($this->prefix != $unspacePrefix) {
                             // Check with a space between prefix and identifier too.
                             foreach (array_keys($identifiers) as $identifier) {
-                                $variants[$unspace . $identifier] = $identifier;
-                                $variants[$unspace . ' ' . $identifier] = $identifier;
+                                if (mb_strpos($identifier, $this->prefix) !== 0) {
+                                    $variants[$unspacePrefix . $identifier] = $identifier;
+                                    $variants[$unspacePrefix . ' ' . $identifier] = $identifier;
+                                }
                             }
                         }
                     }
-                } else {
+                }
+                // Same as above, but lower keys.
+                else {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[mb_strtolower($prefix . $identifier)] = $identifier;
-                        $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
+                        if (mb_strpos($identifier, $this->prefix) === 0) {
+                            $variants[mb_strtolower($identifier)] = $identifier;
+                        } else {
+                            $variants[mb_strtolower($this->prefix . $identifier)] = $identifier;
+                            $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
+                        }
                     }
-                    if ($this->view->setting('cleanurl_identifier_unspace')) {
-                        $unspace = str_replace([' ', ' '], '', $prefix);
-                        if ($prefix != $unspace) {
+                    if ($this->unspace) {
+                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        if ($this->prefix != $unspacePrefix) {
                             foreach (array_keys($identifiers) as $identifier) {
-                                $variants[mb_strtolower($unspace . $identifier)] = $identifier;
-                                $variants[mb_strtolower($unspace . ' ' . $identifier)] = $identifier;
+                                if (mb_strpos($identifier, $this->prefix) !== 0) {
+                                    $variants[mb_strtolower($unspacePrefix . $identifier)] = $identifier;
+                                    $variants[mb_strtolower($unspacePrefix . ' ' . $identifier)] = $identifier;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                if ($this->caseSensitiveIdentifier) {
+                    foreach (array_keys($identifiers) as $identifier) {
+                        $variants[$this->prefix . $identifier] = $identifier;
+                        // Check with a space between prefix and identifier too.
+                        $variants[$this->prefix . ' ' . $identifier] = $identifier;
+                    }
+                    // Check prefix with a space and a no-break space.
+                    if ($this->unspace) {
+                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        if ($this->prefix != $unspacePrefix) {
+                            // Check with a space between prefix and identifier too.
+                            foreach (array_keys($identifiers) as $identifier) {
+                                $variants[$unspacePrefix . $identifier] = $identifier;
+                                $variants[$unspacePrefix . ' ' . $identifier] = $identifier;
+                            }
+                        }
+                    }
+                }
+                // Same as above, but lower keys.
+                else {
+                    foreach (array_keys($identifiers) as $identifier) {
+                        $variants[mb_strtolower($this->prefix . $identifier)] = $identifier;
+                        $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
+                    }
+                    if ($this->unspace) {
+                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        if ($this->prefix != $unspacePrefix) {
+                            foreach (array_keys($identifiers) as $identifier) {
+                                $variants[mb_strtolower($unspacePrefix . $identifier)] = $identifier;
+                                $variants[mb_strtolower($unspacePrefix . ' ' . $identifier)] = $identifier;
                             }
                         }
                     }
                 }
             }
+
             // Warning: there is a difference between qb / dbal and qb / orm for
             // "in" in qb, when a placeholder is used, there should be one
             // placeholder for each value for expr->in().

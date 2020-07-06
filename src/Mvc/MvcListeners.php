@@ -849,7 +849,7 @@ class MvcListeners extends AbstractListenerAggregate
     {
         if ($this->_item_set_identifier) {
             $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            $resource = $getResourceFromIdentifierHelper($this->_item_set_identifier, false, 'item_sets');
+            $resource = $getResourceFromIdentifierHelper($this->_item_set_identifier, 'item_sets');
             $this->_item_set_id = $resource ? $resource->id() : null;
         }
         return $this->_item_set_id;
@@ -859,14 +859,7 @@ class MvcListeners extends AbstractListenerAggregate
     {
         if ($this->_item_identifier) {
             $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            if ($this->allowFullIdentifierItem()) {
-                $resource = $getResourceFromIdentifierHelper($this->_item_identifier, true, 'items');
-                if (empty($resource) && $this->allowShortIdentifierItem()) {
-                    $resource = $getResourceFromIdentifierHelper($this->_item_identifier, false, 'items');
-                }
-            } else {
-                $resource = $getResourceFromIdentifierHelper($this->_item_identifier, false, 'items');
-            }
+            $resource = $getResourceFromIdentifierHelper($this->_item_identifier, 'items');
             $this->_item_id = $resource ? $resource->id() : null;
         }
         return $this->_item_id;
@@ -876,14 +869,7 @@ class MvcListeners extends AbstractListenerAggregate
     {
         if ($this->_media_identifier) {
             $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            if ($this->allowFullIdentifierMedia()) {
-                $resource = $getResourceFromIdentifierHelper($this->_media_identifier, true, 'media');
-                if (empty($resource) && $this->allowShortIdentifierMedia()) {
-                    $resource = $getResourceFromIdentifierHelper($this->_media_identifier, false, 'media');
-                }
-            } else {
-                $resource = $getResourceFromIdentifierHelper($this->_media_identifier, false, 'media');
-            }
+            $resource = $getResourceFromIdentifierHelper($this->_media_identifier, 'media');
             $this->_media_id = $resource ? $resource->id() : null;
         }
         return $this->_media_id;
