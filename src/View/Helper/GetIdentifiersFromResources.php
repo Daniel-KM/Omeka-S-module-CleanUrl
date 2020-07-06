@@ -19,11 +19,38 @@ class GetIdentifiersFromResources extends AbstractHelper
     // The max number of the resources to create a temporary table.
     const CHUNK_RECORDS = 10000;
 
+    /**
+     * @var Connection
+     */
     protected $connection;
 
-    public function __construct(Connection $connection)
+    /**
+     * @var int
+     */
+    protected $propertyId;
+
+    /**
+     * @var string
+     */
+    protected $prefix;
+
+    /**
+     * @var bool
+     */
+    protected $keepPrefix;
+
+    /**
+     * @param Connection $connection
+     * @param int $propertyId
+     * @param string $prefix
+     * @param bool $keepPrefix
+     */
+    public function __construct(Connection $connection, $propertyId, $prefix, $keepPrefix)
     {
         $this->connection = $connection;
+        $this->propertyId = $propertyId;
+        $this->prefix = $prefix;
+        $this->keepPrefix = $keepPrefix;
     }
 
     /**
@@ -36,12 +63,11 @@ class GetIdentifiersFromResources extends AbstractHelper
      * mixed. If object, it should be a resource.
      * @param string $resourceType The resource type or the resouce name if
      * $resources is an array.
-     * @param bool $checkPublic Filter results by public (default).
      * @return array|string|null List of strings with id as key and identifier as value.
      * Duplicates are not returned. If a single resource is provided, return a
      * single string. Order is not kept.
      */
-    public function __invoke($resources, $resourceType = null, $checkPublic = true)
+    public function __invoke($resources, $resourceType = null)
     {
         $isSingle = !is_array($resources);
         if ($isSingle) {
@@ -95,15 +121,13 @@ class GetIdentifiersFromResources extends AbstractHelper
         $resourceType = $resourceType
             ? $resourceTypes[$resourceType]
             : null;
-        $propertyId = (int) $this->view->setting('cleanurl_identifier_property');
-        $prefix = $this->view->setting('cleanurl_identifier_prefix');
 
         // Get the list of identifiers.
         $qb = $this->connection->createQueryBuilder()
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
             ->andWhere('value.property_id = :property_id')
-            ->setParameter('property_id', $propertyId)
+            ->setParameter('property_id', $this->propertyId)
             // Only one identifier by resource.
             ->groupBy(['value.resource_id'])
             ->addOrderBy('value.resource_id', 'ASC')
@@ -115,16 +139,18 @@ class GetIdentifiersFromResources extends AbstractHelper
                 ->setParameter('resource_type', $resourceType);
         }
 
-        if ($prefix) {
+        if ($this->prefix) {
             $qb
                 ->select([
                     // Should be the first column.
                     'id' => 'value.resource_id',
-                    // 'identifier' => $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($prefix) + 1)),
-                    'identifier' => '(TRIM(SUBSTR(value.value, ' . (mb_strlen($prefix) + 1) . ')))',
+                    'identifier' => $this->keepPrefix
+                        ? 'value.value'
+                        // 'identifier' => $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($prefix) + 1)),
+                        :'(TRIM(SUBSTR(value.value, ' . (mb_strlen($this->prefix) + 1) . ')))',
                 ])
                 ->andWhere('value.value LIKE :value_value')
-                ->setParameter('value_value', $prefix . '%');
+                ->setParameter('value_value', $this->prefix . '%');
         } else {
             $qb
                 ->select([
@@ -132,12 +158,6 @@ class GetIdentifiersFromResources extends AbstractHelper
                     'id' => 'value.resource_id',
                     'identifier' => 'value.value',
                 ]);
-        }
-
-        // TODO Don't filter result in admin theme or identified users.
-        if ($checkPublic) {
-            $qb
-                ->andWhere('resource.is_public = 1');
         }
 
         if ($isSingle) {
