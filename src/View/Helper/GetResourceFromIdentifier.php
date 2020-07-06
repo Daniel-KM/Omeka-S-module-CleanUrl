@@ -15,13 +15,12 @@ class GetResourceFromIdentifier extends AbstractHelper
      * @uses \CleanUrl\View\Helper\GetResourcesFromIdentifiers
      *
      * @param string $identifier The identifier of the resource to find.
-     * @param bool $withPrefix Optional. If identifier begins with prefix.
      * @param string $resourceName Optional. Search a specific resource type if any.
      * @return \Omeka\Api\Representation\AbstractResourceRepresentation|null
      */
-    public function __invoke($identifier, $withPrefix = false, $resourceName = null)
+    public function __invoke($identifier, $resourceName = null)
     {
-        $result = $this->view->getResourcesFromIdentifiers([$identifier], $withPrefix, $resourceName);
+        $result = $this->view->getResourcesFromIdentifiers([$identifier], $resourceName);
         return $result ? reset($result) : null;
     }
 }
