@@ -114,47 +114,67 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         }
 
         $prefix = $this->view->setting('cleanurl_identifier_prefix');
+        $short = $withPrefix || !strlen($prefix);
 
-        if ($withPrefix || !strlen($prefix)) {
-            // A quick check for performance.
-            if (count($identifiers) === 1) {
-                $qb
-                    ->andWhere($expr->eq("value.value $collation", ':identifier'));
-                $parameters['identifier'] = key($identifiers);
-            } else {
-                // Warning: there is a difference between qb / dbal and qb / orm for
-                // "in" in qb, when a placeholder is used, there should be one
-                // placeholder for each value for expr->in().
-                $placeholders = [];
-                foreach (array_keys($identifiers) as $key => $value) {
-                    $placeholder = 'identifier_' . $key;
-                    $parameters[$placeholder] = $value;
-                    $placeholders[] = ':' . $placeholder;
-                }
-                $qb
-                    ->andWhere($expr->in("value.value $collation", $placeholders));
-            }
+        $variants = [];
+
+        // Many cases because support sensifive case, with or without prefix,
+        // and with or without space. Nevertheless, the check is quick.
+
+        // A quick check for performance.
+        if (count($identifiers) === 1 && $short) {
+            $parameters['identifier'] = $caseSensitiveIdentifier ? key($identifiers) : mb_strtolower(key($identifiers));
+            $variants[$parameters['identifier']] = key($identifiers);
+            $qb
+                ->andWhere($expr->eq("value.value $collation", ':identifier'));
         } else {
-            $allIdentifiers = [];
-            foreach (array_keys($identifiers) as $identifier) {
-                $allIdentifiers[] = $prefix . $identifier;
-                // Check with a space between prefix and identifier too.
-                $allIdentifiers[] = $prefix . ' ' . $identifier;
-            }
-            // Check prefix with a space and a no-break space.
-            if ($this->view->setting('cleanurl_identifier_unspace')) {
-                $unspace = str_replace([' ', ' '], '', $prefix);
-                if ($prefix != $unspace) {
-                    // Check with a space between prefix and identifier too.
-                    $allIdentifiers[] = $unspace . $identifier;
-                    $allIdentifiers[] = $unspace . ' ' . $identifier;
+            if ($short) {
+                if ($caseSensitiveIdentifier) {
+                    $variants = array_combine(array_keys($identifiers), array_keys($identifiers));
+                } else {
+                    foreach (array_keys($identifiers) as $identifier) {
+                        $variants[mb_strtolower($identifier)] = $identifier;
+                    }
+                }
+            } else {
+                if ($caseSensitiveIdentifier) {
+                    foreach (array_keys($identifiers) as $identifier) {
+                        $variants[$prefix . $identifier] = $identifier;
+                        // Check with a space between prefix and identifier too.
+                        $variants[$prefix . ' ' . $identifier] = $identifier;
+                    }
+                    // Check prefix with a space and a no-break space.
+                    if ($this->view->setting('cleanurl_identifier_unspace')) {
+                        $unspace = str_replace([' ', ' '], '', $prefix);
+                        if ($prefix != $unspace) {
+                            // Check with a space between prefix and identifier too.
+                            foreach (array_keys($identifiers) as $identifier) {
+                                $variants[$unspace . $identifier] = $identifier;
+                                $variants[$unspace . ' ' . $identifier] = $identifier;
+                            }
+                        }
+                    }
+                } else {
+                    foreach (array_keys($identifiers) as $identifier) {
+                        $variants[mb_strtolower($prefix . $identifier)] = $identifier;
+                        $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
+                    }
+                    if ($this->view->setting('cleanurl_identifier_unspace')) {
+                        $unspace = str_replace([' ', ' '], '', $prefix);
+                        if ($prefix != $unspace) {
+                            foreach (array_keys($identifiers) as $identifier) {
+                                $variants[mb_strtolower($unspace . $identifier)] = $identifier;
+                                $variants[mb_strtolower($unspace . ' ' . $identifier)] = $identifier;
+                            }
+                        }
+                    }
                 }
             }
             // Warning: there is a difference between qb / dbal and qb / orm for
             // "in" in qb, when a placeholder is used, there should be one
             // placeholder for each value for expr->in().
             $placeholders = [];
-            foreach ($allIdentifiers as $key => $value) {
+            foreach (array_keys($variants) as $key => $value) {
                 $placeholder = 'identifier_' . $key;
                 $parameters[$placeholder] = $value;
                 $placeholders[] = ':' . $placeholder;
@@ -169,34 +189,28 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
         $result = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
 
+        // Get representations and check numeric identifiers as resource id.
+        // It allows to check rights too.
         $api = $this->view->api();
-        if ($caseSensitiveIdentifier) {
-            foreach (array_keys($identifiers) as $identifier) {
-                try {
-                    if (isset($result[$identifier])) {
-                        $identifiers[$identifier] = $api->read($resourceName, $result[$identifier])->getContent();
-                    } elseif (is_numeric($identifier) && $id = (int) $identifier) {
-                        $identifiers[$identifier] = $api->read($resourceName, $id)->getContent();
-                    }
-                } catch (NotFoundException $e) {
-                    // Nothing to do.
-                }
+        foreach (array_intersect_key($result, $variants) as $identifier => $id) {
+            try {
+                $identifiers[$variants[$identifier]] = $api->read($resourceName, ['id' => $id])->getContent();
+            } catch (NotFoundException $e) {
+                // Nothing to do.
             }
-        } else {
-            $lowerIdentifiers = array_combine($identifiers, array_map('mb_strtolower', array_flip($identifiers)));
-            foreach ($lowerIdentifiers as $identifier => $lowerIdentifier) {
+        }
+
+        // Check remaining numeric identifiers, for example when some resources
+        // don't have an identifier.
+        foreach (array_keys(array_filter(array_filter($identifiers, 'is_null'), 'is_numeric', ARRAY_FILTER_USE_KEY)) as $identifier) {
+            if ($id = (int) $identifier) {
                 try {
-                    if (isset($result[$lowerIdentifier])) {
-                        $identifiers[$identifier] = $api->read($resourceName, $result[$lowerIdentifier])->getContent();
-                    } elseif (is_numeric($identifier) && $id = (int) $identifier) {
-                        $identifiers[$identifier] = $api->read($resourceName, $id)->getContent();
-                    }
+                    $identifiers[$identifier] = $api->read($resourceName, ['id' => $id])->getContent();
                 } catch (NotFoundException $e) {
                     // Nothing to do.
                 }
             }
         }
-
         return $identifiers;
     }
 
