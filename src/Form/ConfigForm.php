@@ -112,6 +112,17 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
+                'name' => 'cleanurl_identifier_prefix_part_of',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'The prefix is part of the identifier (like ark)', // @translate
+                    'info' => 'This option is required to get the whole identifier when needed, for example with the IIIF server.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_identifier_prefix_part_of',
+                ],
+            ])
+            ->add([
                 'name' => 'cleanurl_identifier_undefined',
                 'type' => Element\Radio::class,
                 'options' => [
