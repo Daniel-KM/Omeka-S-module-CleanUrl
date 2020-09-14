@@ -439,7 +439,7 @@ class MvcListeners extends AbstractListenerAggregate
                 $allowFullIdentifier = $this->allowFullIdentifierItem();
                 $includeItemSetIdentifier = $this->settings->get('cleanurl_item_item_set_included');
                 $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
-                    ? $this->_item_set_identifier  . '/'
+                    ? $this->_item_set_identifier . '/'
                     : '';
                 $includeItemIdentifier = 'no';
                 $itemIdentifier = '';
@@ -449,11 +449,11 @@ class MvcListeners extends AbstractListenerAggregate
                 $allowFullIdentifier = $this->allowFullIdentifierMedia();
                 $includeItemSetIdentifier = $this->settings->get('cleanurl_media_item_set_included');
                 $itemSetIdentifier = $this->_item_set_identifier && $includeItemSetIdentifier !== 'no'
-                    ? $this->_item_set_identifier  . '/'
+                    ? $this->_item_set_identifier . '/'
                     : '';
                 $includeItemIdentifier = $this->settings->get('cleanurl_media_item_included');
                 $itemIdentifier = $this->_item_identifier && $includeItemIdentifier !== 'no'
-                    ? $this->_item_identifier  . '/'
+                    ? $this->_item_identifier . '/'
                     : '';
                 break;
         }
@@ -519,10 +519,10 @@ class MvcListeners extends AbstractListenerAggregate
         $includeItemIdentifier = $this->settings->get('cleanurl_media_item_included');
 
         $itemSetIdentifier = $this->_item_set_identifier
-            ? $this->_item_set_identifier  . '/'
+            ? $this->_item_set_identifier . '/'
             : '';
         $itemIdentifier = $this->_item_identifier
-            ? $this->_item_identifier  . '/'
+            ? $this->_item_identifier . '/'
             : '';
 
         $identifiers = [];
@@ -765,14 +765,13 @@ class MvcListeners extends AbstractListenerAggregate
             }
 
             // Get the full item identifier.
-            $getResourceIdentifierHelper = $this->getResourceIdentifier;
-            $itemIdentifier = $getResourceIdentifierHelper($item, false, false);
+            $itemIdentifier = $this->getResourceIdentifier->__invoke($item, false, false);
             if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
                 return true;
             }
 
             // Get the item identifier.
-            $itemIdentifier = $getResourceIdentifierHelper($item, false, true);
+            $itemIdentifier = $this->getResourceIdentifier->__invoke($item, false, true);
             if (mb_strtolower($this->_item_identifier) == mb_strtolower($itemIdentifier)) {
                 return true;
             }
@@ -848,8 +847,7 @@ class MvcListeners extends AbstractListenerAggregate
     protected function _setItemSetId()
     {
         if ($this->_item_set_identifier) {
-            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            $resource = $getResourceFromIdentifierHelper($this->_item_set_identifier, 'item_sets');
+            $resource = $this->getResourceFromIdentifier->__invoke($this->_item_set_identifier, 'item_sets');
             $this->_item_set_id = $resource ? $resource->id() : null;
         }
         return $this->_item_set_id;
@@ -858,8 +856,7 @@ class MvcListeners extends AbstractListenerAggregate
     protected function _setItemId()
     {
         if ($this->_item_identifier) {
-            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            $resource = $getResourceFromIdentifierHelper($this->_item_identifier, 'items');
+            $resource = $this->getResourceFromIdentifier->__invoke($this->_item_identifier, 'items');
             $this->_item_id = $resource ? $resource->id() : null;
         }
         return $this->_item_id;
@@ -868,8 +865,7 @@ class MvcListeners extends AbstractListenerAggregate
     protected function _setMediaId()
     {
         if ($this->_media_identifier) {
-            $getResourceFromIdentifierHelper = $this->getResourceFromIdentifier;
-            $resource = $getResourceFromIdentifierHelper($this->_media_identifier, 'media');
+            $resource = $this->getResourceFromIdentifier->__invoke($this->_media_identifier, 'media');
             $this->_media_id = $resource ? $resource->id() : null;
         }
         return $this->_media_id;

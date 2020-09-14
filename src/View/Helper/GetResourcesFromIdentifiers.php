@@ -47,7 +47,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
     protected $prefixIsPartOfIdentifier;
 
     /**
-     *
      * @param Connection $connection
      * @param bool $supportAnyValue
      * @param int $propertyId
