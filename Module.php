@@ -202,22 +202,22 @@ class Module extends AbstractModule
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SiteAdapter::class,
             'api.create.pre',
-            [$this, 'handleCheckSlug']
+            [$this, 'handleCheckSlugSite']
         );
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SiteAdapter::class,
             'api.update.pre',
-            [$this, 'handleCheckSlug']
+            [$this, 'handleCheckSlugSite']
         );
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SitePageAdapter::class,
             'api.create.pre',
-            [$this, 'handleCheckSlug']
+            [$this, 'handleCheckSlugPage']
         );
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SitePageAdapter::class,
             'api.update.pre',
-            [$this, 'handleCheckSlug']
+            [$this, 'handleCheckSlugPage']
         );
     }
 
@@ -555,20 +555,45 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleCheckSlug(Event $event)
+    public function handleCheckSlugSite(Event $event)
+    {
+        $this->handleCheckSlug($event, 'sites');
+    }
+
+    /**
+     * Check a site page before saving it.
+     *
+     * @param Event $event
+     */
+    public function handleCheckSlugPage(Event $event)
+    {
+        $this->handleCheckSlug($event, 'site_pages');
+    }
+
+    /**
+     * Check a site before saving it.
+     *
+     * @param Event $event
+     * @param string $resourceType
+     */
+    protected function handleCheckSlug(Event $event, $resourceType)
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $request->getContent();
         if (!isset($data['o:slug'])) {
             return;
-        };
+        }
         $slug = $data['o:slug'];
         if (!mb_strlen($slug)) {
             return;
         }
+
+        // Name of the site is already checked for duplication.
+        $slugCheck = $resourceType === 'sites' ? '' : SLUGS_SITE . '|';
+
         // Don't update if the slug didn't change.
-        if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . $slug . '|') === false) {
+        if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . $slugCheck, '|' . $slug . '|') === false) {
             return;
         }
 
