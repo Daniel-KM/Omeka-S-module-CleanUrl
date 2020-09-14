@@ -167,14 +167,14 @@ class GetIdentifiersFromResources extends AbstractHelper
         // Create a temporary table when the number of resources is very big.
         $tempTable = count($resources) > self::CHUNK_RECORDS;
         if ($tempTable) {
-            $query = 'DROP TABLE IF EXISTS temp_resources;';
+            $query = 'DROP TABLE IF EXISTS `temp_resources`;';
             $stmt = $this->connection->query($query);
             // TODO Check if the id may be unique.
-            // $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL, PRIMARY KEY(id));';
-            $query = 'CREATE TEMPORARY TABLE temp_resources (id INT UNSIGNED NOT NULL);';
+            // $query = 'CREATE TEMPORARY TABLE `temp_resources` (`id` INT UNSIGNED NOT NULL, PRIMARY KEY(`id`));';
+            $query = 'CREATE TEMPORARY TABLE `temp_resources` (`id` INT UNSIGNED NOT NULL);';
             $stmt = $this->connection->query($query);
             foreach (array_chunk($resources, self::CHUNK_RECORDS) as $chunk) {
-                $query = 'INSERT INTO temp_resources VALUES(' . implode('),(', $chunk) . ');';
+                $query = 'INSERT INTO `temp_resources` VALUES(' . implode('),(', $chunk) . ');';
                 $stmt = $this->connection->query($query);
             }
             $qb
