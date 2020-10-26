@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl;
 
 // This file is copied in the main config folder, beside database.ini and local.config.php.

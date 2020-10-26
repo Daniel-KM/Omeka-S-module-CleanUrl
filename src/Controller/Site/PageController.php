@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl\Controller\Site;
 
 use Laminas\View\Model\ViewModel;

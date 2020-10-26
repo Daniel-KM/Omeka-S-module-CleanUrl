@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -17,7 +17,7 @@ class IndexControllerRouteMediaTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testRouteMediaAction()
+    public function testRouteMediaAction(): void
     {
         $site_slug = $this->site->slug();
         $media = $this->item->media();

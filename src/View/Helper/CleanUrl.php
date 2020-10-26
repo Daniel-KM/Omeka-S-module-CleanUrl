@@ -1,11 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl\View\Helper;
 
-use Traversable;
 use Laminas\Mvc\ModuleRouteListener;
 use Laminas\Router\RouteMatch;
 use Laminas\View\Exception;
 use Laminas\View\Helper\Url;
+use Traversable;
 
 /**
  * Create a clean url if possible, else return the standard url.
@@ -218,7 +218,7 @@ class CleanUrl extends Url
     /**
      * @see \Laminas\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
      */
-    protected function prepareRouter()
+    protected function prepareRouter(): void
     {
         if (empty($this->router)) {
             $services = @$this->view->getHelperPluginManager()->getServiceLocator();
@@ -289,8 +289,7 @@ class CleanUrl extends Url
             \Omeka\Entity\Item::class => 'item',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return isset($controllers[$name])
-            ? $controllers[$name]
-            : null;
+        return $controllers[$name]
+            ?? null;
     }
 }

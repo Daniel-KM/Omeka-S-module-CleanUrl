@@ -1,10 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\Service\ViewHelper;
 
+use CleanUrl\View\Helper\GetResourceIdentifier;
 use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use CleanUrl\View\Helper\GetResourceIdentifier;
 
 /**
  * Service factory for the api view helper.

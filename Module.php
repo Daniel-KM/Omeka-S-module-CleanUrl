@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl;
 
 /*
@@ -38,14 +38,14 @@ class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
 
-    public function onBootstrap(MvcEvent $event)
+    public function onBootstrap(MvcEvent $event): void
     {
         parent::onBootstrap($event);
         // The page controller is already allowed, because it's an override.
         $this->addRoutes();
     }
 
-    protected function preInstall()
+    protected function preInstall(): void
     {
         $services = $this->getServiceLocator();
         $t = $services->get('MvcTranslator');
@@ -91,7 +91,7 @@ class Module extends AbstractModule
         return $success;
     }
 
-    protected function postInstall()
+    protected function postInstall(): void
     {
         $this->cacheCleanData();
         $this->cacheItemSetsRegex();
@@ -102,7 +102,7 @@ class Module extends AbstractModule
      *
      * @todo Rechecks performance of routes definition.
      */
-    protected function addRoutes()
+    protected function addRoutes(): void
     {
         $services = $this->getServiceLocator();
         $router = $services->get('Router');
@@ -135,7 +135,7 @@ class Module extends AbstractModule
             ]);
     }
 
-    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
         $serviceLocator = $this->getServiceLocator();
         $settings = $serviceLocator->get('Omeka\Settings');
@@ -495,7 +495,7 @@ class Module extends AbstractModule
     /**
      * Display an identifier.
      */
-    public function displayViewResourceIdentifier(Event $event)
+    public function displayViewResourceIdentifier(Event $event): void
     {
         $resource = $event->getTarget()->resource;
         $this->displayResourceIdentifier($resource);
@@ -504,7 +504,7 @@ class Module extends AbstractModule
     /**
      * Display an identifier.
      */
-    public function displayViewEntityIdentifier(Event $event)
+    public function displayViewEntityIdentifier(Event $event): void
     {
         $resource = $event->getParam('entity');
         $this->displayResourceIdentifier($resource);
@@ -515,7 +515,7 @@ class Module extends AbstractModule
      *
      * @param \Omeka\Api\Representation\AbstractResourceRepresentation|Resource $resource
      */
-    protected function displayResourceIdentifier($resource)
+    protected function displayResourceIdentifier($resource): void
     {
         $services = $this->getServiceLocator();
         $translator = $services->get('MvcTranslator');
@@ -535,7 +535,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleSaveItemSet(Event $event)
+    public function handleSaveItemSet(Event $event): void
     {
         $this->cacheItemSetsRegex();
     }
@@ -545,7 +545,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleSaveSite(Event $event)
+    public function handleSaveSite(Event $event): void
     {
         $this->cacheCleanData();
     }
@@ -555,7 +555,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleCheckSlugSite(Event $event)
+    public function handleCheckSlugSite(Event $event): void
     {
         $this->handleCheckSlug($event, 'sites');
     }
@@ -565,7 +565,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleCheckSlugPage(Event $event)
+    public function handleCheckSlugPage(Event $event): void
     {
         $this->handleCheckSlug($event, 'site_pages');
     }
@@ -576,7 +576,7 @@ class Module extends AbstractModule
      * @param Event $event
      * @param string $resourceType
      */
-    protected function handleCheckSlug(Event $event, $resourceType)
+    protected function handleCheckSlug(Event $event, $resourceType): void
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
@@ -609,7 +609,7 @@ class Module extends AbstractModule
     /**
      * Prepare the quick settings and regex one time.
      */
-    protected function cacheRouteSettings()
+    protected function cacheRouteSettings(): void
     {
         $settings = $this->getServiceLocator()->get('Omeka\Settings');
         $params = [
@@ -762,7 +762,7 @@ class Module extends AbstractModule
     /**
      * Cache item set identifiers as string to speed up routing.
      */
-    protected function cacheItemSetsRegex()
+    protected function cacheItemSetsRegex(): void
     {
         $services = $this->getServiceLocator();
         // Get all item set identifiers with one query.

@@ -1,14 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl\Form;
 
-use Omeka\Form\Element\PropertySelect;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 use Laminas\Form\Form;
+use Omeka\Form\Element\PropertySelect;
 
 class ConfigForm extends Form
 {
-    public function init()
+    public function init(): void
     {
         $this
             ->add([

@@ -1,9 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrlTest\View\Helper;
 
 use CleanUrl\View\Helper\GetIdentifiersFromResources;
-use OmekaTestHelper\Controller\OmekaControllerTestCase;
 use Omeka\View\Helper\Setting;
+use OmekaTestHelper\Controller\OmekaControllerTestCase;
 
 class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
 {
@@ -13,7 +13,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
     protected $propertyId = 10;
     protected $prefix = 'document:';
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setup();
 
@@ -62,7 +62,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         return $helper;
     }
 
-    public function testNoIdentifier()
+    public function testNoIdentifier(): void
     {
         $helper = $this->getHelper();
         $item = $this->api->create('items', [])->getContent();
@@ -75,21 +75,21 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         $this->assertEmpty($identifiers);
     }
 
-    public function testItemSetIdentifier()
+    public function testItemSetIdentifier(): void
     {
         $helper = $this->getHelper();
         $this->assertEquals('my_collection_1', $helper($this->itemSet));
         $this->assertEquals([$this->itemSet->id() => 'my_collection_1'], $helper([$this->itemSet]));
     }
 
-    public function testItemIdentifier()
+    public function testItemIdentifier(): void
     {
         $helper = $this->getHelper();
         $this->assertEquals('my_item_1', $helper($this->item));
         $this->assertEquals([$this->item->id() => 'my_item_1'], $helper([$this->item]));
     }
 
-    public function testItemIdentifiers()
+    public function testItemIdentifiers(): void
     {
         $helper = $this->getHelper();
 

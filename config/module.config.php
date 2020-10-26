@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl;
 
 // The check of "slugs_site" may avoid an issue when empty, after install or
