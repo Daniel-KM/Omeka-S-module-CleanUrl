@@ -1,9 +1,11 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\Form;
 
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 use Laminas\Form\Form;
+use Omeka\Form\Element\ArrayTextarea;
 use Omeka\Form\Element\PropertySelect;
 
 class ConfigForm extends Form
@@ -544,7 +546,7 @@ class ConfigForm extends Form
             ])
             ->add([
                 'name' => 'cleanurl_admin_reserved',
-                'type' => Element\Textarea::class,
+                'type' => ArrayTextarea::class,
                 'options' => [
                     'label' => 'Other reserved routes in admin', // @translate
                     'info' => 'This option allows to fix routes for unmanaged modules. Add them in the file cleanurl.config.php or here, one by row.', // @translate
@@ -687,31 +689,6 @@ class ConfigForm extends Form
             ->add([
                 'name' => 'cleanurl_admin_show_identifier',
                 'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_admin_reserved',
-                'required' => false,
-                'filters' => [
-                    [
-                        'name' => \Laminas\Filter\Callback::class,
-                        'options' => [
-                            'callback' => [$this, 'stringToList'],
-                        ],
-                    ],
-                ],
             ]);
-    }
-
-    /**
-     * Get each line of a string separately.
-     *
-     * @param string $string
-     * @return array
-     */
-    public function stringToList($string)
-    {
-        return is_array($string)
-            ? $string
-            : array_filter(array_map('trim', explode("\n", str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], $string))), 'strlen');
     }
 }
