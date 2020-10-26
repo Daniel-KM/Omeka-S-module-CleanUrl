@@ -204,7 +204,7 @@ your archives regularly so you can roll back if needed.
 Troubleshooting
 ---------------
 
-See online issues on the [module issues] page on GitHub.
+See online issues on the [module issues] page on GitLab.
 
 
 License
@@ -233,7 +233,7 @@ altered, and that no provisions are either added or removed herefrom.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2020 (see [Daniel-KM] on GitHub)
+* Copyright Daniel Berthereau, 2012-2020 (see [Daniel-KM] on GitLab)
 * Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
@@ -242,19 +242,19 @@ Omeka S was built by [BibLibre] for [Paris Sciences et Lettres (PSL)]. Then, the
 module was rewritten to manage various requirements.
 
 
-[Clean Url]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
+[Clean Url]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl
 [Omeka S]: https://omeka.org/s
-[Clean Url plugin]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl
+[Clean Url plugin]: https://gitlab.com/Daniel-KM/Omeka-plugin-CleanUrl
 [Omeka]: https://omeka.org/classic
 [BibLibre]: https://github.com/biblibre
-[Ark]: https://github.com/Daniel-KM/Omeka-S-module-Ark
-[Generic]: https://github.com/Daniel-KM/Omeka-S-module-Generic
+[Ark]: https://gitlab.com/Daniel-KM/Omeka-S-module-Ark
+[Generic]: https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
-[config/clean_url.config.php]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
-[module issues]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
-[Archive Repertory]: https://github.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
-[Bulk Check]: https://github.com/Daniel-KM/Omeka-S-module-BulkCheck
+[config/clean_url.config.php]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
+[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
+[Archive Repertory]: https://gitlab.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
+[Bulk Check]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkCheck
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
@@ -263,4 +263,4 @@ module was rewritten to manage various requirements.
 [Mines ParisTech]: https://patrimoine.mines-paristech.fr
 [Paris Sciences et Lettres (PSL)]: https://bibnum.explore.univ-psl.fr
 [GitLab]: https://gitlab.com/Daniel-KM
-[Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
+[Daniel-KM]: https://gitlab.com/Daniel-KM "Daniel Berthereau"

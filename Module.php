@@ -260,7 +260,7 @@ class Module extends AbstractModule
         $html = $translate('"CleanUrl" module allows to have clean, readable and search engine optimized urls for pages and resources, like http://example.com/my_item_set/item_identifier.') // @translate
             . '<br />'
             . sprintf($translate('See %s for more information.'), // @translate
-            sprintf('<a href="https://github.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme'))
+            sprintf('<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme'))
             . '<br />'
             . sprintf($translate('%sNote%s: it is not recommended to use identifiers with reserved characters such "/" or "%%", even if they can be managed.'), // @translate
                 '<strong>', '</strong>'
