@@ -3,7 +3,7 @@
 namespace CleanUrl\Service\ViewHelper;
 
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 use CleanUrl\View\Helper\GetResourceIdentifier;
 
 /**

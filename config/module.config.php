@@ -83,7 +83,7 @@ return [
                 // without starting "/".
                 'child_routes' => SLUG_MAIN_SITE ? [
                     'resource' => [
-                        'type' => \Zend\Router\Http\Segment::class,
+                        'type' => \Laminas\Router\Http\Segment::class,
                         'options' => [
                             'route' => ':controller[/:action]',
                             'constraints' => [
@@ -96,7 +96,7 @@ return [
                         ],
                     ],
                     'resource-id' => [
-                        'type' => \Zend\Router\Http\Segment::class,
+                        'type' => \Laminas\Router\Http\Segment::class,
                         'options' => [
                             'route' => ':controller/:id[/:action]',
                             'constraints' => [
@@ -110,7 +110,7 @@ return [
                         ],
                     ],
                     'item-set' => [
-                        'type' => \Zend\Router\Http\Segment::class,
+                        'type' => \Laminas\Router\Http\Segment::class,
                         'options' => [
                             'route' => 'item-set/:item-set-id',
                             'defaults' => [
@@ -123,7 +123,7 @@ return [
                         ],
                     ],
                     'page-browse' => [
-                        'type' => \Zend\Router\Http\Literal::class,
+                        'type' => \Laminas\Router\Http\Literal::class,
                         'options' => [
                             'route' => SLUG_PAGE ? rtrim(SLUG_PAGE, '/') : 'page',
                             'defaults' => [

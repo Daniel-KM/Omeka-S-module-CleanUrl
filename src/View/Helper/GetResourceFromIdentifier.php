@@ -2,7 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
-use Zend\View\Helper\AbstractHelper;
+use Laminas\View\Helper\AbstractHelper;
 
 /**
  * @package Omeka\Plugins\CleanUrl\View\Helper

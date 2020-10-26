@@ -1,7 +1,7 @@
 <?php
 namespace CleanUrl\Controller\Site;
 
-use Zend\View\Model\ViewModel;
+use Laminas\View\Model\ViewModel;
 
 class PageController extends \Omeka\Controller\Site\PageController
 {

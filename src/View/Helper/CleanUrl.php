@@ -2,17 +2,17 @@
 namespace CleanUrl\View\Helper;
 
 use Traversable;
-use Zend\Mvc\ModuleRouteListener;
-use Zend\Router\RouteMatch;
-use Zend\View\Exception;
-use Zend\View\Helper\Url;
+use Laminas\Mvc\ModuleRouteListener;
+use Laminas\Router\RouteMatch;
+use Laminas\View\Exception;
+use Laminas\View\Helper\Url;
 
 /**
  * Create a clean url if possible, else return the standard url.
  *
  * @internal The helper "Url" is overridden, so no factory can be used.
  *
- * @see Zend\View\Helper\Url
+ * @see Laminas\View\Helper\Url
  */
 class CleanUrl extends Url
 {
@@ -26,8 +26,8 @@ class CleanUrl extends Url
      *
      * @todo Assemble urls with clean url routes.
      *
-     * @uses \Zend\View\Helper\Url
-     * @see \Zend\Router\RouteInterface::assemble()
+     * @uses \Laminas\View\Helper\Url
+     * @see \Laminas\Router\RouteInterface::assemble()
      * @param  string $name Name of the route
      * @param  array $params Parameters for the link
      * @param  array|Traversable $options Options for the route
@@ -46,7 +46,7 @@ class CleanUrl extends Url
         // TODO Is the preparation of the router still needed?
         $this->prepareRouter();
 
-        /* Copy of Zend\View\Helper\Url::__invoke(). */
+        /* Copy of Laminas\View\Helper\Url::__invoke(). */
 
         if (null === $this->router) {
             throw new Exception\RuntimeException('No RouteStackInterface instance provided');
@@ -216,7 +216,7 @@ class CleanUrl extends Url
     }
 
     /**
-     * @see \Zend\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
+     * @see \Laminas\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
      */
     protected function prepareRouter()
     {

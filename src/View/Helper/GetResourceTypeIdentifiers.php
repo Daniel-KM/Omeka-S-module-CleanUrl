@@ -7,7 +7,7 @@ namespace CleanUrl\View\Helper;
  */
 
 use Doctrine\DBAL\Connection;
-use Zend\View\Helper\AbstractHelper;
+use Laminas\View\Helper\AbstractHelper;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers

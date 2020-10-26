@@ -3,7 +3,7 @@ namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
 
-use Zend\Router\Http\Segment;
+use Laminas\Router\Http\Segment;
 
 /**
  * Segment route with a check for main site to remove "/s/site-slug".

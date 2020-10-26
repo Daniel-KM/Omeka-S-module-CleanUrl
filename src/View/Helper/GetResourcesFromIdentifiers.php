@@ -4,7 +4,7 @@ namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
 use Omeka\Api\Exception\NotFoundException;
-use Zend\View\Helper\AbstractHelper;
+use Laminas\View\Helper\AbstractHelper;
 
 /**
  * @package Omeka\Plugins\CleanUrl\View\Helper

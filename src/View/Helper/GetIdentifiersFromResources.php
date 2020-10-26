@@ -5,7 +5,7 @@ namespace CleanUrl\View\Helper;
 use Doctrine\DBAL\Connection;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Entity\Resource;
-use Zend\View\Helper\AbstractHelper;
+use Laminas\View\Helper\AbstractHelper;
 
 /*
  * Clean Url Get Identifiers From Resources
