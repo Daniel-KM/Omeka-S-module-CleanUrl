@@ -11,18 +11,18 @@ use const CleanUrl\SLUGS_SITE;
 
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Traversable;
-use Zend\Router\Exception;
-use Zend\Router\Http\RouteInterface;
-use Zend\Router\Http\RouteMatch;
-use Zend\Stdlib\ArrayUtils;
-use Zend\Stdlib\RequestInterface as Request;
+use Laminas\Router\Exception;
+use Laminas\Router\Http\RouteInterface;
+use Laminas\Router\Http\RouteMatch;
+use Laminas\Stdlib\ArrayUtils;
+use Laminas\Stdlib\RequestInterface as Request;
 
 /**
  * Manage clean urls for all Omeka resources and pages according to the config.
  *
  * @todo Store all routes of all resources and pages in the database? Or use a regex route?
  *
- * Partially derived from route \Zend\Router\Http\Regex and \Zend\Router\Http\Segment.
+ * Partially derived from route \Laminas\Router\Http\Regex and \Laminas\Router\Http\Segment.
  */
 class CleanRoute implements RouteInterface
 {
@@ -539,7 +539,7 @@ class CleanRoute implements RouteInterface
     /**
      * Encode a path segment.
      *
-     * @see \Zend\Router\Http\Segment::encode()
+     * @see \Laminas\Router\Http\Segment::encode()
      *
      * @param  string $value
      * @return string

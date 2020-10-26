@@ -28,11 +28,11 @@ require_once file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Service\ViewHelper\GetResourceTypeIdentifiersFactory;
 use Generic\AbstractModule;
-use Zend\EventManager\Event;
-use Zend\EventManager\SharedEventManagerInterface;
-use Zend\Mvc\Controller\AbstractController;
-use Zend\Mvc\MvcEvent;
-use Zend\View\Renderer\PhpRenderer;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\Mvc\Controller\AbstractController;
+use Laminas\Mvc\MvcEvent;
+use Laminas\View\Renderer\PhpRenderer;
 
 class Module extends AbstractModule
 {
@@ -106,7 +106,7 @@ class Module extends AbstractModule
     {
         $services = $this->getServiceLocator();
         $router = $services->get('Router');
-        if (!$router instanceof \Zend\Router\Http\TreeRouteStack) {
+        if (!$router instanceof \Laminas\Router\Http\TreeRouteStack) {
             return;
         }
 
@@ -846,7 +846,7 @@ class Module extends AbstractModule
     /**
      * Encode a path segment.
      *
-     * @see \Zend\Router\Http\Segment::encode()
+     * @see \Laminas\Router\Http\Segment::encode()
      *
      * @param  string $value
      * @return string

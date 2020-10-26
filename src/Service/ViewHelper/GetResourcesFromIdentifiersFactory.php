@@ -4,7 +4,7 @@ namespace CleanUrl\Service\ViewHelper;
 
 use CleanUrl\View\Helper\GetResourcesFromIdentifiers;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Service factory for the api view helper.
