@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-29 00:00+0000\n"
+"POT-Creation-Date: 2020-10-26 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -91,17 +91,21 @@ msgstr ""
 msgid "[none]"
 msgstr ""
 
-#: src/Generic/AbstractModule.php:601
+#: src/Generic/AbstractModule.php:66
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:621
+#: src/Generic/AbstractModule.php:73
 #, php-format
 msgid "This module requires modules \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:689
+#: src/Generic/AbstractModule.php:80
+msgid "This module has resources that connot be installed."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:709
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
@@ -176,368 +180,378 @@ msgid ""
 "id. One route was added."
 msgstr ""
 
-#: Module.php:578
+#: Module.php:603
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved. A random string has been automatically "
 "appended."
 msgstr ""
 
-#: Module.php:675
+#: Module.php:700
 msgid ""
 "The file \"clean_url.dynamic.php\" in the config directory of Omeka is not "
 "writeable."
 msgstr ""
 
-#: src/Form/ConfigForm.php:18
+#: src/Form/ConfigForm.php:20
 msgid "Sites and pages"
 msgstr ""
 
-#: src/Form/ConfigForm.php:27
+#: src/Form/ConfigForm.php:29
 msgid "Skip \"s/site-slug/\" for default site"
 msgstr ""
 
-#: src/Form/ConfigForm.php:28
+#: src/Form/ConfigForm.php:30
 msgid "The main site is defined in the main settings."
 msgstr ""
 
-#: src/Form/ConfigForm.php:38
+#: src/Form/ConfigForm.php:40
 msgid "Rename or skip prefix /s/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:42
+#: src/Form/ConfigForm.php:44
 msgid "s/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:49
+#: src/Form/ConfigForm.php:51
 msgid "Rename or skip prefix /page/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:53
+#: src/Form/ConfigForm.php:55
 msgid "page/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:62
+#: src/Form/ConfigForm.php:64
 msgid "Resource identifiers"
 msgstr ""
 
-#: src/Form/ConfigForm.php:71
+#: src/Form/ConfigForm.php:73
 msgid "Property of identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:72
+#: src/Form/ConfigForm.php:74
 msgid ""
 "Field where the identifier of the resource is set. Default is \"dcterms:"
 "identifier\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:78
+#: src/Form/ConfigForm.php:80
 msgid "Select a property…"
 msgstr ""
 
-#: src/Form/ConfigForm.php:85
+#: src/Form/ConfigForm.php:87
 msgid "Prefix to select an identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:86
+#: src/Form/ConfigForm.php:88
 msgid ""
 "This prefix allows to find one identifier when there are multiple values: "
 "\"ark:\", \"record:\", or \"doc =\". Let empty to use the first identifier. "
 "If this identifier does not exists, the Omeka item id will be used."
 msgstr ""
 
-#: src/Form/ConfigForm.php:96
+#: src/Form/ConfigForm.php:98
 msgid "Check the prefix without space"
 msgstr ""
 
-#: src/Form/ConfigForm.php:97
+#: src/Form/ConfigForm.php:99
 msgid ""
 "This option is used for not homogeneous value and allow to check values "
 "without space inside, for example the prefix is \"doc:\", but some records "
 "use \"doc :\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:107
+#: src/Form/ConfigForm.php:109
 msgid "Identifiers are case sensitive"
 msgstr ""
 
-#: src/Form/ConfigForm.php:108
+#: src/Form/ConfigForm.php:110
 msgid ""
 "Some formats of short identifiers are case sensitive, so search will be done "
 "in a binary way."
 msgstr ""
 
-#: src/Form/ConfigForm.php:118
-msgid "When no identifier exists"
-msgstr ""
-
 #: src/Form/ConfigForm.php:120
-msgid "Omeka route: / resource type / id"
+msgid "The prefix is part of the identifier (like ark)"
 msgstr ""
 
 #: src/Form/ConfigForm.php:121
+msgid ""
+"This option is required to get the whole identifier when needed, for example "
+"with the IIIF server."
+msgstr ""
+
+#: src/Form/ConfigForm.php:131
+msgid "When no identifier exists"
+msgstr ""
+
+#: src/Form/ConfigForm.php:133
+msgid "Omeka route: / resource type / id"
+msgstr ""
+
+#: src/Form/ConfigForm.php:134
 msgid "Main and generic path: / main / generic / id"
 msgstr ""
 
-#: src/Form/ConfigForm.php:122
+#: src/Form/ConfigForm.php:135
 msgid "Generic path: / generic / id"
 msgstr ""
 
-#: src/Form/ConfigForm.php:123
+#: src/Form/ConfigForm.php:136
 msgid "Error 404 (except in admin)"
 msgstr ""
 
-#: src/Form/ConfigForm.php:137
+#: src/Form/ConfigForm.php:150
 msgid "Main base path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:146
+#: src/Form/ConfigForm.php:159
 msgid "Main path for resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:147
+#: src/Form/ConfigForm.php:160
 msgid ""
 "The main path to add in the beginning of the url for resources, for example "
 "\"library/\", or \"archives/\". Let empty if you do not want any."
 msgstr ""
 
-#: src/Form/ConfigForm.php:157
+#: src/Form/ConfigForm.php:170
 msgid "Sub-main path for resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:158
+#: src/Form/ConfigForm.php:171
 msgid ""
 "A second path to add in the beginning of the url for resources, for example "
 "\"ark:/\". Let empty if you do not want any."
 msgstr ""
 
-#: src/Form/ConfigForm.php:168
+#: src/Form/ConfigForm.php:181
 msgid "Sub-sub-main path for resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:169
+#: src/Form/ConfigForm.php:182
 msgid ""
 "A third path to add in the beginning of the url for resources, for example "
 "the ark naan. Let empty if you do not want any."
 msgstr ""
 
-#: src/Form/ConfigForm.php:179
+#: src/Form/ConfigForm.php:192
 msgid "Allow short url"
 msgstr ""
 
-#: src/Form/ConfigForm.php:182
+#: src/Form/ConfigForm.php:195
 msgid "Without main path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:183
+#: src/Form/ConfigForm.php:196
 msgid "Without main and sub-path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:184
+#: src/Form/ConfigForm.php:197
 msgid "Without main, sub-path and sub-sub-path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:208
+#: src/Form/ConfigForm.php:221
 msgid "Generic name to add before item set identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:209
+#: src/Form/ConfigForm.php:222
 msgid ""
 "Allow to set an url for item sets like \"/ my_item_sets / item set identifier"
 "\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:219 src/Form/ConfigForm.php:289
-#: src/Form/ConfigForm.php:403
+#: src/Form/ConfigForm.php:232 src/Form/ConfigForm.php:302
+#: src/Form/ConfigForm.php:416
 msgid "Keep raw identifier (no url encode)"
 msgstr ""
 
-#: src/Form/ConfigForm.php:243
+#: src/Form/ConfigForm.php:256
 msgid "Default url of items"
 msgstr ""
 
-#: src/Form/ConfigForm.php:244
+#: src/Form/ConfigForm.php:257
 msgid "Select the default format of the url for items."
 msgstr ""
 
-#: src/Form/ConfigForm.php:246 src/Form/ConfigForm.php:264
+#: src/Form/ConfigForm.php:259 src/Form/ConfigForm.php:277
 msgid "/ generic / item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:247 src/Form/ConfigForm.php:265
+#: src/Form/ConfigForm.php:260 src/Form/ConfigForm.php:278
 msgid "/ generic / full item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:248 src/Form/ConfigForm.php:266
+#: src/Form/ConfigForm.php:261 src/Form/ConfigForm.php:279
 msgid "/ item set identifier / item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:249 src/Form/ConfigForm.php:267
+#: src/Form/ConfigForm.php:262 src/Form/ConfigForm.php:280
 msgid "/ item set identifier / full item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:261
+#: src/Form/ConfigForm.php:274
 msgid "Allowed urls for items"
 msgstr ""
 
-#: src/Form/ConfigForm.php:262
+#: src/Form/ConfigForm.php:275
 msgid ""
 "Select the allowed formats for urls of items, for example to allow a "
 "permalink and a seo link."
 msgstr ""
 
-#: src/Form/ConfigForm.php:278 src/Form/ConfigForm.php:392
+#: src/Form/ConfigForm.php:291 src/Form/ConfigForm.php:405
 msgid "Generic name to add before item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:279
+#: src/Form/ConfigForm.php:292
 msgid ""
 "The prefix to use for items, for example \"item/\", \"record/\" or \"doc/\"."
 msgstr ""
 
-#: src/Form/ConfigForm.php:299 src/Form/ConfigForm.php:414
+#: src/Form/ConfigForm.php:312 src/Form/ConfigForm.php:427
 msgid "The identifier includes the item set identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:302 src/Form/ConfigForm.php:417
-#: src/Form/ConfigForm.php:434
+#: src/Form/ConfigForm.php:315 src/Form/ConfigForm.php:430
+#: src/Form/ConfigForm.php:447
 msgid "Maybe"
 msgstr ""
 
-#: src/Form/ConfigForm.php:315 src/Form/ConfigForm.php:447
+#: src/Form/ConfigForm.php:328 src/Form/ConfigForm.php:460
 msgid "When item set is undefined"
 msgstr ""
 
-#: src/Form/ConfigForm.php:317 src/Form/ConfigForm.php:449
+#: src/Form/ConfigForm.php:330 src/Form/ConfigForm.php:462
 msgid "Use item set id"
 msgstr ""
 
-#: src/Form/ConfigForm.php:318
+#: src/Form/ConfigForm.php:331
 msgid "Use main setting for undefined"
 msgstr ""
 
-#: src/Form/ConfigForm.php:332
+#: src/Form/ConfigForm.php:345
 msgid "Medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:341
+#: src/Form/ConfigForm.php:354
 msgid "Default url of medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:342
+#: src/Form/ConfigForm.php:355
 msgid "Select the default format of the url for medias."
 msgstr ""
 
-#: src/Form/ConfigForm.php:344 src/Form/ConfigForm.php:370
+#: src/Form/ConfigForm.php:357 src/Form/ConfigForm.php:383
 msgid "/ generic / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:345 src/Form/ConfigForm.php:371
+#: src/Form/ConfigForm.php:358 src/Form/ConfigForm.php:384
 msgid "/ generic / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:346 src/Form/ConfigForm.php:372
+#: src/Form/ConfigForm.php:359 src/Form/ConfigForm.php:385
 msgid "/ generic / item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:347 src/Form/ConfigForm.php:373
+#: src/Form/ConfigForm.php:360 src/Form/ConfigForm.php:386
 msgid "/ generic / full item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:348 src/Form/ConfigForm.php:374
+#: src/Form/ConfigForm.php:361 src/Form/ConfigForm.php:387
 msgid "/ generic / item identifier / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:349 src/Form/ConfigForm.php:375
+#: src/Form/ConfigForm.php:362 src/Form/ConfigForm.php:388
 msgid "/ generic / full item identifier / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:350 src/Form/ConfigForm.php:376
+#: src/Form/ConfigForm.php:363 src/Form/ConfigForm.php:389
 msgid "/ item_set identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:351 src/Form/ConfigForm.php:377
+#: src/Form/ConfigForm.php:364 src/Form/ConfigForm.php:390
 msgid "/ item_set identifier / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:352 src/Form/ConfigForm.php:378
+#: src/Form/ConfigForm.php:365 src/Form/ConfigForm.php:391
 msgid "/ item set identifier / item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:353 src/Form/ConfigForm.php:379
+#: src/Form/ConfigForm.php:366 src/Form/ConfigForm.php:392
 msgid "/ item set identifier / full item identifier / media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:354 src/Form/ConfigForm.php:380
+#: src/Form/ConfigForm.php:367 src/Form/ConfigForm.php:393
 msgid "/ item set identifier / item identifier / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:355 src/Form/ConfigForm.php:381
+#: src/Form/ConfigForm.php:368 src/Form/ConfigForm.php:394
 msgid "/ item set identifier / full item identifier / full media identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:367
+#: src/Form/ConfigForm.php:380
 msgid "Allowed urls for medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:368
+#: src/Form/ConfigForm.php:381
 msgid ""
 "Select the allowed formats for urls of medias, for example to allow a "
 "permalink and a seo link."
 msgstr ""
 
-#: src/Form/ConfigForm.php:393
+#: src/Form/ConfigForm.php:406
 msgid ""
 "The prefix to use for medias, for example \"file/\", \"record/\" or \"image/"
 "\". in some cases, it shoud be different from the name used for items."
 msgstr ""
 
-#: src/Form/ConfigForm.php:404
+#: src/Form/ConfigForm.php:417
 msgid ""
 "This option may be needed when the resource contains the parent identifier "
 "separated with a \"/\", like ark identifiers."
 msgstr ""
 
-#: src/Form/ConfigForm.php:430
+#: src/Form/ConfigForm.php:443
 msgid "The identifier includes the item identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:431
+#: src/Form/ConfigForm.php:444
 msgid ""
 "This option may be needed when the resource contains the parent identifier, "
 "like ark media identifiers."
 msgstr ""
 
-#: src/Form/ConfigForm.php:450 src/Form/ConfigForm.php:465
-#: src/Form/ConfigForm.php:481
+#: src/Form/ConfigForm.php:463 src/Form/ConfigForm.php:478
+#: src/Form/ConfigForm.php:494
 msgid "Use main undefined setting"
 msgstr ""
 
-#: src/Form/ConfigForm.php:462
+#: src/Form/ConfigForm.php:475
 msgid "When item identifier is undefined"
 msgstr ""
 
-#: src/Form/ConfigForm.php:464
+#: src/Form/ConfigForm.php:477
 msgid "Use item id"
 msgstr ""
 
-#: src/Form/ConfigForm.php:477
+#: src/Form/ConfigForm.php:490
 msgid "When media identifier is undefined"
 msgstr ""
 
-#: src/Form/ConfigForm.php:479
+#: src/Form/ConfigForm.php:492
 msgid "Use media id"
 msgstr ""
 
-#: src/Form/ConfigForm.php:480
+#: src/Form/ConfigForm.php:493
 msgid "Use position with format below"
 msgstr ""
 
-#: src/Form/ConfigForm.php:493
+#: src/Form/ConfigForm.php:506
 msgid "Format of the media position"
 msgstr ""
 
-#: src/Form/ConfigForm.php:494
+#: src/Form/ConfigForm.php:507
 msgid ""
 "A \"sprintf\" string that will format the position. It is recommended to use "
 "a format with a leading letter to avoid confusion with numeric media id. "
@@ -546,33 +560,33 @@ msgid ""
 "\"Bulk Check\" to fix positions."
 msgstr ""
 
-#: src/Form/ConfigForm.php:507
+#: src/Form/ConfigForm.php:520
 msgid "Admin Interface"
 msgstr ""
 
-#: src/Form/ConfigForm.php:516
+#: src/Form/ConfigForm.php:529
 msgid "Use in admin board"
 msgstr ""
 
-#: src/Form/ConfigForm.php:517
+#: src/Form/ConfigForm.php:530
 msgid "If checked, the clean url will be used in the admin board."
 msgstr ""
 
-#: src/Form/ConfigForm.php:527
+#: src/Form/ConfigForm.php:540
 msgid "Display identifier in admin resources"
 msgstr ""
 
-#: src/Form/ConfigForm.php:528
+#: src/Form/ConfigForm.php:541
 msgid ""
 "If checked, the identifier of each item will be displayed in the admin item "
 "show page."
 msgstr ""
 
-#: src/Form/ConfigForm.php:538
+#: src/Form/ConfigForm.php:551
 msgid "Other reserved routes in admin"
 msgstr ""
 
-#: src/Form/ConfigForm.php:539
+#: src/Form/ConfigForm.php:552
 msgid ""
 "This option allows to fix routes for unmanaged modules. Add them in the file "
 "cleanurl.config.php or here, one by row."
@@ -592,7 +606,7 @@ msgstr ""
 msgid "The \"%1$s\" #%2$d has no normalized identifier."
 msgstr ""
 
-#: src/Mvc/MvcListeners.php:581 src/Mvc/MvcListeners.php:625
+#: src/Mvc/MvcListeners.php:582 src/Mvc/MvcListeners.php:626
 #, php-format
 msgid ""
 "Resource not found. Check if the url \"%s\" should be skipped in Clean Url."
