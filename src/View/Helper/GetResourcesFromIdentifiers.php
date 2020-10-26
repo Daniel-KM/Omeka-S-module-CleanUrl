@@ -1,10 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
-use Omeka\Api\Exception\NotFoundException;
 use Laminas\View\Helper\AbstractHelper;
+use Omeka\Api\Exception\NotFoundException;
 
 /**
  * @package Omeka\Plugins\CleanUrl\View\Helper
@@ -192,7 +192,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                     }
                     // Check prefix with a space and a no-break space.
                     if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
                         if ($this->prefix != $unspacePrefix) {
                             // Check with a space between prefix and identifier too.
                             foreach (array_keys($identifiers) as $identifier) {
@@ -215,7 +215,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                         }
                     }
                     if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
                         if ($this->prefix != $unspacePrefix) {
                             foreach (array_keys($identifiers) as $identifier) {
                                 if (mb_strpos($identifier, $this->prefix) !== 0) {
@@ -235,7 +235,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                     }
                     // Check prefix with a space and a no-break space.
                     if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
                         if ($this->prefix != $unspacePrefix) {
                             // Check with a space between prefix and identifier too.
                             foreach (array_keys($identifiers) as $identifier) {
@@ -252,7 +252,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                         $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
                     }
                     if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', ' '], '', $this->prefix);
+                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
                         if ($this->prefix != $unspacePrefix) {
                             foreach (array_keys($identifiers) as $identifier) {
                                 $variants[mb_strtolower($unspacePrefix . $identifier)] = $identifier;
@@ -334,9 +334,8 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             'resource:item_set' => \Omeka\Entity\ItemSet::class,
             'resource:item-set' => \Omeka\Entity\ItemSet::class,
         ];
-        return isset($resourceTypes[$resourceName])
-        ? $resourceTypes[$resourceName]
-        : null;
+        return $resourceTypes[$resourceName]
+        ?? null;
     }
 
     protected function convertResourceTypeToResourceName($resourceType)
@@ -346,9 +345,8 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             \Omeka\Entity\Item::class => 'items',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return isset($resourceNames[$resourceType])
-            ? $resourceNames[$resourceType]
-            : 'resources';
+        return $resourceNames[$resourceType]
+            ?? 'resources';
     }
 
     /**

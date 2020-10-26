@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -18,7 +18,7 @@ class IndexControllerItemBrowseTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testRouteItemBrowseAction()
+    public function testRouteItemBrowseAction(): void
     {
         $site_slug = $this->site->slug();
         $path = "/s/$site_slug/document";

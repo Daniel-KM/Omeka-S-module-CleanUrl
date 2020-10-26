@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -16,7 +16,7 @@ class IndexControllerRouteItemSetItemMediaTest extends CleanUrlControllerTestCas
         ];
     }
 
-    public function testRouteItemSetItemMediaAction()
+    public function testRouteItemSetItemMediaAction(): void
     {
         $site_slug = $this->site->slug();
         $item_set_identifier = $this->item_set->value('dcterms:identifier');

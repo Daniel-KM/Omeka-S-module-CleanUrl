@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\View\Helper;
 
@@ -99,12 +99,12 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             : $result;
     }
 
-    public function setPropertyId($propertyId)
+    public function setPropertyId($propertyId): void
     {
         $this->propertyId = $propertyId;
     }
 
-    public function setPrefix($prefix)
+    public function setPrefix($prefix): void
     {
         $this->prefix = $prefix;
     }

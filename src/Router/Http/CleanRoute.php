@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
@@ -9,13 +9,13 @@ use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
 
-use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
-use Traversable;
 use Laminas\Router\Exception;
 use Laminas\Router\Http\RouteInterface;
 use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\ArrayUtils;
 use Laminas\Stdlib\RequestInterface as Request;
+use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
+use Traversable;
 
 /**
  * Manage clean urls for all Omeka resources and pages according to the config.
@@ -121,7 +121,7 @@ class CleanRoute implements RouteInterface
         return new static($options['api'], $options['base_path'], $options['settings'], $options['helpers']);
     }
 
-    protected function prepareCleanRoutes()
+    protected function prepareCleanRoutes(): void
     {
         $this->routes = [];
 
@@ -140,7 +140,7 @@ class CleanRoute implements RouteInterface
         }
     }
 
-    protected function loopRoutes($short)
+    protected function loopRoutes($short): void
     {
         $mainPathFull = $this->settings['main_path_full'];
         $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
@@ -457,7 +457,7 @@ class CleanRoute implements RouteInterface
                 }
 
                 // Check for page when there is no page prefix and no main path.
-                $siteSlug = isset($params['site-slug']) ? $params['site-slug'] : SLUG_MAIN_SITE;
+                $siteSlug = $params['site-slug'] ?? SLUG_MAIN_SITE;
                 $noPath = in_array($this->settings['main_short'], ['main', 'main_sub', 'main_sub_sub'])
                     || !mb_strlen($this->settings['main_path_full']);
                 $checkPage = $siteSlug
@@ -1029,8 +1029,7 @@ class CleanRoute implements RouteInterface
             \Omeka\Entity\Item::class => 'item',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return isset($controllers[$name])
-            ? $controllers[$name]
-            : null;
+        return $controllers[$name]
+            ?? null;
     }
 }

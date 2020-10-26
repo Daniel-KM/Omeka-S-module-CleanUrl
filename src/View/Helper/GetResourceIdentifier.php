@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\View\Helper;
 
@@ -7,6 +7,7 @@ namespace CleanUrl\View\Helper;
  */
 
 use Doctrine\DBAL\Connection;
+use Laminas\View\Helper\AbstractHelper;
 use Omeka\Api\Representation\AbstractResourceRepresentation;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\ItemSetRepresentation;
@@ -15,7 +16,6 @@ use Omeka\Entity\Item;
 use Omeka\Entity\ItemSet;
 use Omeka\Entity\Media;
 use Omeka\Entity\Resource;
-use Laminas\View\Helper\AbstractHelper;
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
@@ -68,7 +68,7 @@ class GetResourceIdentifier extends AbstractHelper
         if ($prefix) {
             $bind[] = $prefix . '%';
             // Check prefix with a space and a no-break space.
-            $unspace = str_replace([' ', ' '], '', $prefix);
+            $unspace = str_replace([' ', "\u{a0}"], '', $prefix);
             if ($prefix != $unspace && $this->view->setting('cleanurl_identifier_unspace')) {
                 $checkUnspace = true;
                 $sqlWhereText = 'AND (value.value LIKE ? OR value.value LIKE ?)';

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -18,7 +18,7 @@ class IndexControllerItemTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testRouteItemAction()
+    public function testRouteItemAction(): void
     {
         $site_slug = $this->site->slug();
         $item_identifier = $this->item->value('dcterms:identifier');

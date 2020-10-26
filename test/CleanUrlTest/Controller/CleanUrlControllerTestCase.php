@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -17,7 +17,7 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
         return [];
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->loginAsAdmin();
 
@@ -112,7 +112,7 @@ abstract class CleanUrlControllerTestCase extends OmekaControllerTestCase
         $this->resetApplication();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->api()->delete('items', $this->item->id());
         $this->api()->delete('item_sets', $this->item_set->id());

@@ -1,14 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\Mvc;
 
-use Omeka\Api\Representation\ItemRepresentation;
-use Omeka\Api\Representation\MediaRepresentation;
-use Omeka\Mvc\Exception\NotFoundException;
 use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Router\Http\RouteMatch;
+use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Representation\MediaRepresentation;
+use Omeka\Mvc\Exception\NotFoundException;
 
 class MvcListeners extends AbstractListenerAggregate
 {
@@ -72,7 +72,7 @@ class MvcListeners extends AbstractListenerAggregate
     private $_item_id = 0;
     private $_file_id = 0;
 
-    public function attach(EventManagerInterface $events, $priority = 1)
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
         $this->listeners[] = $events->attach(
             MvcEvent::EVENT_ROUTE,
@@ -479,7 +479,7 @@ class MvcListeners extends AbstractListenerAggregate
 
             // Check prefix with a space and a no-break space.
             if ($this->settings->get('cleanurl_identifier_unspace')) {
-                $unspace = str_replace([' ', ' '], '', $prefix);
+                $unspace = str_replace([' ', "\u{a0}"], '', $prefix);
                 if ($prefix != $unspace) {
                     $identifiers[] = $isNN ? $unspace . $this->_resource_identifier : null;
                     $identifiers[] = $isNN ? $unspace . ' ' . $this->_resource_identifier : null;
@@ -554,7 +554,7 @@ class MvcListeners extends AbstractListenerAggregate
 
         // Check prefix with a space and a no-break space.
         if ($this->settings->get('cleanurl_identifier_unspace')) {
-            $unspace = str_replace([' ', ' '], '', $prefix);
+            $unspace = str_replace([' ', "\u{a0}"], '', $prefix);
             if ($prefix != $unspace) {
                 $identifiers[] = $unspace . $this->_resource_identifier;
                 $identifiers[] = $unspace . ' ' . $this->_resource_identifier;
@@ -782,7 +782,7 @@ class MvcListeners extends AbstractListenerAggregate
         return true;
     }
 
-    protected function checkItemBelongsToItemSet(ItemRepresentation $item, $item_set_id)
+    protected function checkItemBelongsToItemSet(ItemRepresentation $item, $item_set_id): void
     {
         if (empty($item_set_id)) {
             return;

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrlTest\Controller;
 
@@ -17,7 +17,7 @@ class IndexControllerItemSetTest extends CleanUrlControllerTestCase
         ];
     }
 
-    public function testItemSetAction()
+    public function testItemSetAction(): void
     {
         $site_slug = $this->site->slug();
         $item_set_identifier = $this->item_set->value('dcterms:identifier');
@@ -30,7 +30,7 @@ class IndexControllerItemSetTest extends CleanUrlControllerTestCase
         $this->assertQueryContentContains('#content > h2', 'Item Set 1');
     }
 
-    public function testItemSetActionForSecondItemSet()
+    public function testItemSetActionForSecondItemSet(): void
     {
         $site_slug = $this->site->slug();
         $item_set_identifier = $this->item_set_2->value('dcterms:identifier');

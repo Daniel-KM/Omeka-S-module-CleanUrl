@@ -1,11 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace CleanUrl\View\Helper;
 
 use Doctrine\DBAL\Connection;
+use Laminas\View\Helper\AbstractHelper;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Entity\Resource;
-use Laminas\View\Helper\AbstractHelper;
 
 /*
  * Clean Url Get Identifiers From Resources
