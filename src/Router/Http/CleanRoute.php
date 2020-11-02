@@ -416,7 +416,7 @@ class CleanRoute implements RouteInterface
 
         // The path offset is currently not managed: no action.
         // So the check all the remaining path. Routes will be reordered.
-        $path = mb_substr($path, $pathOffset);
+        $path = mb_substr($path, (int) $pathOffset);
 
         // Check if it is a top url first.
         if (mb_stripos('|' . SLUGS_SITE . '|', '|' . trim(mb_substr($path, mb_strlen(SLUG_SITE)), '/') . '|') !== false) {
@@ -429,7 +429,7 @@ class CleanRoute implements RouteInterface
             // if (is_null($pathOffset)) {
             $result = preg_match('(^' . $regex . '$)', $path, $matches);
             // } else {
-            //     $result = preg_match('(\G' . $regex . ')', $path, $matches, null, $pathOffset);
+            //     $result = preg_match('(\G' . $regex . ')', $path, $matches, null, (int) $pathOffset);
             // }
 
             if ($result) {
