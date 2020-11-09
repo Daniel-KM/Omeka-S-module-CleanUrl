@@ -11,8 +11,6 @@ if (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE)) {
     $regexSite = '[a-zA-Z0-9_-]+';
 }
 
-// pmf([$slugSite, $regexSite]);
-
 // Prepare to get the slug of a page, that can be anything except reserved strings.
 $regexSitePage = SLUG_PAGE
     . '(?:'
