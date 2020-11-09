@@ -60,11 +60,10 @@ class GetMediaFromPosition extends AbstractHelper
 
         $media = $this->entityManager
             ->getRepository(Media::class)
-            ->findBy(['item' => $itemId, 'position' => (int) $position], ['id' => 'ASC'], 1);
-        if (!count($media)) {
+            ->findOneBy(['item' => $itemId, 'position' => (int) $position], ['id' => 'ASC']);
+        if (!$media) {
             return null;
         }
-        $media = reset($media);
 
         // The visibility / rights is automatically because EntityManager is
         // used, not Connection.

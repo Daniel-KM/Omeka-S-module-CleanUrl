@@ -76,6 +76,7 @@ class Module extends AbstractModule
                     'api' => $services->get('Omeka\ApiManager'),
                     'getResourceFromIdentifier' => $helpers->get('getResourceFromIdentifier'),
                     'getMediaFromPosition' => $helpers->get('getMediaFromPosition'),
+                    'entityManager' => $services->get('Omeka\EntityManager'),
                     'base_path' => $basePath(),
                     'settings' => $settings->get('cleanurl_quick_settings', []),
                 ],
@@ -685,7 +686,19 @@ class Module extends AbstractModule
             };
         }
 
-        $getMediaItemIdentifier = function (string $path): ?string {
+        $getItemSetIdentifierName = function (string $path): ?string {
+            if (mb_strpos($path, '{item_set_id}') === false) {
+                if (mb_strpos($path, '{item_set_identifier}') === false) {
+                    return mb_strpos($path, '{item_set_identifier_short}') === false
+                        ? null
+                        : 'item_set_identifier_short';
+                }
+                return 'item_set_identifier';
+            }
+            return 'item_set_id';
+        };
+
+        $getItemIdentifierName = function (string $path): ?string {
             if (mb_strpos($path, '{item_id}') === false) {
                 if (mb_strpos($path, '{item_identifier}') === false) {
                     return mb_strpos($path, '{item_identifier_short}') === false
@@ -764,7 +777,7 @@ class Module extends AbstractModule
             return reset($resourceIdentifier);
         };
 
-        $checkPathMedia = function (string $path) use ($messager, $getMediaItemIdentifier): ?string {
+        $checkPathMedia = function (string $path) use ($messager, $getItemIdentifierName): ?string {
             $checks = [
                 '{media_id}',
                 '{media_identifier}',
@@ -792,7 +805,7 @@ class Module extends AbstractModule
             }
             $resourceIdentifier = reset($resourceIdentifier);
             if ($resourceIdentifier === '{media_position}') {
-                $itemIdentifier = $getMediaItemIdentifier($path);
+                $itemIdentifier = $getItemIdentifierName($path);
                 if (!$itemIdentifier) {
                     $messager(new Message('The path "%s" for medias should contain an item identifier.', $path)); // @translate
                     return null;
@@ -894,8 +907,11 @@ class Module extends AbstractModule
                 if ($action === 'route') {
                     continue;
                 }
-                if ($resourceType === 'media' && $resourceIdentifier === '{media_position}') {
-                    $itemIdentifier = $getMediaItemIdentifier($resourcePath);
+                if ($resourceType === 'items') {
+                    $itemSetIdentifierName = $getItemSetIdentifierName($resourcePath);
+                } elseif ($resourceType === 'media') {
+                    $itemSetIdentifierName = $getItemSetIdentifierName($resourcePath);
+                    $itemIdentifierName = $getItemIdentifierName($resourcePath);
                 }
                 foreach ($siteParts as $sitePart) {
                     $routeName = 'cleanurl_' . $resourceParams['name'] . $sitePart . '_' . ++$index;
@@ -927,9 +943,20 @@ class Module extends AbstractModule
                             ],
                         ],
                     ];
-                    // Manage an exception. The item identifier is already checked.
-                    if ($resourceType === 'media' && $data['resource_identifier'] === 'media_position') {
-                        $data['item_identifier'] = $itemIdentifier;
+                    // Manage exceptions and other identifiers.
+                    if ($resourceType === 'item_sets') {
+                        if ($sitePart === '_public' || $sitePart === '_top') {
+                            $data['defaults']['forward_route_name'] = 'site/item-set';
+                            $data['defaults']['forward']['controller'] = 'Omeka\Controller\Site\Item';
+                            $data['defaults']['forward']['action'] = 'browse';
+                            $data['defaults']['forward']['item-set-id'] = null;
+                            $data['defaults']['forward']['__CONTROLLER__'] = 'item';
+                        }
+                    } elseif ($resourceType === 'items') {
+                        $data['item_set_identifier'] = $itemSetIdentifierName;
+                    } elseif ($resourceType === 'media') {
+                        $data['item_set_identifier'] = $itemSetIdentifierName;
+                        $data['item_identifier'] = $itemIdentifierName;
                     }
                     $params['regex'][$routeName] = $data;
                 }
