@@ -1,5 +1,9 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl;
+
+use Omeka\Mvc\Controller\Plugin\Messenger;
+use Omeka\Stdlib\Message;
 
 /**
  * @var Module $this
@@ -140,4 +144,54 @@ if (version_compare($oldVersion, '3.15.17', '<')) {
 
     $settings->set('cleanurl_identifier_case_sensitive', (bool) $settings->get('cleanurl_identifier_case_insensitive'));
     $settings->delete('cleanurl_identifier_case_insensitive');
+}
+
+if (version_compare($oldVersion, '3.16.0.3', '<')) {
+    $message = new Message(
+        'The module has been rewritten and the whole configuration has been simplified. You should check your config, because the upgrade of the configuration is not automatic.' // @translate
+    );
+    $message->setEscapeHtml(false);
+    $messenger = new Messenger();
+    $messenger->addWarning($message);
+
+    $settings->delete('cleanurl_item_set_default');
+    $settings->delete('cleanurl_item_default');
+    $settings->delete('cleanurl_media_default');
+}
+
+if (version_compare($oldVersion, '3.16.0.3', '>=') && version_compare($oldVersion, '3.16.1.3', '<=')) {
+    $removed = [
+        'cleanurl_identifier_unspace',
+        'cleanurl_identifier_undefined',
+        'cleanurl_main_path',
+        'cleanurl_main_path_2',
+        'cleanurl_main_path_3',
+        'cleanurl_main_short',
+        'cleanurl_item_set_generic',
+        'cleanurl_item_set_keep_raw',
+        'cleanurl_item_allowed',
+        'cleanurl_item_generic',
+        'cleanurl_item_keep_raw',
+        'cleanurl_item_item_set_included',
+        'cleanurl_item_item_set_undefined',
+        'cleanurl_media_allowed',
+        'cleanurl_media_generic',
+        'cleanurl_media_keep_raw',
+        'cleanurl_media_item_set_included',
+        'cleanurl_media_item_included',
+        'cleanurl_media_item_set_undefined',
+        'cleanurl_media_item_undefined',
+        'cleanurl_media_media_undefined',
+        'cleanurl_media_format_position',
+    ];
+    foreach ($removed as $name) {
+        $settings->delete($name);
+    }
+
+    if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.config.php');
+    }
+    if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.dynamic.php');
+    }
 }

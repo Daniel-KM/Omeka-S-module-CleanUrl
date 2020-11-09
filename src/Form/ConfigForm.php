@@ -12,6 +12,8 @@ class ConfigForm extends Form
 {
     public function init(): void
     {
+        // Pages.
+
         $this
             ->add([
                 'type' => Fieldset::class,
@@ -19,9 +21,7 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Sites and pages', // @translate
                 ],
-            ]);
-        $siteFieldset = $this->get('clean_url_pages');
-        $siteFieldset
+            ])
             ->add([
                 'name' => 'cleanurl_site_skip_main',
                 'type' => Element\Checkbox::class,
@@ -54,7 +54,10 @@ class ConfigForm extends Form
                     'id' => 'cleanurl_page_slug',
                     'placeholder' => 'page/', // @translate
                 ],
-            ]);
+            ])
+        ;
+
+        // Identifiers.
 
         $this
             ->add([
@@ -63,9 +66,7 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Resource identifiers', // @translate
                 ],
-            ]);
-        $identifiersFieldset = $this->get('clean_url_identifiers');
-        $identifiersFieldset
+            ])
             ->add([
                 'name' => 'cleanurl_identifier_property',
                 'type' => PropertySelect::class,
@@ -85,32 +86,23 @@ class ConfigForm extends Form
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Prefix to select an identifier', // @translate
-                    'info' => 'This prefix allows to find one identifier when there are multiple values: "ark:", "record:", or "doc =". Let empty to use the first identifier. If this identifier does not exists, the Omeka item id will be used.', // @translate
+                    'info' => 'This prefix allows to find one identifier when there are multiple values: "ark:", "record:", or "doc =". Include space if needed. Let empty to use the first identifier. If this identifier does not exists, the Omeka item id will be used.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_identifier_prefix',
+                    'placeholder' => 'ark:/12345/'
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_identifier_unspace',
-                'type' => Element\Checkbox::class,
+                'name' => 'cleanurl_identifier_short',
+                'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Check the prefix without space', // @translate
-                    'info' => 'This option is used for not homogeneous value and allow to check values without space inside, for example the prefix is "doc:", but some records use "doc :".', // @translate
+                    'label' => 'Short part', // @translate
+                    'info' => 'Indicate the fixed part of the identifier that should be removed to get the short identifier.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_identifier_unspace',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_case_sensitive',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Identifiers are case sensitive', // @translate
-                    'info' => 'Some formats of short identifiers are case sensitive, so search will be done in a binary way.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_identifier_case_sensitive',
+                    'id' => 'cleanurl_identifier_short',
+                    'placeholder' => 'ark:/12345/'
                 ],
             ])
             ->add([
@@ -125,84 +117,19 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_identifier_undefined',
-                'type' => Element\Radio::class,
+                'name' => 'cleanurl_identifier_case_sensitive',
+                'type' => Element\Checkbox::class,
                 'options' => [
-                    'label' => 'When no identifier exists', // @translate
-                    'value_options' => [
-                        'default' => 'Omeka route: / resource type / id', // @translate
-                        'main_generic' => 'Main and generic path: / main / generic / id', // @translate
-                        'generic' => 'Generic path: / generic / id', // @translate
-                        'exception' => 'Error 404 (except in admin)', // @translate
-                    ],
+                    'label' => 'Identifiers are case sensitive', // @translate
+                    'info' => 'Some formats of short identifiers are case sensitive, so search will be done in a binary way.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_identifier_undefined',
-                    'required' => true,
+                    'id' => 'cleanurl_identifier_case_sensitive',
                 ],
-            ]);
+            ])
+        ;
 
-        $this
-            ->add([
-                'type' => Fieldset::class,
-                'name' => 'clean_url_main_path',
-                'options' => [
-                    'label' => 'Main base path', // @translate
-                ],
-            ]);
-        $mainPathFieldset = $this->get('clean_url_main_path');
-        $mainPathFieldset
-            ->add([
-                'name' => 'cleanurl_main_path',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Main path for resources', // @translate
-                    'info' => 'The main path to add in the beginning of the url for resources, for example "library/", or "archives/". Let empty if you do not want any.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_main_path',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_main_path_2',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Sub-main path for resources', // @translate
-                    'info' => 'A second path to add in the beginning of the url for resources, for example "ark:/". Let empty if you do not want any.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_main_path_2',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_main_path_3',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Sub-sub-main path for resources', // @translate
-                    'info' => 'A third path to add in the beginning of the url for resources, for example the ark naan. Let empty if you do not want any.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_main_path_3',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_main_short',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'Allow short url', // @translate
-                    'value_options' => [
-                        'no' => 'No', // @translate
-                        'main' => 'Without main path', // @translate
-                        'main_sub' => 'Without main and sub-path', // @translate
-                        'main_sub_sub' => 'Without main, sub-path and sub-sub-path', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_main_short',
-                    'required' => true,
-                    'value' => 'none',
-                ],
-            ]);
+        // Item sets.
 
         $this
             ->add([
@@ -211,30 +138,57 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Item sets', // @translate
                 ],
-            ]);
-        $itemSetsFieldset = $this->get('clean_url_item_sets');
-        $itemSetsFieldset
+            ])
             ->add([
-                'name' => 'cleanurl_item_set_generic',
-                'type' => Element\Text::class,
+                'name' => 'cleanurl_item_set_paths',
+                'type' => ArrayTextarea::class,
                 'options' => [
-                    'label' => 'Generic name to add before item set identifier', // @translate
-                    'info' => 'Allow to set an url for item sets like "/ my_item_sets / item set identifier".', // @translate
+                    'label' => 'Paths', // @translate
+                    'info' => 'The values are an unquoted regex from root with "~" as enclosure, ordered from the first to check to the last.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_item_set_generic',
+                    'id' => 'cleanurl_item_set_paths',
+                    'rows' => 3,
+                    'placeholder' => 'collection/{item_set_identifier}',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_item_set_keep_raw',
-                'type' => Element\Checkbox::class,
+                'name' => 'cleanurl_item_set_default',
+                'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Keep raw identifier (no url encode)', // @translate
+                    'label' => 'Default path', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_item_set_keep_raw',
+                    'id' => 'cleanurl_item_set_default',
+                    'placeholder' => 'collection/{item_set_identifier}',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'cleanurl_item_set_pattern',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Pattern of an item set identifier', // @translate
+                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_set_pattern',
+                    'placeholder' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_set_pattern_short',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Optional pattern of an item set short identifier', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_set_pattern',
+                    'placeholder' => '',
+                ],
+            ])
+        ;
+
+        // Items.
 
         $this
             ->add([
@@ -243,99 +197,58 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Items', // @translate
                 ],
-                'attributes' => [
-                    'id' => '',
+            ])
+            ->add([
+                'name' => 'cleanurl_item_paths',
+                'type' => ArrayTextarea::class,
+                'options' => [
+                    'label' => 'Paths', // @translate
                 ],
-            ]);
-        $itemsFieldset = $this->get('clean_url_items');
-        $itemsFieldset
+                'attributes' => [
+                    'id' => 'cleanurl_item_paths',
+                    'rows' => 3,
+                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}
+document/{item_identifier}
+',
+                ],
+            ])
             ->add([
                 'name' => 'cleanurl_item_default',
-                'type' => Element\Radio::class,
+                'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Default url of items', // @translate
-                    'info' => 'Select the default format of the url for items.', // @translate
-                    'value_options' => [
-                        'generic_item' => '/ generic / item identifier', // @translate
-                        'generic_item_full' => '/ generic / full item identifier', // @translate
-                        'item_set_item' => '/ item set identifier / item identifier', // @translate
-                        'item_set_item_full' => '/ item set identifier / full item identifier', // @translate
-                    ],
+                    'label' => 'Default path', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_default',
-                    'required' => true,
+                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_item_allowed',
-                'type' => Element\MultiCheckbox::class,
-                'options' => [
-                    'label' => 'Allowed urls for items', // @translate
-                    'info' => 'Select the allowed formats for urls of items, for example to allow a permalink and a seo link.', // @translate
-                    'value_options' => [
-                        'generic_item' => '/ generic / item identifier', // @translate
-                        'generic_item_full' => '/ generic / full item identifier', // @translate
-                        'item_set_item' => '/ item set identifier / item identifier', // @translate
-                        'item_set_item_full' => '/ item set identifier / full item identifier', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_item_allowed',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_item_generic',
+                'name' => 'cleanurl_item_pattern',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Generic name to add before item identifier', // @translate
-                    'info' => 'The prefix to use for items, for example "item/", "record/" or "doc/".', // @translate
+                    'label' => 'Pattern of an item identifier', // @translate
+                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_item_generic',
+                    'id' => 'cleanurl_item_pattern',
+                    'placeholder' => 'ark:/12345/[a-zA-Z][a-zA-Z0-9_-]*',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_item_keep_raw',
-                'type' => Element\Checkbox::class,
+                'name' => 'cleanurl_item_pattern_short',
+                'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Keep raw identifier (no url encode)', // @translate
+                    'label' => 'Optional pattern of an item short identifier', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_item_keep_raw',
+                    'id' => 'cleanurl_item_pattern_short',
+                    'placeholder' => '[a-zA-Z][a-zA-Z0-9_-]*',
                 ],
             ])
-            ->add([
-                'name' => 'cleanurl_item_item_set_included',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'The identifier includes the item set identifier', // @translate
-                    'value_options' => [
-                        'no' => 'No', // @translate
-                        'maybe' => 'Maybe', // @translate
-                        'yes' => 'Yes', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_item_item_set_included',
-                    'required' => false,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_item_item_set_undefined',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'When item set is undefined', // @translate
-                    'value_options' => [
-                        'parent_id' => 'Use item set id', // @translate
-                        'undefined' => 'Use main setting for undefined', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_item_item_set_undefined',
-                    'required' => true,
-                ],
-            ]);
+        ;
+
+        // Medias.
 
         $this
             ->add([
@@ -344,173 +257,59 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Medias', // @translate
                 ],
-            ]);
-        $mediaFieldset = $this->get('clean_url_medias');
-        $mediaFieldset
+            ])
+            ->add([
+                'name' => 'cleanurl_media_paths',
+                'type' => ArrayTextarea::class,
+                'options' => [
+                    'label' => 'Paths', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_paths',
+                    'rows' => 3,
+                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}/{media_id}
+document/{item_identifier}/p{media_position}
+',
+                ],
+            ])
             ->add([
                 'name' => 'cleanurl_media_default',
-                'type' => Element\Radio::class,
+                'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Default url of medias', // @translate
-                    'info' => 'Select the default format of the url for medias.', // @translate
-                    'value_options' => [
-                        'generic_media' => '/ generic / media identifier', // @translate
-                        'generic_media_full' => '/ generic / full media identifier', // @translate
-                        'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
-                        'generic_item_full_media' => '/ generic / full item identifier / media identifier', // @translate
-                        'generic_item_media_full' => '/ generic / item identifier / full media identifier', // @translate
-                        'generic_item_full_media_full' => '/ generic / full item identifier / full media identifier', // @translate
-                        'item_set_media' => '/ item_set identifier / media identifier', // @translate
-                        'item_set_media_full' => '/ item_set identifier / full media identifier', // @translate
-                        'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
-                        'item_set_item_full_media' => '/ item set identifier / full item identifier / media identifier', // @translate
-                        'item_set_item_media_full' => '/ item set identifier / item identifier / full media identifier', // @translate
-                        'item_set_item_full_media_full' => '/ item set identifier / full item identifier / full media identifier', // @translate
-                    ],
+                    'label' => 'Default path', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_default',
-                    'required' => true,
+                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}/{media_id}',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_media_allowed',
-                'type' => Element\MultiCheckbox::class,
-                'options' => [
-                    'label' => 'Allowed urls for medias', // @translate
-                    'info' => 'Select the allowed formats for urls of medias, for example to allow a permalink and a seo link.', // @translate
-                    'value_options' => [
-                        'generic_media' => '/ generic / media identifier', // @translate
-                        'generic_media_full' => '/ generic / full media identifier', // @translate
-                        'generic_item_media' => '/ generic / item identifier / media identifier', // @translate
-                        'generic_item_full_media' => '/ generic / full item identifier / media identifier', // @translate
-                        'generic_item_media_full' => '/ generic / item identifier / full media identifier', // @translate
-                        'generic_item_full_media_full' => '/ generic / full item identifier / full media identifier', // @translate
-                        'item_set_media' => '/ item_set identifier / media identifier', // @translate
-                        'item_set_media_full' => '/ item_set identifier / full media identifier', // @translate
-                        'item_set_item_media' => '/ item set identifier / item identifier / media identifier', // @translate
-                        'item_set_item_full_media' => '/ item set identifier / full item identifier / media identifier', // @translate
-                        'item_set_item_media_full' => '/ item set identifier / item identifier / full media identifier', // @translate
-                        'item_set_item_full_media_full' => '/ item set identifier / full item identifier / full media identifier', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_allowed',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_generic',
+                'name' => 'cleanurl_media_pattern',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Generic name to add before item identifier', // @translate
-                    'info' => 'The prefix to use for medias, for example "file/", "record/" or "image/". in some cases, it shoud be different from the name used for items.', // @translate
+                    'label' => 'Pattern of a media identifier', // @translate
+                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_media_generic',
+                    'id' => 'cleanurl_media_pattern',
+                    'placeholder' => '',
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_media_keep_raw',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Keep raw identifier (no url encode)', // @translate
-                    'info' => 'This option may be needed when the resource contains the parent identifier separated with a "/", like ark identifiers.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_keep_raw',
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_set_included',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'The identifier includes the item set identifier', // @translate
-                    'value_options' => [
-                        'no' => 'No', // @translate
-                        'maybe' => 'Maybe', // @translate
-                        'yes' => 'Yes', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_item_set_included',
-                    'required' => false,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_included',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'The identifier includes the item identifier', // @translate
-                    'info' => 'This option may be needed when the resource contains the parent identifier, like ark media identifiers.', // @translate
-                    'value_options' => [
-                        'no' => 'No', // @translate
-                        'maybe' => 'Maybe', // @translate
-                        'yes' => 'Yes', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_item_included',
-                    'required' => false,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_set_undefined',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'When item set is undefined', // @translate
-                    'value_options' => [
-                        'parent_id' => 'Use item set id', // @translate
-                        'undefined' => 'Use main undefined setting', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_item_set_undefined',
-                    'required' => true,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_undefined',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'When item identifier is undefined', // @translate
-                    'value_options' => [
-                        'parent_id' => 'Use item id', // @translate
-                        'undefined' => 'Use main undefined setting', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_item_undefined',
-                    'required' => true,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_media_undefined',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'label' => 'When media identifier is undefined', // @translate
-                    'value_options' => [
-                        'id' => 'Use media id', // @translate
-                        'position' => 'Use position with format below', // @translate
-                        'undefined' => 'Use main undefined setting', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_media_undefined',
-                    'required' => true,
-                ],
-            ])
-            ->add([
-                'name' => 'cleanurl_media_format_position',
+                'name' => 'cleanurl_media_pattern_short',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Format of the media position', // @translate
-                    'info' => 'A "sprintf" string that will format the position. It is recommended to use a format with a leading letter to avoid confusion with numeric media id. Furthermore, the position may not be stable: a scanned image may be missing. Finally, if the first media is not marked "1" in the database, use module "Bulk Check" to fix positions.', // @translate
+                    'label' => 'Optional pattern of a media short identifier', // @translate
+                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleanurl_media_format_position',
-                    'placeholder' => 'p%d',
+                    'id' => 'cleanurl_media_pattern_short',
+                    'placeholder' => '',
                 ],
-            ]);
+            ])
+        ;
+
+        // Admin.
 
         $this
             ->add([
@@ -519,9 +318,7 @@ class ConfigForm extends Form
                 'options' => [
                     'label' => 'Admin Interface', // @translate
                 ],
-            ]);
-        $adminFieldset = $this->get('clean_url_admin');
-        $adminFieldset
+            ])
             ->add([
                 'name' => 'cleanurl_admin_use',
                 'type' => Element\Checkbox::class,
@@ -534,17 +331,6 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_admin_show_identifier',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Display identifier in admin resources', // @translate
-                    'info' => 'If checked, the identifier of each item will be displayed in the admin item show page.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_admin_show_identifier',
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_admin_reserved',
                 'type' => ArrayTextarea::class,
                 'options' => [
@@ -553,142 +339,9 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_admin_reserved',
-                    'rows' => 5,
+                    'rows' => 3,
                 ],
-            ]);
-
-        $inputFilter = $this->getInputFilter();
-        $siteFilter = $inputFilter->get('clean_url_pages');
-        $siteFilter
-            ->add([
-                'name' => 'cleanurl_site_skip_main',
-                'required' => false,
             ])
-            ->add([
-                'name' => 'cleanurl_site_slug',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_page_slug',
-                'required' => false,
-            ]);
-
-        $identifiersFilter = $inputFilter->get('clean_url_identifiers');
-        $identifiersFilter
-            ->add([
-                'name' => 'cleanurl_identifier_property',
-                'required' => true,
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_prefix',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_unspace',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_case_sensitive',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_identifier_undefined',
-                'required' => true,
-            ]);
-
-        $itemSetsFilter = $inputFilter->get('clean_url_main_path');
-        $itemSetsFilter
-            ->add([
-                'name' => 'cleanurl_main_path',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_main_path_2',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_main_path_3',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_main_short',
-                'required' => true,
-            ]);
-
-        $itemSetsFilter = $inputFilter->get('clean_url_item_sets');
-        $itemSetsFilter
-            ->add([
-                'name' => 'cleanurl_item_set_generic',
-                'required' => false,
-            ]);
-
-        $itemsFilter = $inputFilter->get('clean_url_items');
-        $itemsFilter
-            ->add([
-                'name' => 'cleanurl_item_default',
-                'required' => true,
-            ])
-            ->add([
-                'name' => 'cleanurl_item_allowed',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_item_generic',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_item_item_set_included',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_item_item_set_undefined',
-                'required' => true,
-            ]);
-
-        $mediaFilter = $inputFilter->get('clean_url_medias');
-        $mediaFilter
-            ->add([
-                'name' => 'cleanurl_media_default',
-                'required' => true,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_allowed',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_generic',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_set_included',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_included',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_set_undefined',
-                'required' => true,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_item_undefined',
-                'required' => true,
-            ])
-            ->add([
-                'name' => 'cleanurl_media_media_undefined',
-                'required' => true,
-            ]);
-
-        $adminFilter = $inputFilter->get('clean_url_admin');
-        $adminFilter
-            ->add([
-                'name' => 'cleanurl_admin_use',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'cleanurl_admin_show_identifier',
-                'required' => false,
-            ]);
+        ;
     }
 }

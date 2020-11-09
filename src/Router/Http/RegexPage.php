@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\Router\Http;
 
 use Laminas\Router\Http\Regex;

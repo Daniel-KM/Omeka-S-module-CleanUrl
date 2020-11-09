@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
@@ -9,18 +10,21 @@ use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
 
+use CleanUrl\View\Helper\GetMediaFromPosition;
+use CleanUrl\View\Helper\GetResourceFromIdentifier;
 use Laminas\Router\Exception;
 use Laminas\Router\Http\RouteInterface;
 use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\ArrayUtils;
 use Laminas\Stdlib\RequestInterface as Request;
+use Omeka\Api\Manager as ApiManager;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Traversable;
 
 /**
  * Manage clean urls for all Omeka resources and pages according to the config.
  *
- * @todo Store all routes of all resources and pages in the database? Or use a regex route?
+ * @todo Store all routes of all resources and pages in the database?
  *
  * Partially derived from route \Laminas\Router\Http\Regex and \Laminas\Router\Http\Segment.
  */
@@ -30,6 +34,16 @@ class CleanRoute implements RouteInterface
      * @var \Omeka\Api\Manager
      */
     protected $api;
+
+    /**
+     * @var \CleanUrl\View\Helper\GetResourceFromIdentifier
+     */
+    protected $getResourceFromIdentifier;
+
+    /**
+     * @var \CleanUrl\View\Helper\GetMediaFromPosition
+     */
+    protected $getMediaFromPosition;
 
     /**
      * @var string
@@ -65,39 +79,51 @@ class CleanRoute implements RouteInterface
 
     /**
      * @param \Omeka\Api\Manager $api
+     * @param GetResourceFromIdentifier $getResourceFromIdentifier
+     * @param GetMediaFromPosition $getMediaFromPosition
      * @param string $basePath
      * @param array $settings
      * @param array $helpers Needed only to assemble an url.
      */
-    public function __construct($api = null, $basePath = '', array $settings = [], array $helpers = [])
-    {
+    public function __construct(
+        ApiManager $api = null,
+        GetResourceFromIdentifier $getResourceFromIdentifier = null,
+        GetMediaFromPosition $getMediaFromPosition = null,
+        string $basePath = '',
+        array $settings = [],
+        array $helpers = []
+    ) {
         $this->api = $api;
+        $this->getResourceFromIdentifier = $getResourceFromIdentifier;
+        $this->getMediaFromPosition = $getMediaFromPosition;
         $this->basePath = $basePath;
         $this->helpers = $helpers;
         $this->settings = $settings + [
-            'default_site' => '',
-            'main_path_full' => '',
-            'main_path_full_encoded' => '',
-            'main_short' => '',
-            'main_short_path_full' => '',
-            'main_short_path_full_encoded' => '',
-            'main_short_path_full_regex' => '',
-            'item_set_generic' => '',
-            'item_generic' => '',
-            'media_generic' => '',
-            'item_allowed' => [],
-            'media_allowed' => [],
-            'admin_use' => false,
-            'item_set_regex' => '',
-            'regex' => [
-                'main_path_full' => '',
-                'item_set_generic' => '',
-                'item_generic' => '',
-                'media_generic' => '',
-            ],
+            'default_site' => 0,
+            'site_skip_main' => false,
+            'site_slug' => 's/',
+            'page_slug' => 'page/',
+            'identifier_property' => 10,
+            'identifier_prefix' => '',
+            'identifier_short' => '',
+            'identifier_prefix_part_of' => false,
+            'identifier_case_sensitive' => false,
+            'item_set_paths' => [],
+            'item_set_default' => '',
+            'item_set_pattern' => '',
+            'item_set_pattern_short' => '',
+            'item_paths' => [],
+            'item_default' => '',
+            'item_pattern' => '',
+            'item_pattern_short' => '',
+            'media_paths' => [],
+            'media_default' => '',
+            'media_pattern' => '',
+            'media_pattern_short' => '',
+            'admin_use' => true,
             'admin_reserved' => [],
+            'regex' => [],
         ];
-        $this->prepareCleanRoutes();
     }
 
     public static function factory($options = [])
@@ -113,299 +139,24 @@ class CleanRoute implements RouteInterface
 
         $options += [
             'api' => null,
+            'getResourceFromIdentifier' => null,
+            'getMediaFromPosition' => null,
             'base_path' => '',
             'settings' => [],
             'helpers' => [],
         ];
 
-        return new static($options['api'], $options['base_path'], $options['settings'], $options['helpers']);
-    }
-
-    protected function prepareCleanRoutes(): void
-    {
-        $this->routes = [];
-
-        $this->loopRoutes(false);
-
-        $mainShort = $this->settings['main_short'];
-        if (in_array($mainShort, ['main', 'main_sub', 'main_sub_sub'])) {
-            // Set specific settings temporary to create routes.
-            $savedSettings = $this->settings;
-            $this->settings['main_path_full'] = $this->settings['main_short_path_full'];
-            $this->settings['main_path_full_encoded'] = $this->settings['main_short_path_full_encoded'];
-            $this->settings['regex']['main_path_full'] = $this->settings['main_short_path_full_regex'];
-            $this->loopRoutes(true);
-            // Reset to original settings.
-            $this->settings = $savedSettings;
-        }
-    }
-
-    protected function loopRoutes($short): void
-    {
-        $mainPathFull = $this->settings['main_path_full'];
-        $mainPathFullEncoded = $this->settings['main_path_full_encoded'];
-
-        $genericItemSet = $this->settings['item_set_generic'];
-        $genericItem = $this->settings['item_generic'];
-        $genericMedia = $this->settings['media_generic'];
-
-        $allowedForItems = $this->settings['item_allowed'];
-        $allowedForMedia = $this->settings['media_allowed'];
-
-        // TODO Check if the item set regex is still needed, since a check is done in controller. Quicker?
-        $regexItemSets = $this->settings['item_set_regex'];
-        $hasItemSets = (bool) mb_strlen($regexItemSets);
-        $regexItemSets = '(?P<item_set_identifier>' . $regexItemSets . ')';
-        $regexItemSetsResource = '(?P<resource_identifier>' . $regexItemSets . ')';
-
-        $regex = $this->settings['regex'];
-        $regexResourceIdentifier = '(?P<resource_identifier>[^/]+)';
-        // $regexItemSetIdentifier = '(?P<item_set_identifier>[^/]+)';
-        $regexItemIdentifier = '(?P<item_identifier>[^/]+)';
-        // $regexMediaIdentifier = '(?P<media_identifier>[^/]+)';
-
-        // Prepare only needed routes, but sometime status is not yet known.
-        // $isUnknown = !$this->settings['is_public'] && !$this->settings['is_admin'];
-        // $isPublic = $this->settings['is_public'] || $isUnknown;
-        // $isAdmin = ($this->settings['admin_use'] && $this->settings['is_admin']) || $isUnknown;
-        $isPublic = true;
-        $isAdmin = $this->settings['admin_use'];
-
-        $baseRoutes = [];
-        if ($isPublic) {
-            $baseRoutes['_public'] = [
-                '/' . SLUG_SITE . ':site-slug/',
-                '__SITE__',
-                'CleanUrl\Controller\Site',
-                null,
-                '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
-                '/' . SLUG_SITE . '%site-slug%/',
-            ];
-        }
-        if ($isAdmin) {
-            $baseRoutes['_admin'] = [
-                '/admin/',
-                '__ADMIN__',
-                'CleanUrl\Controller\Admin',
-                null,
-                '/admin/',
-                '/admin/',
-            ];
-        }
-        if ($isPublic && SLUG_MAIN_SITE) {
-            $baseRoutes['_top'] = [
-                '/',
-                '__SITE__',
-                'CleanUrl\Controller\Site',
-                SLUG_MAIN_SITE,
-                '/',
-                '/',
-            ];
-        }
-
-        $routeShort = $short ? '_short' : '';
-
-        foreach ($baseRoutes as $routeExt => $array) {
-            list($baseRoute, $space, $namespaceController, $siteSlug, $regexBaseRoute, $specBaseRoute) = $array;
-
-            if ($hasItemSets) {
-                // Match item set / item route for media.
-                if (array_intersect(
-                    ['item_set_item_media', 'item_set_item_full_media', 'item_set_item_media_full', 'item_set_item_full_media_full'],
-                    $allowedForMedia
-                )) {
-                    $routeName = 'cleanurl_item_set_item_media' . $routeExt . $routeShort;
-                    $this->routes[$routeName] = [
-                        'regex' => $regexBaseRoute
-                            . $regex['main_path_full']
-                            . $regex['item_set_generic']
-                            // . $regexItemSetIdentifier . '/'
-                            . $regexItemSets . '/'
-                            . $regexItemIdentifier . '/'
-                            . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%item_identifier%/%resource_identifier%',
-                        'defaults' => [
-                            'route_name' => $routeName,
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-item-media',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ];
-                }
-
-                // Match item set route for items.
-                if (array_intersect(
-                    ['item_set_item', 'item_set_item_full'],
-                    $allowedForItems
-                )) {
-                    $routeName = 'cleanurl_item_set_item' . $routeExt . $routeShort;
-                    $this->routes[$routeName] = [
-                        'regex' => $regexBaseRoute
-                            . $regex['main_path_full']
-                            . $regex['item_set_generic']
-                            // . $regexItemSetIdentifier . '/'
-                            . $regexItemSets . '/'
-                            . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
-                        'defaults' => [
-                            'route_name' => $routeName,
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-item',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ];
-                }
-
-                // This clean url is same than the one above.
-                // Match item set route for media.
-                if (array_intersect(
-                    ['item_set_media', 'item_set_media_full'],
-                    $allowedForMedia
-                )) {
-                    $routeName = 'cleanurl_item_set_media' . $routeExt . $routeShort;
-                    $this->routes[$routeName] = [
-                        'regex' => $regexBaseRoute
-                            . $regex['main_path_full']
-                            . $regex['item_set_generic']
-                            // . $regexItemSetIdentifier . '/'
-                            . $regexItemSets . '/'
-                            . $regexResourceIdentifier,
-                        'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%item_set_identifier%/%resource_identifier%',
-                        'defaults' => [
-                            'route_name' => $routeName,
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-set-media',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ];
-                }
-            }
-
-            // Match generic route for items.
-            if (array_intersect(
-                ['generic_item', 'generic_item_full'],
-                $allowedForItems
-            )) {
-                $routeName = 'cleanurl_generic_item' . $routeExt . $routeShort;
-                $this->routes[$routeName] = [
-                    'regex' => $regexBaseRoute
-                        . $regex['main_path_full']
-                        . $regex['item_generic']
-                        . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItem . '%resource_identifier%',
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-item',
-                        'item_set_id' => null,
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-
-                $route = $baseRoute . $mainPathFull . rtrim($genericItem, '/');
-                if ($route !== '/' && $route !== $baseRoute) {
-                    $routeName = 'cleanurl_generic_items_browse' . $routeExt . $routeShort;
-                    $this->routes[$routeName] = [
-                        'regex' => $regexBaseRoute
-                            . $regex['main_path_full']
-                            . rtrim($regex['item_generic'], '\/'),
-                        'spec' => $specBaseRoute . $mainPathFullEncoded . rtrim($genericItem, '/'),
-                        'defaults' => [
-                            'route_name' => $routeName,
-                            '__NAMESPACE__' => $namespaceController,
-                            $space => true,
-                            'controller' => 'CleanUrlController',
-                            'action' => 'route-item-browse',
-                            'site-slug' => $siteSlug,
-                        ],
-                    ];
-                }
-            }
-
-            // Match generic / item route for media.
-            if (array_intersect(
-                ['generic_item_media', 'generic_item_full_media', 'generic_item_media_full', 'generic_item_full_media_full'],
-                $allowedForMedia
-            )) {
-                $routeName = 'cleanurl_generic_item_media' . $routeExt . $routeShort;
-                $this->routes[$routeName] = [
-                    'regex' => $regexBaseRoute
-                        . $regex['main_path_full']
-                        . $regex['media_generic']
-                        . $regexItemIdentifier . '/'
-                        . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericMedia . '%item_identifier%/%resource_identifier%',
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-item-media',
-                        'item_set_id' => null,
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-            }
-
-            // Match generic route for media.
-            if (array_intersect(
-                ['generic_media', 'generic_media_full'],
-                $allowedForMedia
-            )) {
-                $routeName = 'cleanurl_generic_media' . $routeExt . $routeShort;
-                $this->routes[$routeName] = [
-                    'regex' => $regexBaseRoute
-                        . $regex['main_path_full']
-                        . $regex['media_generic']
-                        . $regexResourceIdentifier,
-                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericMedia . '%resource_identifier%',
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-media',
-                        'item_set_id' => null,
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-            }
-
-            if ($hasItemSets) {
-                // Match item set route.
-                // This clean url is the same when the generic path is the same.
-                $routeName = 'cleanurl_item_set' . $routeExt . $routeShort;
-                $this->routes[$routeName] = [
-                    'regex' => $regexBaseRoute
-                        . $regex['main_path_full']
-                        . $regex['item_set_generic']
-                        // . $regexItemSetIdentifier . '/'
-                        . $regexItemSetsResource,
-                    'spec' => $specBaseRoute . $mainPathFullEncoded . $genericItemSet . '%resource_identifier%',
-                    'defaults' => [
-                        'route_name' => $routeName,
-                        '__NAMESPACE__' => $namespaceController,
-                        $space => true,
-                        'controller' => 'CleanUrlController',
-                        'action' => 'route-item-set',
-                        'site-slug' => $siteSlug,
-                    ],
-                ];
-            }
-        }
+        return new static($options['api'], $options['getResourceFromIdentifier'], $options['getMediaFromPosition'], $options['base_path'], $options['settings'], $options['helpers']);
     }
 
     public function match(Request $request, $pathOffset = null)
     {
         if (!method_exists($request, 'getUri')) {
+            return null;
+        }
+
+        // Avoid an issue when not configured.
+        if (empty($this->settings['regex'])) {
             return null;
         }
 
@@ -415,7 +166,7 @@ class CleanRoute implements RouteInterface
         $matches = [];
 
         // The path offset is currently not managed: no action.
-        // So the check all the remaining path. Routes will be reordered.
+        // So the check all the remaining paths. Routes will be reordered.
         $path = mb_substr($path, (int) $pathOffset);
 
         // Check if it is a top url first.
@@ -423,8 +174,8 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
-        foreach ($this->routes as $routeName => $data) {
-            $regex = $this->routes[$routeName]['regex'];
+        foreach ($this->settings['regex'] as $routeName => $data) {
+            $regex = $data['regex'];
 
             // if (is_null($pathOffset)) {
             $result = preg_match('(^' . $regex . '$)', $path, $matches);
@@ -432,73 +183,76 @@ class CleanRoute implements RouteInterface
             //     $result = preg_match('(\G' . $regex . ')', $path, $matches, null, (int) $pathOffset);
             // }
 
-            if ($result) {
-                $params = [];
-                foreach ($matches as $key => $value) {
-                    if (is_numeric($key) || is_int($key) || $value === '') {
-                        // unset($matches[$key]);
-                    } else {
-                        $params[$key] = rawurldecode($value);
-                    }
-                }
-
-                // Check if the resource identifiers is a reserved word.
-                // They are managed here currently for simplicity.
-                $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
-                foreach ($params as $key => $value) {
-                    if (mb_stripos($reserved, '|' . $value . '|') !== false) {
-                        continue 2;
-                    }
-                }
-
-                if (isset($params['site_slug'])) {
-                    $params['site-slug'] = $params['site_slug'];
-                    unset($params['site_slug']);
-                }
-
-                // Check for page when there is no page prefix and no main path.
-                $siteSlug = $params['site-slug'] ?? SLUG_MAIN_SITE;
-                $noPath = in_array($this->settings['main_short'], ['main', 'main_sub', 'main_sub_sub'])
-                    || !mb_strlen($this->settings['main_path_full']);
-                $checkPage = $siteSlug
-                    && !mb_strlen(SLUG_PAGE)
-                    && $noPath;
-                if ($checkPage) {
-                    $siteId = $this->api->read('sites', ['slug' => $siteSlug])->getContent()->id();
-                    // Only check the first params, next ones are useless.
-                    // The first may be a resource identifier or a slug.
-                    foreach ($params as $key => $value) {
-                        if (in_array($key, ['item_set_identifier', 'item_identifier', 'resource_identifier'])) {
-                            break;
-                        }
-                    }
-                    $identifier = $value;
-                    // Api doesn't allow to search page by slug, so read it.
-                    try {
-                        $result = $this->api->read('site_pages', ['site' => $siteId, 'slug' => $identifier])->getContent();
-                        // Use the default routing.
-                        // TODO Redirect directly to the page.
-                        return null;
-                    } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                        // It is not a page.
-                    }
-                }
-
-                // Check for first part when there is no main path, and it is
-                // not in the reserved list checked above (unknown modules).
-                if ($noPath && $this->settings['admin_reserved'] && strpos($routeName, '_admin')) {
-                    $firstIdentifier = array_intersect(['item_set_identifier', 'item_identifier', 'resource_identifier'], array_keys($params));
-                    if ($firstIdentifier
-                        && in_array($params[reset($firstIdentifier)], $this->settings['admin_reserved'])
-                    ) {
-                        return null;
-                    }
-                }
-
-                $matchedLength = mb_strlen($matches[0]);
-
-                return new RouteMatch(array_merge($data['defaults'], $params), $matchedLength);
+            if (!$result) {
+                continue;
             }
+
+            $params = [];
+            foreach ($matches as $key => $value) {
+                if (is_numeric($key) || is_int($key) || $value === '') {
+                    // unset($matches[$key]);
+                } else {
+                    $params[$key] = rawurldecode($value);
+                }
+            }
+
+            // Check if the resource identifiers is a reserved word.
+            // They are managed here currently for simplicity.
+            $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
+            foreach ($params as $key => $value) {
+                if (mb_stripos($reserved, '|' . $value . '|') !== false) {
+                    continue 2;
+                }
+            }
+
+            // Regex pattern forbids "-" in matched name.
+            if (isset($params['site_slug'])) {
+                $params['site-slug'] = $params['site_slug'];
+                unset($params['site_slug']);
+            }
+
+            // The generic resource identifier simplifies next step.
+            $params['resource_identifier'] = $params[$data['resource_identifier']];
+
+            // Check if the resource exists. Doctrine will cache it anyway.
+            // Omeka doesn't check if the resource belongs to the site during,
+            // so no other check than the resource is done.
+
+            // Manage the case where the same route is used for different
+            // resource, but the generic "resource_identifier" is not used.
+            // Furthermore, the resource may be reserved.
+
+            // Ideally, the check of the resource should be done in the final
+            // controller, but a clean url is mainly a redirector.
+
+            if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
+                $resourceIds = $this->api->search($data['resource_type'], ['id' => $params['resource_identifier'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+                if (!count($resourceIds)) {
+                    continue;
+                }
+                $params['id'] = reset($resourceIds);
+            } elseif ($data['resource_identifier'] === 'media_position') {
+                $resourceId = $this->getMediaIdFromPosition($params, $data);
+                if (!$resourceId) {
+                    continue;
+                }
+                $params['id'] = $resourceId;
+            } else {
+                $resource = $this->getResourceFromIdentifier->__invoke($params['resource_identifier'], $data['resource_type']);
+                if (!$resource) {
+                    continue;
+                }
+                $params['id'] = $resource->id();
+            }
+
+            // Updated the data directly to avoid a recursive merge.
+            $data['defaults']['forward']['id'] = $params['id'];
+            if (empty($data['defaults']['forward']['site_slug']) && !empty($params['site-slug'])) {
+                $data['defaults']['forward']['site_slug'] = $params['site-slug'];
+            }
+
+            $matchedLength = mb_strlen($matches[0]);
+            return new RouteMatch(array_merge($data['defaults'], $params), $matchedLength);
         }
 
         return null;
@@ -1031,5 +785,31 @@ class CleanRoute implements RouteInterface
         ];
         return $controllers[$name]
             ?? null;
+    }
+
+    protected function getMediaIdFromPosition(array $params, array $data): ?int
+    {
+        if ($data['item_identifier'] === 'item_id') {
+            $itemId = $this->api->search('items', ['id' => $params['item_id'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+            if (!count($itemId)) {
+                return null;
+            }
+            $itemId = reset($itemId);
+        } elseif ($data['item_identifier'] === 'item_identifier') {
+            $item = $this->getResourceFromIdentifier->__invoke($params['item_identifier'], 'items');
+            if (!$item) {
+                return null;
+            }
+            $itemId = $item->id();
+        } elseif ($data['item_identifier'] === 'item_identifier_short') {
+            $item = $this->getResourceFromIdentifier->__invoke($params['item_identifier_short'], 'items');
+            if (!$item) {
+                return null;
+            }
+            $itemId = $item->id();
+        } else {
+            throw new \Omeka\Mvc\Exception\RuntimeException('The item identifier is missing in the route for media.'); // @translate
+        }
+        return $this->getMediaFromPosition->__invoke($itemId, (int) $params['media_position']);
     }
 }

@@ -19,7 +19,6 @@ class GetResourcesFromIdentifiersFactory implements FactoryInterface
             $this->supportAnyValue($services),
             (int) $settings->get('cleanurl_identifier_property'),
             $settings->get('cleanurl_identifier_prefix'),
-            (bool) $settings->get('cleanurl_identifier_unspace'),
             (bool) $settings->get('cleanurl_identifier_case_sensitive'),
             (bool) $settings->get('cleanurl_identifier_prefix_part_of')
         );
