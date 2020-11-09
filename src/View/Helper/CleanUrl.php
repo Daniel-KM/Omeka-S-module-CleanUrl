@@ -93,13 +93,15 @@ class CleanUrl extends Url
         // Check if there is a clean url for pages of resources.
         switch ($name) {
             case 'site/resource-id':
-                $params = $this->appendSiteSlug($params);
-                $cleanOptions = $options;
-                $cleanOptions['route_name'] = $name;
-                $cleanOptions['name'] = 'clean-url';
-                $cleanUrl = $this->router->assemble($params, $cleanOptions);
-                if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
-                    return $cleanUrl;
+                if (empty($params['action']) || $params['action'] === 'show') {
+                    $params = $this->appendSiteSlug($params);
+                    $cleanOptions = $options;
+                    $cleanOptions['route_name'] = $name;
+                    $cleanOptions['name'] = 'clean-url';
+                    $cleanUrl = $this->router->assemble($params, $cleanOptions);
+                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
+                        return $cleanUrl;
+                    }
                 }
                 // TODO Check if it is still needed.
                 // Manage the case where the function url() is used with
@@ -151,7 +153,9 @@ class CleanUrl extends Url
                 break;
 
             case 'admin/id':
-                if ($this->view->setting('cleanurl_admin_use')) {
+                if ($this->view->setting('cleanurl_admin_use')
+                    && (empty($params['action']) || $params['action'] === 'show')
+                ) {
                     $cleanOptions = $options;
                     $cleanOptions['route_name'] = $name;
                     $cleanOptions['name'] = 'clean-url';

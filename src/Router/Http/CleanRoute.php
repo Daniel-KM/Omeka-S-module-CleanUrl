@@ -635,7 +635,10 @@ class CleanRoute implements RouteInterface
             }
         }
 
-        return array_filter($result);
+        $result = array_filter($result);
+        return count($result) === count($parts)
+            ? $result
+            : [];
     }
 
     /**
