@@ -93,6 +93,7 @@ class ConfigForm extends Form
                     'placeholder' => 'ark:/12345/'
                 ],
             ])
+            /*
             ->add([
                 'name' => 'cleanurl_identifier_short',
                 'type' => Element\Text::class,
@@ -105,11 +106,12 @@ class ConfigForm extends Form
                     'placeholder' => 'ark:/12345/'
                 ],
             ])
+            */
             ->add([
                 'name' => 'cleanurl_identifier_prefix_part_of',
                 'type' => Element\Checkbox::class,
                 'options' => [
-                    'label' => 'The prefix is part of the identifier (like ark)', // @translate
+                    'label' => 'The prefix is part of the identifier', // @translate
                     'info' => 'This option is required to get the whole identifier when needed, for example with the IIIF server.', // @translate
                 ],
                 'attributes' => [
@@ -160,7 +162,16 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_set_default',
-                    'placeholder' => 'collection/{item_set_identifier}',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_set_short',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Short path', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_set_short',
                 ],
             ])
             ->add([
@@ -168,7 +179,6 @@ class ConfigForm extends Form
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Pattern of an item set identifier', // @translate
-                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_set_pattern',
@@ -183,7 +193,6 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_set_pattern',
-                    'placeholder' => '',
                 ],
             ])
         ;
@@ -220,7 +229,16 @@ document/{item_identifier}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_default',
-                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_short',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Short path', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_short',
                 ],
             ])
             ->add([
@@ -228,11 +246,10 @@ document/{item_identifier}
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Pattern of an item identifier', // @translate
-                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_pattern',
-                    'placeholder' => 'ark:/12345/[a-zA-Z][a-zA-Z0-9_-]*',
+                    'placeholder' => '[a-zA-Z][a-zA-Z0-9_-]*',
                 ],
             ])
             ->add([
@@ -243,7 +260,6 @@ document/{item_identifier}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_pattern_short',
-                    'placeholder' => '[a-zA-Z][a-zA-Z0-9_-]*',
                 ],
             ])
         ;
@@ -280,7 +296,16 @@ document/{item_identifier}/p{media_position}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_default',
-                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}/{media_id}',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_short',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Short path', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_short',
                 ],
             ])
             ->add([
@@ -288,11 +313,9 @@ document/{item_identifier}/p{media_position}
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Pattern of a media identifier', // @translate
-                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_pattern',
-                    'placeholder' => '',
                 ],
             ])
             ->add([
@@ -300,11 +323,9 @@ document/{item_identifier}/p{media_position}
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Optional pattern of a media short identifier', // @translate
-                    'info' => 'A unquoted regex pattern. It is recommended to use a pattern that include at least one letter to avoid confusion with internal numerical id.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_pattern_short',
-                    'placeholder' => '',
                 ],
             ])
         ;
@@ -324,7 +345,6 @@ document/{item_identifier}/p{media_position}
                 'type' => Element\Checkbox::class,
                 'options' => [
                     'label' => 'Use in admin board', // @translate
-                    'info' => 'If checked, the clean url will be used in the admin board.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_admin_use',

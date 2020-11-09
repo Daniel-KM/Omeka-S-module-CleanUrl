@@ -2,6 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
+use CleanUrl\Router\Http\CleanRoute;
 use Laminas\Mvc\ModuleRouteListener;
 use Laminas\Router\RouteMatch;
 use Laminas\View\Exception;
@@ -23,24 +24,15 @@ class CleanUrl extends Url
     protected $cleanRoute;
 
     /**
-     * Generates a clean or a standard url given the name of a route.
+     * @var string
+     */
+    protected $basePath;
+
+    /**
+     * Generate a clean or a standard url given the name of a route (clean-url).
      *
-     * @todo Assemble urls with clean url routes.
-     *
-     * @uses \Laminas\View\Helper\Url
-     * @see \Laminas\Router\RouteInterface::assemble()
-     * @param  string $name Name of the route
-     * @param  array $params Parameters for the link
-     * @param  array|Traversable $options Options for the route
-     * @param  bool $reuseMatchedParams Whether to reuse matched parameters
-     * @return string Url
-     * @throws Exception\RuntimeException If no RouteStackInterface was
-     *     provided
-     * @throws Exception\RuntimeException If no RouteMatch was provided
-     * @throws Exception\RuntimeException If RouteMatch didn't contain a
-     *     matched route name
-     * @throws Exception\InvalidArgumentException If the params object was not
-     *     an array or Traversable object.
+     * {@inheritDoc}
+     * @see \Laminas\View\Helper\Url::__invoke()
      */
     public function __invoke($name = null, $params = [], $options = [], $reuseMatchedParams = false)
     {
@@ -101,10 +93,15 @@ class CleanUrl extends Url
         // Check if there is a clean url for pages of resources.
         switch ($name) {
             case 'site/resource-id':
-                $cleanUrl = $this->getCleanUrl('public', $params, $options);
-                if ($cleanUrl) {
+                $params = $this->appendSiteSlug($params);
+                $cleanOptions = $options;
+                $cleanOptions['route_name'] = $name;
+                $cleanOptions['name'] = 'clean-url';
+                $cleanUrl = $this->router->assemble($params, $cleanOptions);
+                if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
                     return $cleanUrl;
                 }
+                // TODO Check if it is still needed.
                 // Manage the case where the function url() is used with
                 // different existing params.
                 if (isset($params['resource'])) {
@@ -129,11 +126,15 @@ class CleanUrl extends Url
             // is no show page.
             case 'site/item-set':
                 if (!empty($params['item-set-id'])) {
-                    $itemSetParams = $params;
-                    $itemSetParams['controller'] = 'item-set';
-                    $itemSetParams['id'] = $params['item-set-id'];
-                    $cleanUrl = $this->getCleanUrl('public', $itemSetParams, $options);
-                    if ($cleanUrl) {
+                    $params = $this->appendSiteSlug($params);
+                    $cleanParams = $params;
+                    $cleanParams['item_set_id'] = $params['item-set-id'];
+                    $cleanParams['__CONTROLLER__'] = 'item-set';
+                    $cleanOptions = $options;
+                    $cleanOptions['route_name'] = $name;
+                    $cleanOptions['name'] = 'clean-url';
+                    $cleanUrl = $this->router->assemble($cleanParams, $cleanOptions);
+                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
                         return $cleanUrl;
                     }
                 }
@@ -142,6 +143,7 @@ class CleanUrl extends Url
                 break;
 
             case 'site/resource':
+                // TODO Check if it is still needed.
                 $controller = $this->getControllerBrowse($params);
                 if ($controller) {
                     $params['controller'] = $controller;
@@ -150,8 +152,11 @@ class CleanUrl extends Url
 
             case 'admin/id':
                 if ($this->view->setting('cleanurl_admin_use')) {
-                    $cleanUrl = $this->getCleanUrl('admin', $params, $options);
-                    if ($cleanUrl) {
+                    $cleanOptions = $options;
+                    $cleanOptions['route_name'] = $name;
+                    $cleanOptions['name'] = 'clean-url';
+                    $cleanUrl = $this->router->assemble($params, $cleanOptions);
+                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
                         return $cleanUrl;
                     }
                 }
@@ -165,58 +170,27 @@ class CleanUrl extends Url
                     }
                 }
                 break;
+
+            default:
+                break;
         }
 
-        // Use the standard url when no identifier exists (copy from Zend Url).
+        // Use the standard url when no identifier exists (copy of Laminas Url).
         return $this->router->assemble($params, $options);
     }
 
     /**
-     * Get clean url path of a resource.
+     * Append the site slug to the params for a url path when it is missing.
      *
-     * @todo Replace by route assemble.
-     *
-     * @param string $context "public" or "admin"
      * @param array $params
-     * @param array $options
-     * @return string Identifier of the resource if any, else empty string.
+     * @return array
      */
-    protected function getCleanUrl($context, $params, $options)
+    protected function appendSiteSlug(array $params): array
     {
-        $route = $this->getCleanRoute();
-        if (!isset($params['site-slug']) && $context === 'public') {
+        if (empty($params['site-slug'])) {
             $params['site-slug'] = @$this->view->getHelperPluginManager()->getServiceLocator()->get('Application')->getMvcEvent()->getRouteMatch()->getParam('site-slug');
         }
-        return $route->assemble($params, ['base_path' => $context] + $options);
-    }
-
-    /**
-     * @return \CleanUrl\Router\Http\CleanRoute
-     */
-    protected function getCleanRoute()
-    {
-        if (is_null($this->cleanRoute)) {
-            $services = @$this->view->getHelperPluginManager()->getServiceLocator();
-            $plugins = $this->view->getHelperPluginManager();
-            $setting = $plugins->get('setting');
-            $options = [
-                'api' => $services->get('Omeka\ApiManager'),
-                'getResourceFromIdentifier' => $plugins->get('getResourceFromIdentifier'),
-                'getMediaFromPosition' => $plugins->get('getMediaFromPosition'),
-                'entityManager' => $services->get('Omeka\EntityManager'),
-                'base_path' => $this->view->basePath(),
-                'settings' => $setting('cleanurl_quick_settings', []),
-                'helpers' => [
-                    'basePath' => $plugins->get('basePath'),
-                    'getResourceIdentifier' => $plugins->get('getResourceIdentifier'),
-                    'serverUrl' => $plugins->get('serverUrl'),
-                    'setting' => $plugins->get('setting'),
-                    'status' => $plugins->get('status'),
-                ],
-            ];
-            $this->cleanRoute = \CleanUrl\Router\Http\CleanRoute::factory($options);
-        }
-        return $this->cleanRoute;
+        return $params;
     }
 
     /**
@@ -237,12 +211,25 @@ class CleanUrl extends Url
     }
 
     /**
+     * @return string
+     */
+    protected function getBasePath(): string
+    {
+        if (is_null($this->basePath)) {
+            $this->basePath = $this->getView()->basePath();
+        }
+        return $this->basePath;
+    }
+
+    /**
      * Get the controller from the params, in all cases.
+     *
+     * @todo Check if it is still needed.
      *
      * @param array $params
      * @return string Controller value.
      */
-    protected function getControllerBrowse($params)
+    protected function getControllerBrowse(array $params): string
     {
         if (!isset($params['controller'])
             || (!empty($params['action']) && $params['action'] !== 'browse')
@@ -275,9 +262,9 @@ class CleanUrl extends Url
      * Normalize the controller name.
      *
      * @param string $name
-     * @return string
+     * @return string|null
      */
-    protected function controllerName($name)
+    protected function controllerName(string $name): ?string
     {
         $controllers = [
             'item-set' => 'item-set',
@@ -286,6 +273,9 @@ class CleanUrl extends Url
             'item_sets' => 'item-set',
             'items' => 'item',
             'media' => 'media',
+            'Omeka\Controller\Admin\ItemSet' => 'item-set',
+            'Omeka\Controller\Admin\Item' => 'item',
+            'Omeka\Controller\Admin\Media' => 'media',
             'Omeka\Controller\Site\ItemSet' => 'item-set',
             'Omeka\Controller\Site\Item' => 'item',
             'Omeka\Controller\Site\Media' => 'media',
@@ -293,7 +283,6 @@ class CleanUrl extends Url
             \Omeka\Entity\Item::class => 'item',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return $controllers[$name]
-            ?? null;
+        return $controllers[$name] ?? null;
     }
 }
