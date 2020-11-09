@@ -73,12 +73,19 @@ class Module extends AbstractModule
                 // Check clean url before core and other module routes.
                 'priority' => 10,
                 'options' => [
+                    // For routing.
                     'api' => $services->get('Omeka\ApiManager'),
                     'getResourceFromIdentifier' => $helpers->get('getResourceFromIdentifier'),
                     'getMediaFromPosition' => $helpers->get('getMediaFromPosition'),
                     'entityManager' => $services->get('Omeka\EntityManager'),
                     'base_path' => $basePath(),
                     'settings' => $settings->get('cleanurl_quick_settings', []),
+                    // For assembling.
+                    'basePath' => $helpers->get('basePath'),
+                    'getResourceIdentifier' => $helpers->get('getResourceIdentifier'),
+                    'serverUrl' => $helpers->get('serverUrl'),
+                    'setting' => $helpers->get('setting'),
+                    'status' => $helpers->get('status'),
                 ],
             ]);
     }
@@ -155,12 +162,12 @@ class Module extends AbstractModule
         $translate = $renderer->plugin('translate');
         return $translate('"Clean Url" module allows to have clean, readable and search engine optimized urls for pages and resources, like https://example.net/item_set_identifier/item_identifier.') // @translate
             . '<br/>'
+            . $translate('For identifiers, it is recommended to use a pattern that includes at least one letter to avoid confusion with internal numerical ids.') // @translate
+            . '<br/>'
+            . $translate('For a good seo, it’s not recommended to have multiple urls for the same resource.') // @translate
+            . '<br/>'
             . sprintf($translate('See %s for more information.'), // @translate
                 sprintf('<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme')
-            )
-            . '<br/>'
-            . sprintf($translate('%sNote%s: For a good seo, it’s not recommended to have multiple urls for the same resource.'), // @translate
-                '<strong>', '</strong>'
             )
             . parent::getConfigForm($renderer);
     }
@@ -203,14 +210,16 @@ class Module extends AbstractModule
             $params[$posted] = mb_strlen($value) ? $value . '/' : '';
         }
         foreach ([
-            'cleanurl_identifier_short',
             'cleanurl_item_set_default',
+            'cleanurl_item_set_short',
             'cleanurl_item_set_pattern',
             'cleanurl_item_set_pattern_short',
             'cleanurl_item_default',
+            'cleanurl_item_short',
             'cleanurl_item_pattern',
             'cleanurl_item_pattern_short',
             'cleanurl_media_default',
+            'cleanurl_media_short',
             'cleanurl_media_pattern',
             'cleanurl_media_pattern_short',
         ] as $posted) {
@@ -220,17 +229,22 @@ class Module extends AbstractModule
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
 
         $params['cleanurl_item_set_paths'][] = $params['cleanurl_item_set_default'];
+        $params['cleanurl_item_set_paths'][] = $params['cleanurl_item_set_short'];
         $params['cleanurl_item_set_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_item_set_paths'])));
         $params['cleanurl_item_paths'][] = $params['cleanurl_item_default'];
+        $params['cleanurl_item_paths'][] = $params['cleanurl_item_short'];
         $params['cleanurl_item_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_item_paths'])));
         $params['cleanurl_media_paths'][] = $params['cleanurl_media_default'];
+        $params['cleanurl_media_paths'][] = $params['cleanurl_media_short'];
         $params['cleanurl_media_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_media_paths'])));
 
         $params['cleanurl_admin_reserved'] = array_unique(array_filter(array_map('trim', $params['cleanurl_admin_reserved'])));
 
         // Check config.
 
+        $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
         $connection = $services->get('Omeka\Connection');
+        $hasError = false;
 
         // Check the default site.
         $skip = $params['cleanurl_site_skip_main'];
@@ -245,7 +259,6 @@ class Module extends AbstractModule
             }
             if (!$default) {
                 $message = new Message('There is no default site: "/s/site-slug" cannot be skipped.'); // @translate
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
                 return false;
             }
@@ -264,9 +277,8 @@ class Module extends AbstractModule
                     'The sites "%s" use a reserved string and the "/s/site-slug" cannot be skipped.', // @translate
                     implode('", "', $result)
                 );
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
-                return false;
+                $hasError = true;
             }
             $slugs = $connection->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
@@ -279,9 +291,8 @@ class Module extends AbstractModule
                     'The site pages "%s" use a reserved string and "/s/site-slug" cannot be skipped.', // @translate
                     implode('", "', $result)
                 );
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
-                return false;
+                $hasError = true;
             }
         }
 
@@ -292,9 +303,8 @@ class Module extends AbstractModule
             && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
         ) {
             $message = new Message('The slug "%s" is used or reserved and the prefix for sites cannot be updated.', $slug); // @translate
-            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
             $messenger->addError($message);
-            return false;
+            $hasError = true;
         }
 
         if (!mb_strlen($slug)) {
@@ -310,9 +320,8 @@ class Module extends AbstractModule
                     'The sites "%s" use a reserved string and the prefix for sites cannot be removed.', // @translate
                     implode('", "', $result)
                 );
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
-                return false;
+                $hasError = true;
             }
         }
 
@@ -323,9 +332,8 @@ class Module extends AbstractModule
             && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
         ) {
             $message = new Message('The slug "%s" is used or reserved and the prefix for pages cannot be updated.', $slug); // @translate
-            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
             $messenger->addError($message);
-            return false;
+            $hasError = true;
         }
 
         if (!mb_strlen($slug)) {
@@ -341,10 +349,40 @@ class Module extends AbstractModule
                     'The site pages "%s" use a reserved string and the prefix for pages cannot be removed.', // @translate
                     implode('", "', $result)
                 ); // @translate
-                $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
                 $messenger->addError($message);
-                return false;
+                $hasError = true;
             }
+        }
+
+        // Quick check of paths and pattern for identifiers.
+        $hasPattern = [];
+        foreach (['item_set', 'item', 'media'] as $resourceType) {
+            $hasPattern[$resourceType]['full'] = !empty($params["cleanurl_{$resourceType}_pattern"]);
+            $hasPattern[$resourceType]['short'] = !empty($params["cleanurl_{$resourceType}_pattern_short"]);
+        }
+        foreach (['item_set', 'item', 'media'] as $resourceType) {
+            $name = "cleanurl_{$resourceType}_paths";
+            $paths = $params[$name];
+            $paths[] = $params["cleanurl_{$resourceType}_default"];
+            $paths[] = $params["cleanurl_{$resourceType}_short"];
+            foreach (array_filter($paths) as $path) {
+                foreach (['item_set', 'item', 'media'] as $resource) {
+                    if (!$hasPattern[$resource]['full'] && mb_strpos($path, "{{$resource}_identifier}") !== false) {
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*" is required to use the path "%s".', $resource, $path); // @translate
+                        $messenger->addError($message);
+                        $hasError = true;
+                    }
+                    if (!$hasPattern[$resource]['full'] && !$hasPattern[$resource]['short'] && mb_strpos($path, "{{$resource}_identifier_short}") !== false) {
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*" is required to use the path "%s".', $resource, $path); // @translate
+                        $messenger->addError($message);
+                        $hasError = true;
+                    }
+                }
+            }
+        }
+
+        if ($hasError) {
+            return false;
         }
 
         // Save all the params.
@@ -553,37 +591,48 @@ class Module extends AbstractModule
             'site_skip_main' => (bool) $settings->get('cleanurl_site_skip_main', false),
             'site_slug' => $settings->get('cleanurl_site_slug', 's/'),
             'page_slug' => $settings->get('cleanurl_site_slug', 'page/'),
+
             // 10 is the hard-coded id of "dcterms:identifier" in default install.
             'identifier_property' => $settings->get('cleanurl_identifier_property', 10),
             'identifier_prefix' => $settings->get('cleanurl_identifier_prefix', ''),
             'identifier_short' => $settings->get('cleanurl_identifier_short', ''),
             'identifier_prefix_part_of' => (bool) $settings->get('cleanurl_identifier_prefix_part_of', false),
             'identifier_case_sensitive' => (bool) $settings->get('cleanurl_identifier_case_sensitive', false),
+
             'resource_paths' => $settings->get('cleanurl_resource_paths', []),
             'resource_default' => $settings->get('cleanurl_resource_default', ''),
+            'resource_short' => $settings->get('cleanurl_resource_short', ''),
             'resource_pattern' => $settings->get('cleanurl_resource_pattern', ''),
-            'resource_pattern_short' => $settings->get('cleanurl_resource_pattern_short', ''),
+            'resource_pattern_short' => $settings->get('cleanurl_resource_pattern_short') ?: $settings->get('cleanurl_resource_pattern', ''),
+
             'item_set_paths' => $settings->get('cleanurl_item_set_paths', []),
             'item_set_default' => $settings->get('cleanurl_item_set_default', ''),
+            'item_set_short' => $settings->get('cleanurl_item_set_short', ''),
             'item_set_pattern' => $settings->get('cleanurl_item_set_pattern', ''),
-            'item_set_pattern_short' => $settings->get('cleanurl_item_set_pattern_short', ''),
+            'item_set_pattern_short' => $settings->get('cleanurl_item_set_pattern_short') ?: $settings->get('cleanurl_item_set_pattern', ''),
+
             'item_paths' => $settings->get('cleanurl_item_paths', []),
             'item_default' => $settings->get('cleanurl_item_default', ''),
+            'item_short' => $settings->get('cleanurl_item_short', ''),
             'item_pattern' => $settings->get('cleanurl_item_pattern', ''),
-            'item_pattern_short' => $settings->get('cleanurl_item_pattern_short', ''),
+            'item_pattern_short' => $settings->get('cleanurl_item_pattern_short') ?: $settings->get('cleanurl_item_pattern', ''),
+
             'media_paths' => $settings->get('cleanurl_media_paths', []),
             'media_default' => $settings->get('cleanurl_media_default', ''),
+            'media_short' => $settings->get('cleanurl_media_short', ''),
             'media_pattern' => $settings->get('cleanurl_media_pattern', ''),
-            'media_pattern_short' => $settings->get('cleanurl_media_pattern_short', ''),
+            'media_pattern_short' => $settings->get('cleanurl_media_pattern_short') ?: $settings->get('cleanurl_media_pattern', ''),
+
             'admin_use' => $settings->get('cleanurl_admin_use', true),
             'admin_reserved' => $settings->get('cleanurl_admin_reserved', []),
-            'regex' => [],
+            'routes' => [],
+            'route_aliases' => [],
         ];
 
         // TODO Save the slug sites with the updated slugs_sites (but when the config is edited, the sites don't change).
 
         $baseRoutes = [
-            '_public' => [
+            'public' => [
                 'base_route' => '/' . SLUG_SITE . ':site-slug/',
                 'base_regex' => '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
                 'base_spec' => '/' . SLUG_SITE . '%site-slug%/',
@@ -601,7 +650,7 @@ class Module extends AbstractModule
                     'action' => 'show',
                 ],
             ],
-            '_admin' => [
+            'admin' => [
                 'base_route' => '/admin/',
                 'base_regex' => '/admin/',
                 'base_spec' => '/admin/',
@@ -619,7 +668,7 @@ class Module extends AbstractModule
                     'action' => 'show',
                 ],
             ],
-            '_top' => [
+            'top' => [
                 'base_route' => '/',
                 'base_regex' => '/',
                 'base_spec' => '/',
@@ -816,29 +865,29 @@ class Module extends AbstractModule
 
         $checkPatterns = function (string $path) use ($params, $messager): bool {
             if (mb_strpos($path, '{item_set_identifier}') !== false && !$params['item_set_pattern']) {
-                $messager(new Message('An item set pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item set', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_set_identifier_short}') !== false && !$params['item_set_pattern_short']) {
-                $messager(new Message('An item set short pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item set', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_identifier}') !== false && !$params['item_pattern']) {
-                $messager(new Message('An item pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_identifier_short}') !== false && !$params['item_pattern_short']) {
-                $messager(new Message('An item short pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{media_identifier}') !== false && !$params['media_pattern']) {
-                $messager(new Message('A media pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'media', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{media_identifier_short}') !== false && !$params['media_pattern_short']) {
-                $messager(new Message('A media short pattern, for example "[a-z][a-z0-9]*" is required to use the path "%s".', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'media', $path)); // @translate
                 return false;
             }
             return true;
         };
 
         $routeAction = function (string $path): string {
-            $route = 'route';
+            $route = '';
             if (mb_strpos($path, '{item_set_id}') !== false
                 || mb_strpos($path, '{item_set_identifier}') !== false
                 || mb_strpos($path, '{item_set_identifier_short}') !== false
@@ -858,18 +907,28 @@ class Module extends AbstractModule
             ) {
                 $route .= '-media';
             }
-            return $route;
+            return trim($route, '-');
+        };
+
+        $getSpecParts = function (string $spec) use ($specs): array {
+            $result = [];
+            foreach ($specs as $specPart) {
+                if (mb_strpos($spec, $specPart) !== false) {
+                    $result[] = trim($specPart, '%');
+                }
+            }
+            return $result;
         };
 
         $siteParts = [];
         if ($params['default_site']) {
-            $siteParts[] = '_public';
+            $siteParts[] = 'public';
         }
         if ($params['admin_use']) {
-            $siteParts[] = '_admin';
+            $siteParts[] = 'admin';
         }
         if ($params['default_site'] && $params['site_skip_main']) {
-            $siteParts[] = '_top';
+            $siteParts[] = 'top';
         }
 
         $resourcesParams = [
@@ -890,7 +949,22 @@ class Module extends AbstractModule
             ],
         ];
 
+        // Set the default route the first in stacks if any for performance.
+        if ($params['item_set_default']) {
+            array_unshift($params['item_set_paths'], $params['item_set_default']);
+            $params['item_set_paths'] = array_unique($params['item_set_paths']);
+        }
+        if ($params['item_default']) {
+            array_unshift($params['item_paths'], $params['item_default']);
+            $params['item_paths'] = array_unique($params['item_paths']);
+        }
+        if ($params['media_default']) {
+            array_unshift($params['media_paths'], $params['media_default']);
+            $params['media_paths'] = array_unique($params['media_paths']);
+        }
+
         $index = 0;
+        $mapRoutes = [];
 
         foreach ($resourcesParams as $resourceType => $resourceParams) {
             foreach ($params[$resourceParams['paths']] as $resourcePath) {
@@ -904,7 +978,7 @@ class Module extends AbstractModule
                     continue;
                 }
                 $action = $routeAction($resourcePath);
-                if ($action === 'route') {
+                if (empty($action)) {
                     continue;
                 }
                 if ($resourceType === 'items') {
@@ -914,13 +988,19 @@ class Module extends AbstractModule
                     $itemIdentifierName = $getItemIdentifierName($resourcePath);
                 }
                 foreach ($siteParts as $sitePart) {
-                    $routeName = 'cleanurl_' . $resourceParams['name'] . $sitePart . '_' . ++$index;
+                    $routeName = 'cleanurl_' . $resourceParams['name'] . '_' . $sitePart . '_' . ++$index;
+                    $spec = $baseRoutes[$sitePart]['base_spec'] . str_replace(array_keys($specs), array_values($specs), $resourcePath);
+                    $parts = $getSpecParts($spec);
+                    if ($sitePart === 'public') {
+                        $parts[] = 'site-slug';
+                    }
                     $data = [
                         'resource_path' => $resourcePath,
                         'resource_type' => $resourceType,
                         'resource_identifier' => trim($resourceIdentifier, '{}'),
                         'regex' => $baseRoutes[$sitePart]['base_regex'] . str_replace(array_keys($regexes), array_values($regexes), $resourcePath),
-                        'spec' => $baseRoutes[$sitePart]['base_spec'] . str_replace(array_keys($specs), array_values($specs), $resourcePath),
+                        'spec' => $spec,
+                        'parts' => $parts,
                         'route_name' => $routeName,
                         'defaults' => [
                             '__NAMESPACE__' => $baseRoutes[$sitePart]['namespace'],
@@ -945,7 +1025,7 @@ class Module extends AbstractModule
                     ];
                     // Manage exceptions and other identifiers.
                     if ($resourceType === 'item_sets') {
-                        if ($sitePart === '_public' || $sitePart === '_top') {
+                        if ($sitePart === 'public' || $sitePart === 'top') {
                             $data['defaults']['forward_route_name'] = 'site/item-set';
                             $data['defaults']['forward']['controller'] = 'Omeka\Controller\Site\Item';
                             $data['defaults']['forward']['action'] = 'browse';
@@ -958,10 +1038,61 @@ class Module extends AbstractModule
                         $data['item_set_identifier'] = $itemSetIdentifierName;
                         $data['item_identifier'] = $itemIdentifierName;
                     }
-                    $params['regex'][$routeName] = $data;
+                    $params['routes'][$routeName] = $data;
+                    $params['route_aliases'][$sitePart][$action][] = $routeName;
+                    $mapRoutes[$resourceType][$routeName] = $resourcePath;
                 }
                 // TODO Add search and browse route (replace or remove last identifier).
             }
+        }
+
+        // Add missing routes to simplify url building.
+        foreach ($siteParts as $sitePart) {
+            if (empty($params['route_aliases'][$sitePart]['item-set'])) {
+                $params['route_aliases'][$sitePart]['item-set'] = [];
+            }
+            if (empty($params['route_aliases'][$sitePart]['item'])) {
+                $params['route_aliases'][$sitePart]['item'] = [];
+                if (!empty($params['route_aliases'][$sitePart]['item-set-item'])) {
+                    $params['route_aliases'][$sitePart]['item'][] = reset($params['route_aliases'][$sitePart]['item-set-item']);
+                }
+            }
+            if (empty($params['route_aliases'][$sitePart]['media'])) {
+                $params['route_aliases'][$sitePart]['media'] = [];
+                if (!empty($params['route_aliases'][$sitePart]['item-set-item-media'])) {
+                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-set-item-media']);
+                } elseif (!empty($params['route_aliases'][$sitePart]['item-media'])) {
+                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-media']);
+                } elseif (!empty($params['route_aliases'][$sitePart]['item-set-media'])) {
+                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-set-media']);
+                }
+            }
+        }
+
+        // Append the short routes.
+        if (empty($params['item_set_short'])) {
+            $params['route_aliases'][$sitePart]['item-set-short'][] = reset($params['route_aliases'][$sitePart]['item-set']) ?: null;
+        } else {
+            $k = array_search($params['item_set_short'], $mapRoutes['item_sets'] ?? []);
+            $params['route_aliases'][$sitePart]['item-set-short'][] = $k === false
+                ? (reset($params['route_aliases'][$sitePart]['item-set']) ?: null)
+                : $k;
+        }
+        if (empty($params['item_short'])) {
+            $params['route_aliases'][$sitePart]['item-short'][] = reset($params['route_aliases'][$sitePart]['item']) ?: null;
+        } else {
+            $k = array_search($params['item_short'], $mapRoutes['items'] ?? []);
+            $params['route_aliases'][$sitePart]['item-short'][] = $k === false
+                ? (reset($params['route_aliases'][$sitePart]['item']) ?: null)
+                : $k;
+        }
+        if (empty($params['media_short'])) {
+            $params['route_aliases'][$sitePart]['media-short'][] = reset($params['route_aliases'][$sitePart]['media']) ?: null;
+        } else {
+            $k = array_search($params['media_short'], $mapRoutes['media'] ?? []);
+            $params['route_aliases'][$sitePart]['media-short'][] = $k === false
+                ? (reset($params['route_aliases'][$sitePart]['media']) ?: null)
+                : $k;
         }
 
         $settings->set('cleanurl_quick_settings', $params);

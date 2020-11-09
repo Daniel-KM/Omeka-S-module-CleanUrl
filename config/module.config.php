@@ -198,16 +198,19 @@ return [
 
             'cleanurl_item_set_paths' => [],
             'cleanurl_item_set_default' => '',
+            'cleanurl_item_set_short' => '',
             'cleanurl_item_set_pattern' => '',
             'cleanurl_item_set_pattern_short' => '',
 
             'cleanurl_item_paths' => [],
             'cleanurl_item_default' => '',
+            'cleanurl_item_short' => '',
             'cleanurl_item_pattern' => '',
             'cleanurl_item_pattern_short' => '',
 
             'cleanurl_media_paths' => [],
             'cleanurl_media_default' => '',
+            'cleanurl_media_short' => '',
             'cleanurl_media_pattern' => '',
             'cleanurl_media_pattern_short' => '',
 
