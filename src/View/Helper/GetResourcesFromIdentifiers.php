@@ -6,9 +6,6 @@ use Doctrine\DBAL\Connection;
 use Laminas\View\Helper\AbstractHelper;
 use Omeka\Api\Exception\NotFoundException;
 
-/**
- * @package Omeka\Plugins\CleanUrl\View\Helper
- */
 class GetResourcesFromIdentifiers extends AbstractHelper
 {
     /**

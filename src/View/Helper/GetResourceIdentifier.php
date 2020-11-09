@@ -17,9 +17,6 @@ use Omeka\Entity\ItemSet;
 use Omeka\Entity\Media;
 use Omeka\Entity\Resource;
 
-/**
- * @package Omeka\Plugins\CleanUrl\views\helpers
- */
 class GetResourceIdentifier extends AbstractHelper
 {
     protected $connection;
