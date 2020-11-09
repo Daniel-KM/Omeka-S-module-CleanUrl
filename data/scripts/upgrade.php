@@ -154,6 +154,21 @@ if (version_compare($oldVersion, '3.16.0.3', '<')) {
     $messenger = new Messenger();
     $messenger->addWarning($message);
 
+    $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
+    if (!is_writeable(dirname($filepath))
+        || (file_exists($filepath) && !is_writeable($filepath))
+    ) {
+        $message = new Message('The file "config/cleanurl.config.php" at the root of Omeka is not writeable.'); // @translate
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+    }
+
+    if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
+        @rename(OMEKA_PATH . '/config/clean_url.config.php', OMEKA_PATH . '/config/clean_url.config.old.php');
+    }
+    if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')) {
+        @rename(OMEKA_PATH . '/config/clean_url.dynamic.php', OMEKA_PATH . '/config/clean_url.dynamic.old.php');
+    }
+
     $settings->delete('cleanurl_item_set_default');
     $settings->delete('cleanurl_item_default');
     $settings->delete('cleanurl_media_default');
@@ -186,12 +201,5 @@ if (version_compare($oldVersion, '3.16.0.3', '>=') && version_compare($oldVersio
     ];
     foreach ($removed as $name) {
         $settings->delete($name);
-    }
-
-    if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
-        @unlink(OMEKA_PATH . '/config/clean_url.config.php');
-    }
-    if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')) {
-        @unlink(OMEKA_PATH . '/config/clean_url.dynamic.php');
     }
 }
