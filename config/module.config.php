@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl;
 
 // The check of "slugs_site" may avoid an issue when empty, after install or
@@ -44,6 +45,7 @@ return [
         ],
         'factories' => [
             'getIdentifiersFromResources' => Service\ViewHelper\GetIdentifiersFromResourcesFactory::class,
+            'getMediaFromPosition' => Service\ViewHelper\GetMediaFromPositionFactory::class,
             'getResourcesFromIdentifiers' => Service\ViewHelper\GetResourcesFromIdentifiersFactory::class,
             'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
             'getResourceIdentifier' => Service\ViewHelper\GetResourceIdentifierFactory::class,
@@ -62,6 +64,8 @@ return [
     ],
     'router' => [
         'routes' => [
+            // Routes for the main site when "s/site-slug/" is skipped.
+            // Clean routes for resources depend on settings and are added during bootstrap.
             'top' => [
                 // Override the top controller in order to use the site homepage.
                 'options' => [
@@ -75,10 +79,9 @@ return [
                     ],
                 ],
                 'may_terminate' => true,
-                // TODO Find a way to avoid to copy all the site routes, in particular for modules. Add "|" to the regex of site slug?
+                // Same routes than "site", except initial "/" and routes, without starting "/".
                 // Allows to access main site resources and pages.
-                // Same routes than "site", except initial "/" and routes,
-                // without starting "/".
+                // TODO Find a way to avoid to copy all the site routes, in particular for modules. Add "|" to the regex of site slug?
                 'child_routes' => SLUG_MAIN_SITE ? [
                     'resource' => [
                         'type' => \Laminas\Router\Http\Segment::class,
@@ -161,7 +164,7 @@ return [
                     'page' => [
                         'type' => \CleanUrl\Router\Http\RegexPage::class,
                         'options' => [
-                            // Warning: this is the same regex than for top page, but with an initial "/".
+                            // Note: this is the same regex than for top page, but with an initial "/".
                             'regex' => '/' . $regexSitePage,
                             'spec' => '/' . SLUG_PAGE . '%page-slug%',
                         ],
@@ -185,44 +188,32 @@ return [
             'cleanurl_site_skip_main' => false,
             'cleanurl_site_slug' => $slugSite,
             'cleanurl_page_slug' => SLUG_PAGE,
-            // 10 is the hard coded id of "dcterms:identifier" in default install.
+
+            // 10 is the hard-coded id of "dcterms:identifier" in default install.
             'cleanurl_identifier_property' => 10,
-            'cleanurl_identifier_prefix' => 'document:',
-            'cleanurl_identifier_unspace' => false,
-            'cleanurl_identifier_case_sensitive' => false,
+            'cleanurl_identifier_prefix' => '',
+            'cleanurl_identifier_short' => '',
             'cleanurl_identifier_prefix_part_of' => false,
-            'cleanurl_identifier_undefined' => 'default',
-            'cleanurl_main_path' => '',
-            'cleanurl_main_path_2' => '',
-            'cleanurl_main_path_3' => '',
-            'cleanurl_main_short' => 'no',
-            'cleanurl_item_set_generic' => '',
-            'cleanurl_item_set_keep_raw' => false,
-            'cleanurl_item_default' => 'generic_item',
-            'cleanurl_item_allowed' => [
-                'generic_item',
-                'item_set_item',
-            ],
-            'cleanurl_item_generic' => 'document/',
-            'cleanurl_item_keep_raw' => false,
-            'cleanurl_item_item_set_included' => 'no',
-            'cleanurl_item_item_set_undefined' => 'parent_id',
-            'cleanurl_media_default' => 'generic_media',
-            'cleanurl_media_allowed' => [
-                'generic_media',
-                'item_set_item_media',
-            ],
-            'cleanurl_media_generic' => 'medium/',
-            'cleanurl_media_keep_raw' => false,
-            'cleanurl_media_item_set_included' => 'no',
-            'cleanurl_media_item_included' => 'no',
-            'cleanurl_media_item_set_undefined' => 'parent_id',
-            'cleanurl_media_item_undefined' => 'parent_id',
-            'cleanurl_media_media_undefined' => 'id',
-            'cleanurl_media_format_position' => 'p%d',
+            'cleanurl_identifier_case_sensitive' => false,
+
+            'cleanurl_item_set_paths' => [],
+            'cleanurl_item_set_default' => '',
+            'cleanurl_item_set_pattern' => '',
+            'cleanurl_item_set_pattern_short' => '',
+
+            'cleanurl_item_paths' => [],
+            'cleanurl_item_default' => '',
+            'cleanurl_item_pattern' => '',
+            'cleanurl_item_pattern_short' => '',
+
+            'cleanurl_media_paths' => [],
+            'cleanurl_media_default' => '',
+            'cleanurl_media_pattern' => '',
+            'cleanurl_media_pattern_short' => '',
+
             'cleanurl_admin_use' => true,
-            'cleanurl_admin_show_identifier' => true,
             'cleanurl_admin_reserved' => [],
+
             // Allow to save settings for quick routing.
             'cleanurl_quick_settings' => [],
         ],

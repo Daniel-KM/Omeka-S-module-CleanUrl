@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;

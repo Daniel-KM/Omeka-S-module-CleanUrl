@@ -31,11 +31,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
     /**
      * @var bool
      */
-    protected $unspace;
-
-    /**
-     * @var bool
-     */
     protected $caseSensitiveIdentifier;
 
     /**
@@ -48,7 +43,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      * @param bool $supportAnyValue
      * @param int $propertyId
      * @param string $prefix
-     * @param bool $unspace
      * @param bool $caseSensitiveIdentifier
      * @param bool $prefixIsPartOfIdentifier
      */
@@ -57,7 +51,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $supportAnyValue,
         $propertyId,
         $prefix,
-        $unspace,
         $caseSensitiveIdentifier,
         $prefixIsPartOfIdentifier
     ) {
@@ -65,7 +58,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $this->supportAnyValue = $supportAnyValue;
         $this->propertyId = $propertyId;
         $this->prefix = $prefix;
-        $this->unspace = $unspace;
         $this->caseSensitiveIdentifier = $caseSensitiveIdentifier;
         $this->prefixIsPartOfIdentifier = $prefixIsPartOfIdentifier;
     }
@@ -104,6 +96,8 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $parameters = [];
 
         $collation = $this->caseSensitiveIdentifier ? 'COLLATE utf8mb4_bin' : '';
+
+        // TODO Use EntityManager to avoid final api checks for rights.
 
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
@@ -187,19 +181,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                             $variants[$this->prefix . ' ' . $identifier] = $identifier;
                         }
                     }
-                    // Check prefix with a space and a no-break space.
-                    if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
-                        if ($this->prefix != $unspacePrefix) {
-                            // Check with a space between prefix and identifier too.
-                            foreach (array_keys($identifiers) as $identifier) {
-                                if (mb_strpos($identifier, $this->prefix) !== 0) {
-                                    $variants[$unspacePrefix . $identifier] = $identifier;
-                                    $variants[$unspacePrefix . ' ' . $identifier] = $identifier;
-                                }
-                            }
-                        }
-                    }
                 }
                 // Same as above, but lower keys.
                 else {
@@ -211,17 +192,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                             $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
                         }
                     }
-                    if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
-                        if ($this->prefix != $unspacePrefix) {
-                            foreach (array_keys($identifiers) as $identifier) {
-                                if (mb_strpos($identifier, $this->prefix) !== 0) {
-                                    $variants[mb_strtolower($unspacePrefix . $identifier)] = $identifier;
-                                    $variants[mb_strtolower($unspacePrefix . ' ' . $identifier)] = $identifier;
-                                }
-                            }
-                        }
-                    }
                 }
             } else {
                 if ($this->caseSensitiveIdentifier) {
@@ -230,32 +200,12 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                         // Check with a space between prefix and identifier too.
                         $variants[$this->prefix . ' ' . $identifier] = $identifier;
                     }
-                    // Check prefix with a space and a no-break space.
-                    if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
-                        if ($this->prefix != $unspacePrefix) {
-                            // Check with a space between prefix and identifier too.
-                            foreach (array_keys($identifiers) as $identifier) {
-                                $variants[$unspacePrefix . $identifier] = $identifier;
-                                $variants[$unspacePrefix . ' ' . $identifier] = $identifier;
-                            }
-                        }
-                    }
                 }
                 // Same as above, but lower keys.
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
                         $variants[mb_strtolower($this->prefix . $identifier)] = $identifier;
                         $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
-                    }
-                    if ($this->unspace) {
-                        $unspacePrefix = str_replace([' ', "\u{a0}"], '', $this->prefix);
-                        if ($this->prefix != $unspacePrefix) {
-                            foreach (array_keys($identifiers) as $identifier) {
-                                $variants[mb_strtolower($unspacePrefix . $identifier)] = $identifier;
-                                $variants[mb_strtolower($unspacePrefix . ' ' . $identifier)] = $identifier;
-                            }
-                        }
                     }
                 }
             }
@@ -280,7 +230,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $result = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
 
         // Get representations and check numeric identifiers as resource id.
-        // It allows to check rights too.
+        // It allows to check rights too (currently, Connection is used, not EntityManager).
         $api = $this->view->api();
         foreach (array_intersect_key($result, $variants) as $identifier => $id) {
             try {
@@ -331,8 +281,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             'resource:item_set' => \Omeka\Entity\ItemSet::class,
             'resource:item-set' => \Omeka\Entity\ItemSet::class,
         ];
-        return $resourceTypes[$resourceName]
-        ?? null;
+        return $resourceTypes[$resourceName] ?? null;
     }
 
     protected function convertResourceTypeToResourceName($resourceType)
@@ -342,8 +291,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             \Omeka\Entity\Item::class => 'items',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return $resourceNames[$resourceType]
-            ?? 'resources';
+        return $resourceNames[$resourceType] ?? 'resources';
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\View\Helper;
 
 use Laminas\Mvc\ModuleRouteListener;
