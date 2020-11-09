@@ -144,6 +144,19 @@ return [
                             ],
                         ],
                     ],
+                    'cross-site-search' => [
+                        'type' => \Laminas\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => '/cross-site-search[/:action]',
+                            'defaults' => [
+                                'controller' => 'CrossSiteSearch',
+                                'action' => 'index',
+                            ],
+                            'constraints' => [
+                                'action' => '[a-zA-Z0-9_-]+',
+                            ],
+                        ],
+                    ],
                 ] : [],
             ],
             // Override the default config to remove the slug for main site.
