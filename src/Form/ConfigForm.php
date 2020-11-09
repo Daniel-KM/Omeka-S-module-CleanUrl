@@ -142,26 +142,15 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_item_set_paths',
-                'type' => ArrayTextarea::class,
-                'options' => [
-                    'label' => 'Paths', // @translate
-                    'info' => 'The values are an unquoted regex from root with "~" as enclosure, ordered from the first to check to the last.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_item_set_paths',
-                    'rows' => 3,
-                    'placeholder' => 'collection/{item_set_identifier}',
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_item_set_default',
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Default path', // @translate
+                    'info' => 'The path is an unquoted regex without site slug.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_set_default',
+                    'placeholder' => 'collection/{item_set_identifier}',
                 ],
             ])
             ->add([
@@ -172,6 +161,17 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_set_short',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_set_paths',
+                'type' => ArrayTextarea::class,
+                'options' => [
+                    'label' => 'Additional paths', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_set_paths',
+                    'rows' => 3,
                 ],
             ])
             ->add([
@@ -208,20 +208,6 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_item_paths',
-                'type' => ArrayTextarea::class,
-                'options' => [
-                    'label' => 'Paths', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_item_paths',
-                    'rows' => 3,
-                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}
-document/{item_identifier}
-',
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_item_default',
                 'type' => Element\Text::class,
                 'options' => [
@@ -229,6 +215,7 @@ document/{item_identifier}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_default',
+                    'placeholder' => 'document/{item_identifier}',
                 ],
             ])
             ->add([
@@ -239,6 +226,17 @@ document/{item_identifier}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_item_short',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_item_paths',
+                'type' => ArrayTextarea::class,
+                'options' => [
+                    'label' => 'Additional paths', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_item_paths',
+                    'rows' => 3,
                 ],
             ])
             ->add([
@@ -275,20 +273,6 @@ document/{item_identifier}
                 ],
             ])
             ->add([
-                'name' => 'cleanurl_media_paths',
-                'type' => ArrayTextarea::class,
-                'options' => [
-                    'label' => 'Paths', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleanurl_media_paths',
-                    'rows' => 3,
-                    'placeholder' => 'collection/{item_set_identifier}/{item_identifier}/{media_id}
-document/{item_identifier}/p{media_position}
-',
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_media_default',
                 'type' => Element\Text::class,
                 'options' => [
@@ -296,6 +280,7 @@ document/{item_identifier}/p{media_position}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_default',
+                    'placeholder' => 'document/{item_identifier}/p{media_position}',
                 ],
             ])
             ->add([
@@ -306,6 +291,17 @@ document/{item_identifier}/p{media_position}
                 ],
                 'attributes' => [
                     'id' => 'cleanurl_media_short',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_media_paths',
+                'type' => ArrayTextarea::class,
+                'options' => [
+                    'label' => 'Additional paths', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_media_paths',
+                    'rows' => 3,
                 ],
             ])
             ->add([
