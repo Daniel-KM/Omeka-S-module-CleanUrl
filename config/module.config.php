@@ -208,6 +208,7 @@ return [
             'cleanurl_identifier_short' => '',
             'cleanurl_identifier_prefix_part_of' => false,
             'cleanurl_identifier_case_sensitive' => false,
+            'cleanurl_identifier_keep_slash' => false,
 
             'cleanurl_item_set_paths' => [],
             'cleanurl_item_set_default' => '',

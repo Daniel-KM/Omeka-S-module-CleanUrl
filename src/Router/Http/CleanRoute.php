@@ -142,6 +142,7 @@ class CleanRoute implements RouteInterface
         $this->basePath = $basePath;
         $this->settings = $settings + [
             'site_skip_main' => false,
+            'identifier_keep_slash' => false,
             'admin_use' => false,
             'routes' => [],
             'route_aliases' => [],
@@ -853,26 +854,33 @@ class CleanRoute implements RouteInterface
     protected function encode($value): string
     {
         static $cacheEncode = [];
+        static $urlencodeCorrectionMap;
 
-        $urlencodeCorrectionMap = [
-            '%21' => '!', // sub-delims
-            '%24' => '$', // sub-delims
-            '%26' => '&', // sub-delims
-            '%27' => "'", // sub-delims
-            '%28' => '(', // sub-delims
-            '%29' => ')', // sub-delims
-            '%2A' => '*', // sub-delims
-            '%2B' => '+', // sub-delims
-            '%2C' => ',', // sub-delims
-            // '%2D' => '-', // unreserved - not touched by rawurlencode
-            // '%2E' => '.', // unreserved - not touched by rawurlencode
-            '%3A' => ':', // pchar
-            '%3B' => ';', // sub-delims
-            '%3D' => '=', // sub-delims
-            '%40' => '@', // pchar
-            // '%5F' => '_', // unreserved - not touched by rawurlencode
-            // '%7E' => '~', // unreserved - not touched by rawurlencode
-        ];
+        if (is_null($urlencodeCorrectionMap)) {
+            $urlencodeCorrectionMap = [
+                '%21' => '!', // sub-delims
+                '%24' => '$', // sub-delims
+                '%26' => '&', // sub-delims
+                '%27' => "'", // sub-delims
+                '%28' => '(', // sub-delims
+                '%29' => ')', // sub-delims
+                '%2A' => '*', // sub-delims
+                '%2B' => '+', // sub-delims
+                '%2C' => ',', // sub-delims
+                // '%2D' => '-', // unreserved - not touched by rawurlencode
+                // '%2E' => '.', // unreserved - not touched by rawurlencode
+                '%3A' => ':', // pchar
+                '%3B' => ';', // sub-delims
+                '%3D' => '=', // sub-delims
+                '%40' => '@', // pchar
+                // '%5F' => '_', // unreserved - not touched by rawurlencode
+                // '%7E' => '~', // unreserved - not touched by rawurlencode
+
+            ];
+            if ($this->settings['identifier_keep_slash']) {
+                $urlencodeCorrectionMap['%2F'] = '/';
+            }
+        }
 
         $key = (string) $value;
         if (!isset($cacheEncode[$key])) {

@@ -119,6 +119,17 @@ class ConfigForm extends Form
                 ],
             ])
             ->add([
+                'name' => 'cleanurl_identifier_keep_slash',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Identifiers have slash, so don’t escape it', // @translate
+                    'info' => 'This option is required if you have ark and you choose to manage them as a whole, without the fix part. Check the pattern of identifiers too.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_identifier_keep_slash',
+                ],
+            ])
+            ->add([
                 'name' => 'cleanurl_identifier_case_sensitive',
                 'type' => Element\Checkbox::class,
                 'options' => [

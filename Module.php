@@ -594,6 +594,7 @@ class Module extends AbstractModule
             'identifier_prefix' => $settings->get('cleanurl_identifier_prefix', ''),
             'identifier_short' => $settings->get('cleanurl_identifier_short', ''),
             'identifier_prefix_part_of' => (bool) $settings->get('cleanurl_identifier_prefix_part_of', false),
+            'identifier_keep_slash' => (bool) $settings->get('cleanurl_identifier_keep_slash', false),
             'identifier_case_sensitive' => (bool) $settings->get('cleanurl_identifier_case_sensitive', false),
 
             'resource_paths' => $settings->get('cleanurl_resource_paths', []),
@@ -1098,6 +1099,7 @@ class Module extends AbstractModule
         // Keep only useful keys.
         $keys = [
             'site_skip_main' => false,
+            'identifier_keep_slash' => false,
             'admin_use' => false,
             'routes' => [],
             'route_aliases' => [],
