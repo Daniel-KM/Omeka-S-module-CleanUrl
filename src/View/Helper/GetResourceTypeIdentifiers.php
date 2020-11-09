@@ -9,9 +9,6 @@ namespace CleanUrl\View\Helper;
 use Doctrine\DBAL\Connection;
 use Laminas\View\Helper\AbstractHelper;
 
-/**
- * @package Omeka\Plugins\CleanUrl\views\helpers
- */
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
     protected $connection;

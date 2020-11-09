@@ -11,9 +11,6 @@ use Omeka\Entity\Resource;
  * Clean Url Get Identifiers From Resources
  */
 
-/**
- * @package Omeka\Plugins\CleanUrl\views\helpers
- */
 class GetIdentifiersFromResources extends AbstractHelper
 {
     // The max number of the resources to create a temporary table.

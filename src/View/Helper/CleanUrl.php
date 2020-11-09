@@ -10,7 +10,7 @@ use Traversable;
 /**
  * Create a clean url if possible, else return the standard url.
  *
- * @internal The helper "Url" is overridden, so no factory can be used.
+ * Note: The helper "Url" is overridden and no factory is used currently.
  *
  * @see Laminas\View\Helper\Url
  */

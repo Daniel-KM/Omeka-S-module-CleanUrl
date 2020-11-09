@@ -4,9 +4,6 @@ namespace CleanUrl\View\Helper;
 
 use Laminas\View\Helper\AbstractHelper;
 
-/**
- * @package Omeka\Plugins\CleanUrl\View\Helper
- */
 class GetResourceFromIdentifier extends AbstractHelper
 {
     /**
