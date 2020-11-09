@@ -12,10 +12,10 @@ manage. It supports [Ark] and short urls too.
 
 Furthermore, it makes possible to use a main site and additional sites, like in
 Omeka Classic, so the main site won’t start with "/s/site-slug". The slug "/page/"
-can be removed too.
+can be removed too, or replaced by something else.
 
 This [Omeka S] module was initially based on a rewrite of the [Clean Url plugin]
-for [Omeka] and provide the same features as the original plugin.
+for [Omeka] and provide the same features as the original plugin and many more.
 
 
 Installation
@@ -29,25 +29,23 @@ Uncompress files and rename module folder `CleanUrl`.
 
 Then install it like any other Omeka module and follow the config instructions.
 
-IMPORTANT:
-The module copies two files in the main config directory of Omeka:
-- "clean_url.config.php": this is a list of all reserved words for the first
-  level of the url, when there are no site and page prefixes. All common routes
-  are included. It is larger than needed in order to manage future modules or
-  improvments, according to existing modules in Omeka classic or Omeka S or
-  common wishes. It can be edited as needed if you have a public route for a
-  specific module.
-- "clean_url.dynamic.php": this file is automatically updated to save the list
-  of site slugs and some other settings in order to manage routing quickly, in
-  particular when there are no site and page paths. You should not modify it
-  manually.
+**IMPORTANT**:
+The module copies one file in the main config directory of Omeka, "clean_url.config.php".
+this is a list of all reserved words for the first level of the url, when
+there are no site and page prefixes. All common routes are included. It is
+larger than needed in order to manage future modules or improvments, according
+to existing modules in Omeka classic or Omeka S or common wishes.
+Furthermore, it contains the list of site slugs and some other settings in order
+to manage routing quickly, in particular when there are no site and page paths.
+Contrary to a previous version, this file is automatically updated and should
+not be updated manually.
 
 
 Usage
 -----
 
 Clean urls are automatically displayed in public theme and they are not used in
-the admin theme. They are case insensitive.
+the admin theme. They are case insensitive by default.
 
 This module may be used with the module [Archive Repertory] to set similar paths
 for real files (item_set_identifier / item_identifier / true_filename).
@@ -76,16 +74,17 @@ Of course, be aware that some conflicts are possible in particular for pages,
 even if some slugs are reserved. A check is done when creating sites and pages
 to avoid issues.
 
-
-### Identifiers ###
+### Identifiers
 
 Simply set an identifier for each record in a field. The recommended field is
 `Dublin Core:Identifier`.
 
-- Identifiers can be any strings with any characters, as long as they don’t
-contain reserved characters like "/" and "%".
-- To use numbers as identifier is possible but not recommended. if so, it’s
-recommended that all records have got an identifier.
+- Identifiers can be any strings with any characters. Identifier are url-encoded
+according to the standard, but it is recommended to avoid characters like "%" or
+"$".
+- To use numbers as identifier is possible but not recommended, because they can
+be confused with the internal id or resources. If so, it’s recommended that all
+records have got an identifier.
 - A prefix can be added if you have other metadata in the same field.
 - A record can have multiple identifiers. The first one will be used to set the
 default url. Other ones can be used to set alias.
@@ -97,68 +96,38 @@ them (a main path, a item set identifier or a generic word).
 - If not set, the identifier will be the default id of the record, except for
 item sets, where the original path will be used.
 
-### Structure of urls ###
+### Structure of urls
 
 The configuration page let you choose the structure of paths for item sets,
 items and files.
 
-- A main path can be added , as "archives" or "library": `https://example.com/main_path/my_item_set/dc:identifier`.
-- A generic and persistent part can be added for item sets, items and files,
-for example `https://example.com/my_collections/item_set_identifier`, or `https://example.com/document/item_identifier`.
-- Multiple urls can be set, in particular to have a permalink and a search
-engine optimized link.
-- If multiple structures of urls are selected, a default one will be used to set
-the default url. Other ones can be used to get records.
+Each resource can have a default path, a short path, and additional paths, or
+not. Multiple urls can be set, in particular to have a permalink and a search
+engine optimized link. It is not recommended to multiply them.
 
-So the configuration of the module let you choose among these possible paths:
+Paths are simple string where you can set the type of identifier you want
+between `{}`. Managed identifiers are:
 
-#### Item sets
+- `item_set_id`
+- `item_set_identifier`
+- `item_set_identifier_short`
+- `item_id`
+- `item_identifier`
+- `item_identifier_short`
+- `media_id`
+- `media_identifier`
+- `media_identifier_short`
+- `media_position`
 
-    - / :identifier_item_set
-    - / generic_item_set / :identifier_item_set
-    - / main_path / :identifier_item_set
-    - / main_path / generic_item_set / :identifier_item_set
+So an example for a document within an item set may be `collection/{item_set_identifier}/{item_identifier}`.
+Note that if you choose to include the item set in the path, all items should
+have an item set and all item set should have an identifier.
 
-#### Items
-
-    - / :identifier_item
-    - / generic_item / :identifier_item
-    - / :identifier_item_set / :identifier_item
-    - / generic_item_set / :identifier_item_set / :identifier_item
-    - / main_path / :identifier_item
-    - / main_path / generic_item / :identifier_item
-    - / main_path / :identifier_item_set / :identifier_item
-    - / main_path / generic_item_set / :identifier_item_set / :identifier_item
-
-#### Medias
-
-    - / :identifier_media
-    - / :identifier_item / :identifier_media
-    - / generic_file / :identifier_media
-    - / generic_file / :identifier_item / :identifier_media
-    - / :identifier_item_set / :identifier_media
-    - / generic_item_set / :identifier_item_set / :identifier_media
-    - / :identifier_item_set / :identifier_item / :identifier_media
-    - / generic_item_set / :identifier_item_set / :identifier_item / :identifier_media
-    - / main_path / :identifier_media
-    - / main_path / :identifier_item / :identifier_media
-    - / main_path / generic_file / :identifier_media
-    - / main_path / generic_file / :identifier_item / :identifier_media
-    - / main_path / :identifier_item_set / :identifier_media
-    - / main_path / generic_item_set / :identifier_item_set / :identifier_media
-    - / main_path / :identifier_item_set / :identifier_item / :identifier_media
-    - / main_path / generic_item_set / :identifier_item_set / :identifier_item / :identifier_media
-
-Note: only logical combinations of some of these paths are available together!
-
-A second and third main path can be added, for example to manage ark identifier:
-main path is "ark:/" and the second main path is the naan.
-
-The identifier of the media can be the position. In that case, the string for
-this position can be formatted with function "sprintf". It is recommended to use
-a format with a leading letter to avoid confusion with numeric media id.
-Furthermore, the position may not be stable: a scanned image may be missing.
-Finally, if the first media is not marked "1" in the database, use module [Bulk Check]
+The identifier of the media can be the position. When used, it is recommended to
+specify a format with a leading letter to avoid confusion with numeric media id,
+for example `p{media_position}`. Furthermore, the position may not be stable: a
+scanned image may be missing. Finally, if the first media is not marked "1" in
+the database or if the positions are not the good one, use module [Bulk Check]
 to fix them.
 
 ### Config for Ark
@@ -170,26 +139,33 @@ historical or archival purposes. The "b6KN" is the short hash of the id, with a
 control key. The name is always short, because four characters are enough to
 create more than ten millions of unique names.
 
-To config it, use these params:
-- Resource identifiers: `prefix = ark:/12345/`.
-- Identifier are case sensitive: set true if you choose a format with a full
-  alphabet (uppercase and lowercase letters).
-- Main base path: `main path = ark:/` and `sub-main path = 12345/`; if another
-  main path is added, set them as sub-main path and sub-sub-main path path.
-- Content: `default url = / generic / item identifier`, no generic path,
-  `identifier includes item set identifie = no`.
-- Media: : `default url = / generic / media identifier`, no generic path,
-  `keep raw identifier = true`, `identifier includes item identifier = yes` (or
-  `maybe` is some arks are missing).
+There are multiple way to config arks:
+
+- With a prefix:
+  - Identifier prefix: `ark:/12345/`.
+  - Identifier are case sensitive: set true if you choose a format with a full
+    alphabet (uppercase and lowercase letters).
+  - Item:
+    - Path: `ark:/12345/{item_identifier_short}`.
+    - Pattern: `[a-zA-Z][a-zA-Z0-9]*]` (or something else)
+  - Media: `ark:/12345/{item_identifier_short}/{media_id}`.
+- Without a prefix:
+  - Identifier are case sensitive: set true if you choose a format with a full
+    alphabet (uppercase and lowercase letters).
+  - Item:
+    - Path: `{item_identifier}`.
+    - Pattern: `[a-zA-Z][a-zA-Z0-9_/:-]*]`(or something else, but with `/` and `:`)
+  - Media: `{item_identifier}/{media_id}`.
+
 Other options are at your convenience.
 
 
 TODO
 ----
 
-- Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
-- Forward/Redirect to the canonical url
-- Replace the check with/without space by a job that cleans all identifiers.
+- [ ] Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
+- [ ] Forward/Redirect to the canonical url
+- [x] Replace the check with/without space by a job that cleans all identifiers (see Bulk Check).
 
 
 Warning
