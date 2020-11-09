@@ -227,7 +227,7 @@ return [
             'cleanurl_media_pattern' => '',
             'cleanurl_media_pattern_short' => '',
 
-            'cleanurl_admin_use' => true,
+            'cleanurl_admin_use' => false,
             'cleanurl_admin_reserved' => [],
 
             // Allow to save settings for quick routing.

@@ -238,16 +238,9 @@ class Module extends AbstractModule
 
         $params['cleanurl_identifier_property'] = (int) $params['cleanurl_identifier_property'];
 
-        $params['cleanurl_item_set_paths'][] = $params['cleanurl_item_set_default'];
-        $params['cleanurl_item_set_paths'][] = $params['cleanurl_item_set_short'];
         $params['cleanurl_item_set_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_item_set_paths'])));
-        $params['cleanurl_item_paths'][] = $params['cleanurl_item_default'];
-        $params['cleanurl_item_paths'][] = $params['cleanurl_item_short'];
         $params['cleanurl_item_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_item_paths'])));
-        $params['cleanurl_media_paths'][] = $params['cleanurl_media_default'];
-        $params['cleanurl_media_paths'][] = $params['cleanurl_media_short'];
         $params['cleanurl_media_paths'] = array_unique(array_filter(array_map('trim', $params['cleanurl_media_paths'])));
-
         $params['cleanurl_admin_reserved'] = array_unique(array_filter(array_map('trim', $params['cleanurl_admin_reserved'])));
 
         // Check config.
@@ -635,6 +628,23 @@ class Module extends AbstractModule
 
         // TODO Save the slug sites with the updated slugs_sites (but when the config is edited, the sites don't change).
 
+        // Default, short and core urls are merged to manage paths simpler,
+        // Set the default route the first in stacks if any for performance.
+        array_unshift($params['item_set_paths'], $params['item_set_default']);
+        $params['item_set_paths'][] = $params['item_set_short'];
+        $params['item_set_paths'][] = 'item-set/{item_set_id}';
+        $params['item_set_paths'] = array_unique(array_filter(array_map('trim', $params['item_set_paths'])));
+
+        array_unshift($params['item_paths'], $params['item_default']);
+        $params['item_paths'][] = $params['item_short'];
+        $params['item_paths'][] = 'item/{item_id}';
+        $params['item_paths'] = array_unique(array_filter(array_map('trim', $params['item_paths'])));
+
+        array_unshift($params['media_paths'], $params['media_default']);
+        $params['media_paths'][] = $params['media_short'];
+        $params['media_paths'][] = 'media/{media_id}';
+        $params['media_paths'] = array_unique(array_filter(array_map('trim', $params['media_paths'])));
+
         $baseRoutes = [
             'public' => [
                 'base_route' => '/' . SLUG_SITE . ':site-slug/',
@@ -953,20 +963,6 @@ class Module extends AbstractModule
             ],
         ];
 
-        // Set the default route the first in stacks if any for performance.
-        if ($params['item_set_default']) {
-            array_unshift($params['item_set_paths'], $params['item_set_default']);
-            $params['item_set_paths'] = array_unique($params['item_set_paths']);
-        }
-        if ($params['item_default']) {
-            array_unshift($params['item_paths'], $params['item_default']);
-            $params['item_paths'] = array_unique($params['item_paths']);
-        }
-        if ($params['media_default']) {
-            array_unshift($params['media_paths'], $params['media_default']);
-            $params['media_paths'] = array_unique($params['media_paths']);
-        }
-
         $index = 0;
         $mapRoutes = [];
 
@@ -1099,7 +1095,14 @@ class Module extends AbstractModule
                 : $k;
         }
 
-        $settings->set('cleanurl_quick_settings', $params);
+        // Keep only useful keys.
+        $keys = [
+            'site_skip_main' => false,
+            'admin_use' => false,
+            'routes' => [],
+            'route_aliases' => [],
+        ];
+        $settings->set('cleanurl_quick_settings', array_intersect_key($params, $keys));
     }
 
     protected function prepareRegex(array $list)
