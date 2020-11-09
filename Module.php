@@ -33,9 +33,9 @@ class Module extends AbstractModule
 
     public function getConfig()
     {
-        require_once file_exists(__DIR__ . '/config/clean_url.config.php')
-            ? __DIR__ . '/config/clean_url.config.php'
-            :  __DIR__ . '/data/scripts/clean_url.config.php';
+        require_once file_exists(OMEKA_PATH . '/config/cleanurl.config.php')
+            ? OMEKA_PATH . '/config/cleanurl.config.php'
+            : __DIR__ . '/config/cleanurl.config.php';
         return include __DIR__ . '/config/module.config.php';
     }
 
@@ -160,7 +160,7 @@ class Module extends AbstractModule
     public function getConfigForm(PhpRenderer $renderer)
     {
         $translate = $renderer->plugin('translate');
-        return $translate('"Clean Url" module allows to have clean, readable and search engine optimized urls for pages and resources, like https://example.net/item_set_identifier/item_identifier.') // @translate
+        $html = $translate('"Clean Url" module allows to have clean, readable and search engine optimized urls for pages and resources, like https://example.net/item_set_identifier/item_identifier.') // @translate
             . '<br/>'
             . $translate('For identifiers, it is recommended to use a pattern that includes at least one letter to avoid confusion with internal numerical ids.') // @translate
             . '<br/>'
@@ -168,7 +168,17 @@ class Module extends AbstractModule
             . '<br/>'
             . sprintf($translate('See %s for more information.'), // @translate
                 sprintf('<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme')
-            )
+            );
+
+        $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
+        if (!is_writeable($filepath)) {
+            $html .= '<br/><br/>'
+                . sprintf($translate('%sWarning%s: the config of the module cannot be saved in "config/cleanurl.config.php". It is required to skip the site paths.'), // @translate
+                    '<strong>', '</strong>')
+                . '<br/><br/>';
+        }
+
+        return $html
             . parent::getConfigForm($renderer);
     }
 
@@ -510,17 +520,19 @@ class Module extends AbstractModule
     {
         $services = $this->getServiceLocator();
 
-        $filepath = __DIR__ . '/config/clean_url.config.php';
-        if (!$this->checkFilepath($filepath)) {
+        $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
+        if (!is_writeable(dirname($filepath))
+            || (file_exists($filepath) && !is_writeable($filepath))
+        ) {
             $logger = $services->get('Omeka\Logger');
-            $logger->warn('The file "clean_url.config.php" in the config directory of the module is not writeable.'); // @translate
+            $logger->err('The file "cleanurl.config.php" in the config directory of Omeka is not writeable.'); // @translate
             return false;
         }
 
         $settings = $services->get('Omeka\Settings');
 
         // The file is always reset from the original file.
-        $sourceFilepath = __DIR__ . '/data/scripts/clean_url.config.php';
+        $sourceFilepath = __DIR__ . '/config/cleanurl.config.php';
         $content = file_get_contents($sourceFilepath);
 
         // Update main site.
@@ -565,14 +577,6 @@ class Module extends AbstractModule
         $content = preg_replace($regex, $replace, $content, 1);
 
         file_put_contents($filepath, $content);
-    }
-
-    protected function checkFilepath($filepath)
-    {
-        return file_exists($filepath)
-            && is_file($filepath)
-            && filesize($filepath)
-            && is_writeable($filepath);
     }
 
     /**
