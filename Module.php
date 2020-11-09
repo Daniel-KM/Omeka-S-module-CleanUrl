@@ -371,12 +371,12 @@ class Module extends AbstractModule
             foreach (array_filter($paths) as $path) {
                 foreach (['item_set', 'item', 'media'] as $resource) {
                     if (!$hasPattern[$resource]['full'] && mb_strpos($path, "{{$resource}_identifier}") !== false) {
-                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*" is required to use the path "%s".', $resource, $path); // @translate
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resource, $path); // @translate
                         $messenger->addError($message);
                         $hasError = true;
                     }
                     if (!$hasPattern[$resource]['full'] && !$hasPattern[$resource]['short'] && mb_strpos($path, "{{$resource}_identifier_short}") !== false) {
-                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*" is required to use the path "%s".', $resource, $path); // @translate
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resource, $path); // @translate
                         $messenger->addError($message);
                         $hasError = true;
                     }
@@ -746,7 +746,7 @@ class Module extends AbstractModule
             };
         } else {
             $messager = function ($message) use ($logger): void {
-                $logger->err($message); // @translate
+                $logger->err($message);
             };
         }
 
@@ -880,22 +880,22 @@ class Module extends AbstractModule
 
         $checkPatterns = function (string $path) use ($params, $messager): bool {
             if (mb_strpos($path, '{item_set_identifier}') !== false && !$params['item_set_pattern']) {
-                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item set', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'item set', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_set_identifier_short}') !== false && !$params['item_set_pattern_short']) {
-                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item set', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'item set', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_identifier}') !== false && !$params['item_pattern']) {
-                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'item', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{item_identifier_short}') !== false && !$params['item_pattern_short']) {
-                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'item', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'item', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{media_identifier}') !== false && !$params['media_pattern']) {
-                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'media', $path)); // @translate
+                $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'media', $path)); // @translate
                 return false;
             } elseif (mb_strpos($path, '{media_identifier_short}') !== false && !$params['media_pattern_short']) {
-                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*" is required to use the path "%s".', 'media', $path)); // @translate
+                $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9]*", is required to use the path "%s".', 'media', $path)); // @translate
                 return false;
             }
             return true;
