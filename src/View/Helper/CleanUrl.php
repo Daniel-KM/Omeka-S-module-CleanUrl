@@ -201,6 +201,9 @@ class CleanUrl extends Url
             $setting = $plugins->get('setting');
             $options = [
                 'api' => $services->get('Omeka\ApiManager'),
+                'getResourceFromIdentifier' => $plugins->get('getResourceFromIdentifier'),
+                'getMediaFromPosition' => $plugins->get('getMediaFromPosition'),
+                'entityManager' => $services->get('Omeka\EntityManager'),
                 'base_path' => $this->view->basePath(),
                 'settings' => $setting('cleanurl_quick_settings', []),
                 'helpers' => [

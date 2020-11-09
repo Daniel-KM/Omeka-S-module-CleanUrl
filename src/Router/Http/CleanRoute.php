@@ -12,6 +12,7 @@ use const CleanUrl\SLUGS_SITE;
 
 use CleanUrl\View\Helper\GetMediaFromPosition;
 use CleanUrl\View\Helper\GetResourceFromIdentifier;
+use Doctrine\ORM\EntityManager;
 use Laminas\Router\Exception;
 use Laminas\Router\Http\RouteInterface;
 use Laminas\Router\Http\RouteMatch;
@@ -46,6 +47,11 @@ class CleanRoute implements RouteInterface
     protected $getMediaFromPosition;
 
     /**
+     * @var EntityManager
+     */
+    protected $entityManager;
+
+    /**
      * @var string
      */
     protected $basePath;
@@ -78,9 +84,10 @@ class CleanRoute implements RouteInterface
     protected $assembledParams = [];
 
     /**
-     * @param \Omeka\Api\Manager $api
+     * @param ApiManager $api
      * @param GetResourceFromIdentifier $getResourceFromIdentifier
      * @param GetMediaFromPosition $getMediaFromPosition
+     * @param EntityManager $entityManager
      * @param string $basePath
      * @param array $settings
      * @param array $helpers Needed only to assemble an url.
@@ -89,6 +96,7 @@ class CleanRoute implements RouteInterface
         ApiManager $api = null,
         GetResourceFromIdentifier $getResourceFromIdentifier = null,
         GetMediaFromPosition $getMediaFromPosition = null,
+        EntityManager $entityManager = null,
         string $basePath = '',
         array $settings = [],
         array $helpers = []
@@ -96,6 +104,7 @@ class CleanRoute implements RouteInterface
         $this->api = $api;
         $this->getResourceFromIdentifier = $getResourceFromIdentifier;
         $this->getMediaFromPosition = $getMediaFromPosition;
+        $this->entityManager = $entityManager;
         $this->basePath = $basePath;
         $this->helpers = $helpers;
         $this->settings = $settings + [
@@ -141,12 +150,21 @@ class CleanRoute implements RouteInterface
             'api' => null,
             'getResourceFromIdentifier' => null,
             'getMediaFromPosition' => null,
+            'entityManager' => null,
             'base_path' => '',
             'settings' => [],
             'helpers' => [],
         ];
 
-        return new static($options['api'], $options['getResourceFromIdentifier'], $options['getMediaFromPosition'], $options['base_path'], $options['settings'], $options['helpers']);
+        return new static(
+            $options['api'],
+            $options['getResourceFromIdentifier'],
+            $options['getMediaFromPosition'],
+            $options['entityManager'],
+            $options['base_path'],
+            $options['settings'],
+            $options['helpers']
+        );
     }
 
     public function match(Request $request, $pathOffset = null)
@@ -169,7 +187,7 @@ class CleanRoute implements RouteInterface
         // So the check all the remaining paths. Routes will be reordered.
         $path = mb_substr($path, (int) $pathOffset);
 
-        // Check if it is a top url first.
+        // Check if it is a top url first or if there is a base path.
         if (mb_stripos('|' . SLUGS_SITE . '|', '|' . trim(mb_substr($path, mb_strlen(SLUG_SITE)), '/') . '|') !== false) {
             return null;
         }
@@ -215,8 +233,6 @@ class CleanRoute implements RouteInterface
             $params['resource_identifier'] = $params[$data['resource_identifier']];
 
             // Check if the resource exists. Doctrine will cache it anyway.
-            // Omeka doesn't check if the resource belongs to the site during,
-            // so no other check than the resource is done.
 
             // Manage the case where the same route is used for different
             // resource, but the generic "resource_identifier" is not used.
@@ -225,24 +241,55 @@ class CleanRoute implements RouteInterface
             // Ideally, the check of the resource should be done in the final
             // controller, but a clean url is mainly a redirector.
 
-            if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
-                $resourceIds = $this->api->search($data['resource_type'], ['id' => $params['resource_identifier'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
-                if (!count($resourceIds)) {
-                    continue;
+            $resourceId = $this->getResourceId($params, $data);
+            if (!$resourceId) {
+                continue;
+            }
+
+            $params['id'] = $resourceId;
+
+            // Omeka doesn't check if the resource belongs to the site, as it
+            // allows to display linked resources. So the site is not checked.
+            // But check other identifiers if any.
+            if ($data['resource_type'] === 'item_sets') {
+                $params['id'] = null;
+                $data['defaults']['forward']['item-set-id'] = $resourceId;
+            } elseif ($data['resource_type'] === 'items') {
+                if (!empty($data['item_set_identifier'])) {
+                    $itemSetId = $this->getItemSetId($params, $data['item_set_identifier']);
+                    if (!$itemSetId) {
+                        continue;
+                    }
+                    if (!$this->itemBelongsToItemSet($resourceId, $itemSetId)) {
+                        continue;
+                    }
+                    $params['item_set_id'] = $itemSetId;
                 }
-                $params['id'] = reset($resourceIds);
-            } elseif ($data['resource_identifier'] === 'media_position') {
-                $resourceId = $this->getMediaIdFromPosition($params, $data);
-                if (!$resourceId) {
-                    continue;
+            } elseif ($data['resource_type'] === 'media') {
+                if (!empty($data['item_identifier'])) {
+                    $itemId = $this->getItemId($params, $data['item_identifier']);
+                    if (!$itemId) {
+                        continue;
+                    }
+                    if (!$this->mediaBelongsToItem($resourceId, $itemId)) {
+                        continue;
+                    }
+                    $params['item_id'] = $itemId;
                 }
-                $params['id'] = $resourceId;
-            } else {
-                $resource = $this->getResourceFromIdentifier->__invoke($params['resource_identifier'], $data['resource_type']);
-                if (!$resource) {
-                    continue;
+                if (!empty($data['item_set_identifier'])) {
+                    $itemSetId = $this->getItemSetId($params, $data['item_set_identifier']);
+                    if (!$itemSetId) {
+                        continue;
+                    }
+                    if ($itemId) {
+                        if (!$this->itemBelongsToItemSet($itemId, $itemSetId)) {
+                            continue;
+                        }
+                    } elseif (!$this->mediaBelongsToItemSet($resourceId, $itemSetId)) {
+                        continue;
+                    }
+                    $params['item_set_id'] = $itemSetId;
                 }
-                $params['id'] = $resource->id();
             }
 
             // Updated the data directly to avoid a recursive merge.
@@ -787,29 +834,102 @@ class CleanRoute implements RouteInterface
             ?? null;
     }
 
+    protected function getResourceId(array $params, array $data): ?int
+    {
+        if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
+            $resourceIds = $this->api->search($data['resource_type'], ['id' => $params['resource_identifier'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+            return count($resourceIds) ? (int) reset($resourceIds) : null;
+        } elseif ($data['resource_identifier'] === 'media_position') {
+            return $this->getMediaIdFromPosition($params, $data);
+        } else {
+            $resource = $this->getResourceFromIdentifier->__invoke($params['resource_identifier'], $data['resource_type']);
+            return $resource ? $resource->id() : null;
+        }
+    }
+
+    protected function getItemSetId(array $params, $identifierName): ?int
+    {
+        switch ($identifierName) {
+            case 'item_set_id':
+                $resourceIds = $this->api->search('item_sets', ['id' => $params['item_set_id'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+                return count($resourceIds) ? (int) reset($resourceIds) : null;
+            case 'item_set_identifier':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['item_set_identifier'], 'item_sets');
+                return $resource ? $resource->id() : null;
+            case 'item_set_identifier_short':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['item_set_identifier_short'], 'item_sets');
+                return $resource ? $resource->id() : null;
+            default:
+                return null;
+        }
+    }
+
+    protected function getItemId(array $params, $identifierName): ?int
+    {
+        switch ($identifierName) {
+            case 'item_id':
+                $resourceIds = $this->api->search('items', ['id' => $params['item_id'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+                return count($resourceIds) ? (int) reset($resourceIds) : null;
+            case 'item_identifier':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['item_identifier'], 'items');
+                return $resource ? $resource->id() : null;
+            case 'item_identifier_short':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['item_identifier_short'], 'items');
+                return $resource ? $resource->id() : null;
+            default:
+                return null;
+        }
+    }
+
+    protected function getMediaId(array $params, $identifierName): ?int
+    {
+        switch ($identifierName) {
+            case 'media_id':
+                $resourceIds = $this->api->search('media', ['id' => $params['media_id'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
+                return count($resourceIds) ? (int) reset($resourceIds) : null;
+            case 'media_identifier':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['media_identifier'], 'items');
+                return $resource ? $resource->id() : null;
+            case 'media_identifier_short':
+                $resource = $this->getResourceFromIdentifier->__invoke($params['media_identifier_short'], 'items');
+                return $resource ? $resource->id() : null;
+            default:
+                return null;
+        }
+    }
+
     protected function getMediaIdFromPosition(array $params, array $data): ?int
     {
-        if ($data['item_identifier'] === 'item_id') {
-            $itemId = $this->api->search('items', ['id' => $params['item_id'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
-            if (!count($itemId)) {
-                return null;
-            }
-            $itemId = reset($itemId);
-        } elseif ($data['item_identifier'] === 'item_identifier') {
-            $item = $this->getResourceFromIdentifier->__invoke($params['item_identifier'], 'items');
-            if (!$item) {
-                return null;
-            }
-            $itemId = $item->id();
-        } elseif ($data['item_identifier'] === 'item_identifier_short') {
-            $item = $this->getResourceFromIdentifier->__invoke($params['item_identifier_short'], 'items');
-            if (!$item) {
-                return null;
-            }
-            $itemId = $item->id();
-        } else {
+        if (!in_array($data['item_identifier'], ['item_id', 'item_identifier', 'item_identifier_short'])) {
             throw new \Omeka\Mvc\Exception\RuntimeException('The item identifier is missing in the route for media.'); // @translate
         }
-        return $this->getMediaFromPosition->__invoke($itemId, (int) $params['media_position']);
+        $itemId = $this->getItemId($params, $data['item_identifier']);
+        return $itemId
+            ? $this->getMediaFromPosition->__invoke($itemId, (int) $params['media_position'])
+            : null;
+    }
+
+    protected function itemBelongsToItemSet(int $itemId, int $itemSetId): bool
+    {
+        return $this->entityManager
+            ->getRepository(\Omeka\Entity\Item::class)
+            ->findOneBy(['id' => $itemId])
+            ->getItemSets()
+            ->offsetExists($itemSetId);
+    }
+
+    protected function mediaBelongsToItem(int $mediaId, int $itemId): bool
+    {
+        return (bool) $this->entityManager
+            ->getRepository(\Omeka\Entity\Media::class)
+            ->findOneBy(['id' => $mediaId, 'item' => $itemId]);
+    }
+
+    protected function mediaBelongsToItemSet(int $mediaId, int $itemSetId): bool
+    {
+        $media = $this->entityManager
+            ->getRepository(\Omeka\Entity\Media::class)
+            ->find($mediaId);
+        return $this->itemBelongsToItemSet($media->getItem()->getId(), $itemSetId);
     }
 }
