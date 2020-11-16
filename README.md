@@ -12,7 +12,8 @@ manage. It supports [Ark] and short urls too.
 
 Furthermore, it makes possible to use a main site and additional sites, like in
 Omeka Classic, so the main site won’t start with "/s/site-slug". The slug "/page/"
-can be removed too, or replaced by something else.
+can be removed too, or replaced by something else. The urls from Omeka Classic
+can be recreated easily too, so old urls can still be alive.
 
 This [Omeka S] module was initially based on a rewrite of the [Clean Url plugin]
 for [Omeka] and provide the same features as the original plugin and many more.
@@ -30,7 +31,7 @@ Uncompress files and rename module folder `CleanUrl`.
 Then install it like any other Omeka module and follow the config instructions.
 
 **IMPORTANT**:
-The module copies one file in the main config directory of Omeka, "clean_url.config.php".
+The module copies one file in the main config directory of Omeka, "cleanurl.config.php".
 this is a list of all reserved words for the first level of the url, when
 there are no site and page prefixes. All common routes are included. It is
 larger than needed in order to manage future modules or improvments, according
@@ -80,21 +81,23 @@ Simply set an identifier for each record in a field. The recommended field is
 `Dublin Core:Identifier`.
 
 - Identifiers can be any strings with any characters. Identifier are url-encoded
-according to the standard, but it is recommended to avoid characters like "%" or
-"$".
+  according to the standard, but it is recommended to avoid characters like "%"
+  or "$".
 - To use numbers as identifier is possible but not recommended, because they can
-be confused with the internal id or resources. If so, it’s recommended that all
-records have got an identifier.
+  be confused with the internal id or resources. If so, it’s recommended that
+  all records have got an identifier.
 - A prefix can be added if you have other metadata in the same field.
 - A record can have multiple identifiers. The first one will be used to set the
-default url. Other ones can be used to set alias.
+  default url. Other ones can be used to set alias.
 - If the same identifier is used for multiple records, only the first record can
-be got. Currently, no check is done when duplicate identifiers are set.
+  be got. Currently, no check is done when duplicate identifiers are set.
 - Reserved words like "item_sets", "items", "medias", sites and simple pages
-slugs...) should not be used as identifiers, except if there is a part before
-them (a main path, a item set identifier or a generic word).
+  slugs...) should not be used as identifiers, except if there is a part before
+  them (a main path, a item set identifier or a generic word).
 - If not set, the identifier will be the default id of the record, except for
-item sets, where the original path will be used.
+  item sets, where the original path will be used.
+- If the path for the item contains the item set identifier, the first item set
+  will be used. If none, the urls will be the standard one.
 
 ### Structure of urls
 
@@ -120,6 +123,7 @@ between `{}`. Managed identifiers are:
 - `media_position`
 
 So an example for a document within an item set may be `collection/{item_set_identifier}/{item_identifier}`.
+
 Note that if you choose to include the item set in the path, all items should
 have an item set and all item set should have an identifier.
 
@@ -128,7 +132,8 @@ specify a format with a leading letter to avoid confusion with numeric media id,
 for example `p{media_position}`. Furthermore, the position may not be stable: a
 scanned image may be missing. Finally, if the first media is not marked "1" in
 the database or if the positions are not the good one, use module [Bulk Check]
-to fix them.
+to fix them. Anyway, the identifier can be the content of any property, as long
+as its content is unique for the list of media of the item.
 
 ### Config for Ark
 
@@ -152,12 +157,23 @@ There are multiple way to config arks:
 - Without a prefix:
   - Identifier are case sensitive: set true if you choose a format with a full
     alphabet (uppercase and lowercase letters).
+  - Don't escape the slash `/`.
   - Item:
     - Path: `{item_identifier}`.
     - Pattern: `[a-zA-Z][a-zA-Z0-9_/:-]*]`(or something else, but with `/` and `:`)
   - Media: `{item_identifier}/{media_id}`.
 
 Other options are at your convenience.
+
+### Config for Omeka Classic compatibility
+
+If you upgraded from Omeka Classic and you want to keep a redirection from your
+current urls:
+
+- skip main slug: `true`
+- item set path: `collections/show/{item_set_id}`.
+- item path: `items/show/{item_id}`.
+- media path: `files/show/{media_id}`.
 
 
 TODO
@@ -166,6 +182,7 @@ TODO
 - [ ] Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
 - [ ] Forward/Redirect to the canonical url
 - [x] Replace the check with/without space by a job that cleans all identifiers (see Bulk Check).
+- [ ] Remove the management of the space to get resources from identifiers with a prefix.
 
 
 Warning
