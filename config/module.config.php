@@ -74,6 +74,7 @@ return [
                         '__NAMESPACE__' => 'Omeka\Controller\Site',
                         '__SITE__' => true,
                         'site-slug' => SLUG_MAIN_SITE,
+                        'page-slug' => null,
                         'controller' => 'Page',
                         'action' => 'show',
                     ],
