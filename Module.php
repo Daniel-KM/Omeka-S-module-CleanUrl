@@ -93,7 +93,7 @@ class Module extends AbstractModule
                 $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
                 'Generic', '3.3.25'
             );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
     }
 
@@ -562,7 +562,7 @@ class Module extends AbstractModule
         $message = new Message('The slug "%s" is used or reserved. A random string has been automatically appended.', $slug); // @translate
         $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
         $messenger->addWarning($message);
-        // throw new \Omeka\Api\Exception\ValidationException($message);
+        // throw new \Omeka\Api\Exception\ValidationException((string) $message);
     }
 
     /**

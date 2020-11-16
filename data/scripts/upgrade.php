@@ -184,7 +184,7 @@ if (version_compare($oldVersion, '3.16.1.3', '<')) {
             $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
             'Generic', '3.3.25'
         );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
     }
 
     // Manage upgrade from old version.
