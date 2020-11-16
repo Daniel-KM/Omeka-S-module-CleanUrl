@@ -3,9 +3,9 @@
 namespace CleanUrl\Router\Http;
 
 use const CleanUrl\SLUG_MAIN_SITE;
-use const CleanUrl\SLUG_PAGE;
+// use const CleanUrl\SLUG_PAGE;
 use const CleanUrl\SLUG_SITE;
-use const CleanUrl\SLUG_SITE_DEFAULT;
+// use const CleanUrl\SLUG_SITE_DEFAULT;
 use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
@@ -19,11 +19,7 @@ use Laminas\Router\Http\RouteInterface;
 use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\ArrayUtils;
 use Laminas\Stdlib\RequestInterface as Request;
-use Laminas\View\Helper\BasePath;
-use Laminas\View\Helper\ServerUrl;
 use Omeka\Api\Manager as ApiManager;
-use Omeka\View\Helper\Setting;
-use Omeka\View\Helper\Status;
 use Traversable;
 
 /**
@@ -41,9 +37,9 @@ class CleanRoute implements RouteInterface
     protected $api;
 
     /**
-     * @var \CleanUrl\View\Helper\GetResourceFromIdentifier
+     * @var EntityManager
      */
-    protected $getResourceFromIdentifier;
+    protected $entityManager;
 
     /**
      * @var \CleanUrl\View\Helper\GetMediaFromPosition
@@ -51,24 +47,9 @@ class CleanRoute implements RouteInterface
     protected $getMediaFromPosition;
 
     /**
-     * @var EntityManager
+     * @var \CleanUrl\View\Helper\GetResourceFromIdentifier
      */
-    protected $entityManager;
-
-    /**
-     * @var string
-     */
-    protected $basePath;
-
-    /**
-     * @var array
-     */
-    protected $settings;
-
-    /**
-     * @var BasePath
-     */
-    protected $basePathHelper;
+    protected $getResourceFromIdentifier;
 
     /**
      * @var GetResourceIdentifier
@@ -76,29 +57,14 @@ class CleanRoute implements RouteInterface
     protected $getResourceIdentifier;
 
     /**
-     * @var ServerUrl
-     */
-    protected $serverUrl;
-
-    /**
-     * @var Setting
-     */
-    protected $setting;
-
-    /**
-     * @var Status
-     */
-    protected $status;
-
-    /**
-     * List of routes.
-     *
-     * Each route is a segment route that contains keys "route", "constraints",
-     * "defaults", "parts", "regex", "paramMap" and optionaly "translationKeys".
-     *
      * @var array
      */
-    protected $routes = [];
+    protected $routes;
+
+    /**
+     * @var array
+     */
+    protected $routeAliases;
 
     /**
      * List of assembled parameters.
@@ -108,50 +74,30 @@ class CleanRoute implements RouteInterface
     protected $assembledParams = [];
 
     /**
+     * @param array $routes
+     * @param array $routeAliases
      * @param \Omeka\Api\Manager $api
-     * @param \CleanUrl\View\Helper\GetResourceFromIdentifier $getResourceFromIdentifier
-     * @param \CleanUrl\View\Helper\GetMediaFromPosition $getMediaFromPosition
      * @param \Doctrine\ORM\EntityManager $entityManager
-     * @param string $basePath
-     * @param array $settings
-     * @param \Laminas\View\Helper\BasePath $basePathHelper
+     * @param \CleanUrl\View\Helper\GetMediaFromPosition $getMediaFromPosition
+     * @param \CleanUrl\View\Helper\GetResourceFromIdentifier $getResourceFromIdentifier
      * @param \CleanUrl\View\Helper\GetResourceIdentifier $getResourceIdentifier
-     * @param \Laminas\View\Helper\ServerUrl $serverUrl
-     * @param \Omeka\View\Helper\Setting $setting
-     * @param \Omeka\View\Helper\Status $status
      */
     public function __construct(
-        // For routing.
-        ApiManager $api = null,
-        GetResourceFromIdentifier $getResourceFromIdentifier = null,
-        GetMediaFromPosition $getMediaFromPosition = null,
-        EntityManager $entityManager = null,
-        string $basePath = '',
-        array $settings = [],
-        // For assembling.
-        BasePath $basePathHelper = null,
-        GetResourceIdentifier $getResourceIdentifier = null,
-        ServerUrl $serverUrl = null,
-        Setting $setting = null,
-        Status $status = null
+        array $routes,
+        array $routeAliases,
+        ApiManager $api,
+        EntityManager $entityManager,
+        GetMediaFromPosition $getMediaFromPosition,
+        GetResourceFromIdentifier $getResourceFromIdentifier,
+        GetResourceIdentifier $getResourceIdentifier
     ) {
+        $this->routes = $routes;
+        $this->routeAliases = $routeAliases;
         $this->api = $api;
-        $this->getResourceFromIdentifier = $getResourceFromIdentifier;
-        $this->getMediaFromPosition = $getMediaFromPosition;
         $this->entityManager = $entityManager;
-        $this->basePath = $basePath;
-        $this->settings = $settings + [
-            'site_skip_main' => false,
-            'identifier_keep_slash' => false,
-            'admin_use' => false,
-            'routes' => [],
-            'route_aliases' => [],
-        ];
-        $this->basePathHelper = $basePathHelper;
+        $this->getMediaFromPosition = $getMediaFromPosition;
+        $this->getResourceFromIdentifier = $getResourceFromIdentifier;
         $this->getResourceIdentifier = $getResourceIdentifier;
-        $this->serverUrl = $serverUrl;
-        $this->setting = $setting;
-        $this->status = $status;
     }
 
     public static function factory($options = [])
@@ -165,34 +111,14 @@ class CleanRoute implements RouteInterface
             ));
         }
 
-        $options += [
-            // For routing.
-            'api' => null,
-            'getResourceFromIdentifier' => null,
-            'getMediaFromPosition' => null,
-            'entityManager' => null,
-            'base_path' => '',
-            'settings' => [],
-            // For assembling.
-            'basePath' => null,
-            'getResourceIdentifier' => null,
-            'serverUrl' => null,
-            'setting' => null,
-            'status' => null,
-        ];
-
         return new static(
+            $options['routes'],
+            $options['route_aliases'],
             $options['api'],
-            $options['getResourceFromIdentifier'],
-            $options['getMediaFromPosition'],
             $options['entityManager'],
-            $options['base_path'],
-            $options['settings'],
-            $options['basePath'],
-            $options['getResourceIdentifier'],
-            $options['serverUrl'],
-            $options['setting'],
-            $options['status']
+            $options['getMediaFromPosition'],
+            $options['getResourceFromIdentifier'],
+            $options['getResourceIdentifier']
         );
     }
 
@@ -203,7 +129,7 @@ class CleanRoute implements RouteInterface
         }
 
         // Avoid an issue when not configured.
-        if (empty($this->settings['routes'])) {
+        if (empty($this->routes)) {
             return null;
         }
 
@@ -221,7 +147,7 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
-        foreach ($this->settings['routes'] as /* $routeName =>*/ $data) {
+        foreach ($this->routes as /* $routeName =>*/ $data) {
             $regex = $data['regex'];
 
             // if (is_null($pathOffset)) {
@@ -275,14 +201,19 @@ class CleanRoute implements RouteInterface
                 continue;
             }
 
+            // The path is good, so prepare the forward route.
+            // Updated some data directly to avoid a recursive merge.
+
             $params['id'] = $resourceId;
 
             // Omeka doesn't check if the resource belongs to the site, as it
             // allows to display linked resources. So the site is not checked.
             // But check other identifiers if any.
             if ($data['resource_type'] === 'item_sets') {
-                $params['id'] = null;
-                $data['defaults']['forward']['item-set-id'] = $resourceId;
+                if ($data['context'] === 'site') {
+                    $params['id'] = null;
+                    $data['defaults']['forward']['item-set-id'] = $resourceId;
+                }
             } elseif ($data['resource_type'] === 'items') {
                 if (!empty($data['item_set_identifier'])) {
                     $itemSetId = $this->getResourceIdentifierFromParams($params, $data['item_set_identifier'], 'id');
@@ -321,9 +252,8 @@ class CleanRoute implements RouteInterface
                 }
             }
 
-            // Updated the data directly to avoid a recursive merge.
             $data['defaults']['forward']['id'] = $params['id'];
-            if (!empty($params['site-slug'])) {
+            if (!empty($params['site-slug']) && $data['context'] === 'site') {
                 $data['defaults']['forward']['site-slug'] = $params['site-slug'];
             }
 
@@ -346,16 +276,18 @@ class CleanRoute implements RouteInterface
             return '';
         }
 
+        $keepSlash = $this->routes[$routeName]['options']['keep_slash'];
+
         $replace = [];
         foreach ($fullParams as $key => $value) {
-            $replace['%' . $key . '%'] = $this->encode($value);
+            $replace['%' . $key . '%'] = $this->encode($value, $keepSlash);
         }
 
-        $this->assembledParams = $this->settings['routes'][$routeName]['parts'];
+        $this->assembledParams = $this->routes[$routeName]['parts'];
         return str_replace(
             array_keys($replace),
             array_values($replace),
-            $this->settings['routes'][$routeName]['spec']
+            $this->routes[$routeName]['spec']
         );
     }
 
@@ -373,7 +305,7 @@ class CleanRoute implements RouteInterface
         // All available routes are prepared one time.
 
         $routeName = $options['route_name'];
-        if (isset($this->settings['routes'][$routeName])) {
+        if (isset($this->routes[$routeName])) {
             return $routeName;
         }
 
@@ -383,15 +315,15 @@ class CleanRoute implements RouteInterface
             return null;
         }
         if ($context === 'site') {
-            $context = $this->settings['site_skip_main']
+            $context = SLUG_MAIN_SITE !== false
                 && !empty($params['site-slug'])
                 && $params['site-slug'] === SLUG_MAIN_SITE
                 ? 'top'
                 : 'public';
         }
 
-        if (isset($this->settings['route_aliases'][$context][$routeName])) {
-            return $this->settings['route_aliases'][$context][$routeName];
+        if (isset($this->routeAliases[$context][$routeName])) {
+            return $this->routeAliases[$context][$routeName];
         }
 
         $controllerName = $this->controllerName($params['__CONTROLLER__'] ?? $params['controller'] ?? '');
@@ -429,13 +361,13 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
-        return empty($this->settings['route_aliases'][$context][$mapRouteName])
+        return empty($this->routeAliases[$context][$mapRouteName])
             ? null
-            : reset($this->settings['route_aliases'][$context][$mapRouteName]);
+            : reset($this->routeAliases[$context][$mapRouteName]);
     }
 
     /**
-     * Check if all parts are avaialble and prepare each identifier.
+     * Check if all parts are available and prepare each identifier.
      *
      * @todo Use a database of all identifiers.
      *
@@ -447,7 +379,7 @@ class CleanRoute implements RouteInterface
     protected function prepareRouteParams(array $params, array $options, string $routeName): ?array
     {
         // It is useless to get the identifiers if they are all present.
-        $parts = $this->settings['routes'][$routeName]['parts'];
+        $parts = $this->routes[$routeName]['parts'];
         $result = array_fill_keys($parts, null);
         $result = array_replace($result, array_intersect_key($params, $result));
         if (count($result) === count(array_filter($result))) {
@@ -455,7 +387,7 @@ class CleanRoute implements RouteInterface
         }
 
         // First, get the main resource, normally provided via an id.
-        $resourceType = $this->settings['routes'][$routeName]['resource_type'];
+        $resourceType = $this->routes[$routeName]['resource_type'];
         if (empty($params['id'])) {
             $map = [
                 'item_sets' => [
@@ -849,15 +781,16 @@ class CleanRoute implements RouteInterface
      * @see \Laminas\Router\Http\Segment::encode()
      *
      * @param string $value
+     * @param bool $keepSlash
      * @return string
      */
-    protected function encode($value): string
+    protected function encode($value, $keepSlash = false): string
     {
-        static $cacheEncode = [];
         static $urlencodeCorrectionMap;
 
         if (is_null($urlencodeCorrectionMap)) {
-            $urlencodeCorrectionMap = [
+            $urlencodeCorrectionMap = [];
+            $urlencodeCorrectionMap[false] = [
                 '%21' => '!', // sub-delims
                 '%24' => '$', // sub-delims
                 '%26' => '&', // sub-delims
@@ -875,17 +808,11 @@ class CleanRoute implements RouteInterface
                 '%40' => '@', // pchar
                 // '%5F' => '_', // unreserved - not touched by rawurlencode
                 // '%7E' => '~', // unreserved - not touched by rawurlencode
-
             ];
-            if ($this->settings['identifier_keep_slash']) {
-                $urlencodeCorrectionMap['%2F'] = '/';
-            }
+            $urlencodeCorrectionMap[true] = $urlencodeCorrectionMap[false];
+            $urlencodeCorrectionMap[true]['%2F'] = '/';
         }
 
-        $key = (string) $value;
-        if (!isset($cacheEncode[$key])) {
-            $cacheEncode[$key] = strtr(rawurlencode($key), $urlencodeCorrectionMap);
-        }
-        return $cacheEncode[$key];
+        return strtr(rawurlencode((string) $value), $urlencodeCorrectionMap[$keepSlash]);
     }
 }

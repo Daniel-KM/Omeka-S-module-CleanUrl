@@ -2,75 +2,71 @@
 
 namespace CleanUrl\View\Helper;
 
-/*
- * Clean Url Get Record Type Identifiers
- */
-
 use Doctrine\DBAL\Connection;
 use Laminas\View\Helper\AbstractHelper;
+use Omeka\Entity\Item;
+use Omeka\Entity\ItemSet;
+use Omeka\Entity\Media;
 
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
+    /**
+     * @var Connection
+     */
     protected $connection;
-    protected $propertyId;
-    protected $prefix;
 
-    public function __construct(Connection $connection)
+    /**
+     * @var array
+     */
+    protected $options;
+
+    /**
+     * @param \Doctrine\DBAL\Connection $connection
+     * @param array $options
+     */
+    public function __construct(Connection $connection, array $options)
     {
         $this->connection = $connection;
+        $this->options = $options;
     }
 
     /**
-     * Return identifiers for a record type, if any. It can be sanitized.
+     * Return identifiers for a resource type, if any. It can be sanitized.
      *
      * @param string $resourceName Should be "item_sets", "items" or "media"
-     * or equivalent resource type.
-     * @param bool $rawUrlEncode Sanitize the identifiers for http or not.
+     *   or equivalent resource type.
+     * @param bool $encode Sanitize the identifiers for http or not.
      * @param bool $skipPrefix Keep the prefix or not.
      * @return array List of identifiers.
      */
-    public function __invoke($resourceName, $rawUrlEncode = false, $skipPrefix = false)
+    public function __invoke($resourceName, $encode = false, $skipPrefix = false): array
     {
-        $resourceTypes = [
-            'item_sets' => \Omeka\Entity\ItemSet::class,
-            'item' => \Omeka\Entity\Item::class,
-            'media' => \Omeka\Entity\Media::class,
-            // Be more flexible.
-            \Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
-            \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
-            \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
-            \DoctrineProxies\__CG__\Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
-            \DoctrineProxies\__CG__\Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
-            \DoctrineProxies\__CG__\Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
-        ];
-        if (!isset($resourceTypes[$resourceName])) {
+        $resourceClass = $this->convertNameToResourceClass($resourceName);
+        if (!$resourceClass) {
             return [];
         }
 
-        $resourceType = $resourceTypes[$resourceName];
-
-        if (empty($this->propertyId)) {
-            $this->propertyId = (int) $this->view->setting('cleanurl_identifier_property');
-            $this->prefix = $this->view->setting('cleanurl_identifier_prefix');
-        }
+        $resourceName = $this->convertResourceClassToResourceName($resourceClass);
 
         // Use a direct query in order to improve speed.
         $qb = $this->connection->createQueryBuilder()
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
             ->andWhere('value.property_id = :property_id')
-            ->setParameter('property_id', $this->propertyId)
+            ->setParameter('property_id', $this->options[$resourceName]['property'])
             ->andWhere('resource.resource_type = :resource_type')
-            ->setParameter('resource_type', $resourceType)
+            ->setParameter('resource_type', $resourceClass)
             ->addOrderBy('value.resource_id', 'ASC')
             ->addOrderBy('value.id', 'ASC');
 
-        if ($this->prefix) {
+        $prefix = $this->options[$resourceName]['prefix'];
+        $lengthPrefix = mb_strlen($prefix);
+        if ($lengthPrefix) {
             if ($skipPrefix) {
                 $qb
                     ->select([
-                        // $qb->expr()->trim($qb->expr()->substring('value.text', mb_strlen($this->prefix) + 1)),
-                        '(TRIM(SUBSTR(value.value, ' . (mb_strlen($this->prefix) + 1) . ')))',
+                        // $qb->expr()->trim($qb->expr()->substring('value.text', $lengthPrefix + 1)),
+                        '(TRIM(SUBSTR(value.value, ' . ($lengthPrefix + 1) . ')))',
                     ]);
             } else {
                 $qb
@@ -80,7 +76,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             }
             $qb
                 ->andWhere('value.value LIKE :value_value')
-                ->setParameter('value_value', $this->prefix . '%');
+                ->setParameter('value_value', $prefix . '%');
         } else {
             $qb
                 ->select([
@@ -91,18 +87,99 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
         $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-        return $rawUrlEncode
-            ? array_map('rawurlencode', $result)
-            : $result;
+        if ($encode) {
+            $keepSlash = $this->options[$resourceName]['keep_slash'];
+            return array_map(function ($v) use ($keepSlash) {
+                return $this->encode($v, $keepSlash);
+            }, $result);
+        }
+
+        return $result;
     }
 
-    public function setPropertyId($propertyId): void
+    protected function convertNameToResourceClass(string $resourceName): ?string
     {
-        $this->propertyId = $propertyId;
+        $resourceClasses = [
+            'items' => Item::class,
+            'item_sets' => ItemSet::class,
+            'media' => Media::class,
+            'resources' => '',
+            'resource' => '',
+            'resource:item' => Item::class,
+            'resource:itemset' => ItemSet::class,
+            'resource:media' => Media::class,
+            // Avoid a check and make the plugin more flexible.
+            \Omeka\Api\Representation\ItemRepresentation::class => Item::class,
+            \Omeka\Api\Representation\ItemSetRepresentation::class => ItemSet::class,
+            \Omeka\Api\Representation\MediaRepresentation::class => Media::class,
+            Item::class => Item::class,
+            ItemSet::class => ItemSet::class,
+            Media::class => Media::class,
+            \Omeka\Entity\Resource::class => '',
+            'o:item' => Item::class,
+            'o:item_set' => ItemSet::class,
+            'o:media' => Media::class,
+            // Other resource types.
+            'item' => Item::class,
+            'item_set' => ItemSet::class,
+            'item-set' => ItemSet::class,
+            'itemset' => ItemSet::class,
+            'resource:item_set' => ItemSet::class,
+            'resource:item-set' => ItemSet::class,
+        ];
+        return $resourceClasses[$resourceName] ?? null;
     }
 
-    public function setPrefix($prefix): void
+    protected function convertResourceClassToResourceName(string $resourceClass): string
     {
-        $this->prefix = $prefix;
+        $resourceNames = [
+            \Omeka\Entity\ItemSet::class => 'item_sets',
+            \Omeka\Entity\Item::class => 'items',
+            \Omeka\Entity\Media::class => 'media',
+        ];
+        return $resourceNames[$resourceClass] ?? 'resources';
+    }
+
+    /**
+     * Encode a string.
+     *
+     * This method avoids to raw-urlencode characters that don't need.
+     *
+     * @see \Laminas\Router\Http\Segment::encode()
+     *
+     * @param string $value
+     * @param bool $keepSlash
+     * @return string
+     */
+    protected function encode($value, $keepSlash = false): string
+    {
+        static $urlencodeCorrectionMap;
+
+        if (is_null($urlencodeCorrectionMap)) {
+            $urlencodeCorrectionMap = [];
+            $urlencodeCorrectionMap[false] = [
+                '%21' => '!', // sub-delims
+                '%24' => '$', // sub-delims
+                '%26' => '&', // sub-delims
+                '%27' => "'", // sub-delims
+                '%28' => '(', // sub-delims
+                '%29' => ')', // sub-delims
+                '%2A' => '*', // sub-delims
+                '%2B' => '+', // sub-delims
+                '%2C' => ',', // sub-delims
+                // '%2D' => '-', // unreserved - not touched by rawurlencode
+                // '%2E' => '.', // unreserved - not touched by rawurlencode
+                '%3A' => ':', // pchar
+                '%3B' => ';', // sub-delims
+                '%3D' => '=', // sub-delims
+                '%40' => '@', // pchar
+                // '%5F' => '_', // unreserved - not touched by rawurlencode
+                // '%7E' => '~', // unreserved - not touched by rawurlencode
+            ];
+            $urlencodeCorrectionMap[true] = $urlencodeCorrectionMap[false];
+            $urlencodeCorrectionMap[true]['%2F'] = '/';
+        }
+
+        return strtr(rawurlencode((string) $value), $urlencodeCorrectionMap[$keepSlash]);
     }
 }

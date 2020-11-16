@@ -22,7 +22,7 @@ class MvcListeners extends AbstractListenerAggregate
         );
     }
 
-    public function redirectTo(MvcEvent $event)
+    public function redirectTo(MvcEvent $event): void
     {
         $routeMatch = $event->getRouteMatch();
         $matchedRouteName = $routeMatch->getMatchedRouteName();

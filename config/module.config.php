@@ -39,12 +39,13 @@ return [
     ],
     'view_helpers' => [
         'invokables' => [
+            'getIdentifiersFromResources' => View\Helper\GetIdentifiersFromResources::class,
             'getResourceFromIdentifier' => View\Helper\GetResourceFromIdentifier::class,
             'url' => View\Helper\CleanUrl::class,
             'Url' => View\Helper\CleanUrl::class,
         ],
         'factories' => [
-            'getIdentifiersFromResources' => Service\ViewHelper\GetIdentifiersFromResourcesFactory::class,
+            'getIdentifiersFromResourcesOfType' => Service\ViewHelper\GetIdentifiersFromResourcesOfTypeFactory::class,
             'getMediaFromPosition' => Service\ViewHelper\GetMediaFromPositionFactory::class,
             'getResourcesFromIdentifiers' => Service\ViewHelper\GetResourcesFromIdentifiersFactory::class,
             'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
@@ -203,37 +204,54 @@ return [
             'cleanurl_site_slug' => $slugSite,
             'cleanurl_page_slug' => SLUG_PAGE,
 
-            // 10 is the hard-coded id of "dcterms:identifier" in default install.
-            'cleanurl_identifier_property' => 10,
-            'cleanurl_identifier_prefix' => '',
-            'cleanurl_identifier_short' => '',
-            'cleanurl_identifier_prefix_part_of' => false,
-            'cleanurl_identifier_case_sensitive' => false,
-            'cleanurl_identifier_keep_slash' => false,
+            'cleanurl_item_set' => [
+                'default' => 'collection/{item_set_identifier}',
+                'short' => '',
+                'paths' => [],
+                'pattern' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                'pattern_short' => '',
+                // 10 is the hard-coded id of "dcterms:identifier" in default install.
+                'property' => 10,
+                'prefix' => '',
+                'prefix_part_of' => false,
+                'keep_slash' => false,
+                'case_sensitive' => false,
+            ],
 
-            'cleanurl_item_set_paths' => [],
-            'cleanurl_item_set_default' => '',
-            'cleanurl_item_set_short' => '',
-            'cleanurl_item_set_pattern' => '',
-            'cleanurl_item_set_pattern_short' => '',
+            'cleanurl_item' => [
+                'default' => 'document/{item_identifier}',
+                'short' => '',
+                'paths' => [],
+                'pattern' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                'pattern_short' => '',
+                'property' => 10,
+                'prefix' => '',
+                'prefix_part_of' => false,
+                'keep_slash' => false,
+                'case_sensitive' => false,
+            ],
 
-            'cleanurl_item_paths' => [],
-            'cleanurl_item_default' => '',
-            'cleanurl_item_short' => '',
-            'cleanurl_item_pattern' => '',
-            'cleanurl_item_pattern_short' => '',
-
-            'cleanurl_media_paths' => [],
-            'cleanurl_media_default' => '',
-            'cleanurl_media_short' => '',
-            'cleanurl_media_pattern' => '',
-            'cleanurl_media_pattern_short' => '',
+            'cleanurl_media' => [
+                'default' => 'document/{item_identifier}/{media_id}',
+                'short' => '',
+                'paths' => [],
+                'pattern' => '',
+                'pattern_short' => '',
+                'property' => 10,
+                'prefix' => '',
+                'prefix_part_of' => false,
+                'keep_slash' => false,
+                'case_sensitive' => false,
+            ],
 
             'cleanurl_admin_use' => false,
             'cleanurl_admin_reserved' => [],
 
-            // Allow to save settings for quick routing.
-            'cleanurl_quick_settings' => [],
+            // Allow to save settings for quick routing. Filled during install and config.
+            'cleanurl_settings' => [
+                'routes' => [],
+                'route_aliases' => [],
+            ],
         ],
     ],
 ];

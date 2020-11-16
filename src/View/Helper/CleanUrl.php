@@ -2,7 +2,6 @@
 
 namespace CleanUrl\View\Helper;
 
-use CleanUrl\Router\Http\CleanRoute;
 use Laminas\Mvc\ModuleRouteListener;
 use Laminas\Router\RouteMatch;
 use Laminas\View\Exception;

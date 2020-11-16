@@ -2,11 +2,11 @@
 
 namespace CleanUrl\Service\ViewHelper;
 
-use CleanUrl\View\Helper\GetResourceTypeIdentifiers;
+use CleanUrl\View\Helper\GetIdentifiersFromResourcesOfType;
 use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
-class GetResourceTypeIdentifiersFactory implements FactoryInterface
+class GetIdentifiersFromResourcesOfTypeFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
@@ -15,7 +15,7 @@ class GetResourceTypeIdentifiersFactory implements FactoryInterface
         foreach (['item_set' => 'item_sets', 'item' => 'items', 'media' => 'media'] as $resourceType => $resourceName) {
             $optionsResources[$resourceName] = $settings->get('cleanurl_' . $resourceType);
         }
-        return new GetResourceTypeIdentifiers(
+        return new GetIdentifiersFromResourcesOfType(
             $services->get('Omeka\Connection'),
             $optionsResources
         );
