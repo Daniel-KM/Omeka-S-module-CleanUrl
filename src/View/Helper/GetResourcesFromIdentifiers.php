@@ -14,97 +14,78 @@ class GetResourcesFromIdentifiers extends AbstractHelper
     protected $connection;
 
     /**
+     * @var array
+     */
+    protected $options;
+
+    /**
      * @param bool
      */
     protected $supportAnyValue;
 
     /**
-     * @var int
-     */
-    protected $propertyId;
-
-    /**
-     * @var string
-     */
-    protected $prefix;
-
-    /**
-     * @var bool
-     */
-    protected $caseSensitiveIdentifier;
-
-    /**
-     * @var bool
-     */
-    protected $prefixIsPartOfIdentifier;
-
-    /**
-     * @param Connection $connection
+     * @param \Doctrine\DBAL\Connection $connection
+     * @param array $options
      * @param bool $supportAnyValue
-     * @param int $propertyId
-     * @param string $prefix
-     * @param bool $caseSensitiveIdentifier
-     * @param bool $prefixIsPartOfIdentifier
      */
-    public function __construct(
-        Connection $connection,
-        $supportAnyValue,
-        $propertyId,
-        $prefix,
-        $caseSensitiveIdentifier,
-        $prefixIsPartOfIdentifier
-    ) {
+    public function __construct(Connection $connection, array $options, bool $supportAnyValue)
+    {
         $this->connection = $connection;
+        $this->options = $options;
         $this->supportAnyValue = $supportAnyValue;
-        $this->propertyId = $propertyId;
-        $this->prefix = $prefix;
-        $this->caseSensitiveIdentifier = $caseSensitiveIdentifier;
-        $this->prefixIsPartOfIdentifier = $prefixIsPartOfIdentifier;
     }
 
     /**
-     * Get a list of resources from identifiers.
+     * Get a list of resources from identifiers, that may be Omeka internal ids.
      *
-     * @todo Use entity manager, not connection (does not seem to manage collation).
+     * When resource types of identifiers are mixed, the items options are used.
+     *
      * @todo Merge or wrap for FindResourcesFromIdentifiers from BulkImport (and older from CsvImport), and Reference.
      *
      * @param array $identifiers Identifiers to find. May be numeric Omeka ids.
      *   Identifiers are raw-url-decoded.
-     * @param string $resourceName Optional. Search a specific resource type if any.
+     * @param string $resourceName Optional. Search a specific resource type if
+     *   any. If not set, the used params (property, prefix, prefix is part of,
+     *   sensitive, etc.) will be the items one.
      * @return \Omeka\Api\Representation\AbstractResourceRepresentation[]
      *   Associative array of resources by identifier. The resource is null if
      *   not found. Note: the number of found resources may be lower than the
      *   identifiers in case of duplicate identifiers.
      */
-    public function __invoke(array $identifiers, $resourceName = null)
+    public function __invoke(array $identifiers, $resourceName = null): array
     {
-        $identifiers = array_fill_keys(array_filter(array_map([$this, 'trimUnicode'], array_map('rawurldecode', $identifiers))), null);
+        // Identifiers are flipped to prepare result.
+        // Even if keys are strings, they may be integers because of automatic
+        // conversion for array keys.
+        $identifiers = array_fill_keys(array_filter(array_map([$this, 'trimUnicode'], array_map('rawurldecode', array_map('strval', $identifiers)))), null);
+
         if (!count($identifiers)) {
             return [];
         }
 
-        if (!$this->propertyId) {
+        $resourceClass = $this->convertNameToResourceClass($resourceName);
+        if ($resourceName && is_null($resourceClass)) {
             return $identifiers;
         }
+        $resourceName = $this->convertResourceClassToResourceName($resourceClass);
 
-        $resourceType = $this->convertResourceNameToResourceType($resourceName);
-        if ($resourceName && is_null($resourceType)) {
+        if (empty($this->options[$resourceName]['property'])) {
             return $identifiers;
         }
-        $resourceName = $this->convertResourceTypeToResourceName($resourceType);
 
         $parameters = [];
 
-        $collation = $this->caseSensitiveIdentifier ? 'COLLATE utf8mb4_bin' : '';
+        $isCaseSensitive = !empty($this->options[$resourceName]['case_sensitive']);
+        $collation = $isCaseSensitive ? ' COLLATE utf8mb4_bin' : '';
 
-        // TODO Use EntityManager to avoid final api checks for rights.
+        // TODO Use EntityManager to avoid final api checks for rights, but with collation.
 
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
         if ($this->supportAnyValue) {
             $qb
                 ->select([
-                    $this->caseSensitiveIdentifier
+                    $isCaseSensitive
                         ? 'ANY_VALUE(value.value) AS "identifier"'
                         : "LOWER(ANY_VALUE(value.value)) AS 'identifier'",
                     'ANY_VALUE(value.resource_id) AS "id"',
@@ -112,7 +93,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         } else {
             $qb
                 ->select([
-                    $this->caseSensitiveIdentifier
+                    $isCaseSensitive
                         ? 'value.value AS "identifier"'
                         : 'LOWER(value.value) AS "identifier"',
                     'value.resource_id AS "id"',
@@ -122,16 +103,16 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $qb
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
-            ->addGroupBy("value.value $collation")
+            ->addGroupBy('value.value' . $collation)
             ->addOrderBy('"id"', 'ASC')
             ->addOrderBy('value.id', 'ASC')
             ->andWhere($expr->eq('value.property_id', ':property_id'));
-        $parameters['property_id'] = $this->propertyId;
+        $parameters['property_id'] = (int) $this->options[$resourceName]['property'];
 
-        if ($resourceType) {
+        if ($resourceClass) {
             $qb
                 ->andWhere($expr->eq('resource.resource_type', ':resource_type'));
-            $parameters['resource_type'] = $resourceType;
+            $parameters['resource_type'] = $resourceClass;
         }
 
         // Quicker process for anonymous people.
@@ -149,63 +130,66 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         // The identifiers can be searched with or without prefix (so only
         // "identifier" for ark, that has a prefix).
 
-        $lengthPrefix = mb_strlen($this->prefix);
+        $prefix = $this->options[$resourceName]['prefix'];
+        $lengthPrefix = mb_strlen($prefix);
         $noPrefix = !$lengthPrefix;
+        $prefixIsPartOfIdentifier = $lengthPrefix
+            && $this->options[$resourceName]['prefix_part_of'];
 
         // Many cases because support sensitive case, with or without prefix,
         // and with or without space. Nevertheless, the check is quick.
 
         // A quick check for performance.
         if (count($identifiers) === 1 && ($noPrefix)) {
-            $identifier = key($identifiers);
-            $parameters['identifier'] = $this->caseSensitiveIdentifier ? $identifier : mb_strtolower($identifier);
-            $variants[$parameters['identifier']] = key($identifiers);
+            $identifier = (string) key($identifiers);
+            $parameters['identifier'] = $isCaseSensitive ? $identifier : mb_strtolower($identifier);
+            $variants[$parameters['identifier']] = $identifier;
             $qb
-                ->andWhere($expr->eq("value.value $collation", ':identifier'));
+                ->andWhere($expr->eq('value.value' . $collation, ':identifier'));
         } else {
             if ($noPrefix) {
-                if ($this->caseSensitiveIdentifier) {
+                if ($isCaseSensitive) {
                     $variants = array_combine(array_keys($identifiers), array_keys($identifiers));
                 } else {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[mb_strtolower($identifier)] = $identifier;
+                        $variants[mb_strtolower((string) $identifier)] = $identifier;
                     }
                 }
-            } elseif ($this->prefixIsPartOfIdentifier) {
-                if ($this->caseSensitiveIdentifier) {
+            } elseif ($prefixIsPartOfIdentifier) {
+                if ($isCaseSensitive) {
                     foreach (array_keys($identifiers) as $identifier) {
-                        if (mb_strpos($identifier, $this->prefix) === 0) {
+                        if (mb_strpos((string) $identifier, $prefix) === 0) {
                             $variants[$identifier] = $identifier;
                         } else {
-                            $variants[$this->prefix . $identifier] = $identifier;
-                            $variants[$this->prefix . ' ' . $identifier] = $identifier;
+                            $variants[$prefix . $identifier] = $identifier;
+                            // Check with a space between prefix and identifier too.
+                            $variants[$prefix . ' ' . $identifier] = $identifier;
                         }
                     }
                 }
                 // Same as above, but lower keys.
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
-                        if (mb_strpos($identifier, $this->prefix) === 0) {
+                        if (mb_strpos((string) $identifier, $prefix) === 0) {
                             $variants[mb_strtolower($identifier)] = $identifier;
                         } else {
-                            $variants[mb_strtolower($this->prefix . $identifier)] = $identifier;
-                            $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
+                            $variants[mb_strtolower($prefix . $identifier)] = $identifier;
+                            $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
                         }
                     }
                 }
             } else {
-                if ($this->caseSensitiveIdentifier) {
+                if ($isCaseSensitive) {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[$this->prefix . $identifier] = $identifier;
-                        // Check with a space between prefix and identifier too.
-                        $variants[$this->prefix . ' ' . $identifier] = $identifier;
+                        $variants[$prefix . $identifier] = $identifier;
+                        $variants[$prefix . ' ' . $identifier] = $identifier;
                     }
                 }
                 // Same as above, but lower keys.
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[mb_strtolower($this->prefix . $identifier)] = $identifier;
-                        $variants[mb_strtolower($this->prefix . ' ' . $identifier)] = $identifier;
+                        $variants[mb_strtolower($prefix . $identifier)] = $identifier;
+                        $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
                     }
                 }
             }
@@ -220,7 +204,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 $placeholders[] = ':' . $placeholder;
             }
             $qb
-                ->andWhere($expr->in("value.value $collation", $placeholders));
+                ->andWhere($expr->in('value.value' . $collation, $placeholders));
         }
 
         $qb
@@ -241,22 +225,23 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         }
 
         // Check remaining numeric identifiers, for example when some resources
-        // don't have an identifier.
-        foreach (array_keys(array_filter(array_filter($identifiers, 'is_null'), 'is_numeric', ARRAY_FILTER_USE_KEY)) as $identifier) {
-            if ($id = (int) $identifier) {
-                try {
-                    $identifiers[$identifier] = $api->read($resourceName, ['id' => $id])->getContent();
-                } catch (NotFoundException $e) {
-                    // Nothing to do.
-                }
+        // don't have an identifier and the id is used instead of.
+        $remainingNumeric = array_keys(array_filter($identifiers, function ($v, $k) {
+            return is_null($v) && is_numeric($k) && ($k = (int) $k);
+        }, ARRAY_FILTER_USE_BOTH));
+        if (count($remainingNumeric)) {
+            $remainingNumeric = $api->search($resourceName, ['id' => $remainingNumeric])->getContent();
+            foreach ($remainingNumeric as $remaining) {
+                $identifiers[$remaining->id()] = $remaining;
             }
         }
+
         return $identifiers;
     }
 
-    protected function convertResourceNameToResourceType($resourceName)
+    protected function convertNameToResourceClass(string $resourceName): ?string
     {
-        $resourceTypes = [
+        $resourceClasses = [
             'items' => \Omeka\Entity\Item::class,
             'item_sets' => \Omeka\Entity\ItemSet::class,
             'media' => \Omeka\Entity\Media::class,
@@ -266,6 +251,9 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             'resource:itemset' => \Omeka\Entity\ItemSet::class,
             'resource:media' => \Omeka\Entity\Media::class,
             // Avoid a check and make the plugin more flexible.
+            \Omeka\Api\Representation\ItemRepresentation::class => \Omeka\Entity\Item::class,
+            \Omeka\Api\Representation\ItemSetRepresentation::class => \Omeka\Entity\ItemSet::class,
+            \Omeka\Api\Representation\MediaRepresentation::class => \Omeka\Entity\Media::class,
             \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
             \Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
             \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
@@ -281,17 +269,17 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             'resource:item_set' => \Omeka\Entity\ItemSet::class,
             'resource:item-set' => \Omeka\Entity\ItemSet::class,
         ];
-        return $resourceTypes[$resourceName] ?? null;
+        return $resourceClasses[$resourceName] ?? null;
     }
 
-    protected function convertResourceTypeToResourceName($resourceType)
+    protected function convertResourceClassToResourceName(string $resourceClass): string
     {
         $resourceNames = [
             \Omeka\Entity\ItemSet::class => 'item_sets',
             \Omeka\Entity\Item::class => 'items',
             \Omeka\Entity\Media::class => 'media',
         ];
-        return $resourceNames[$resourceType] ?? 'resources';
+        return $resourceNames[$resourceClass] ?? 'resources';
     }
 
     /**
@@ -300,8 +288,8 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      * @param string $string
      * @return string
      */
-    protected function trimUnicode($string)
+    protected function trimUnicode($string): string
     {
-        return preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', $string);
+        return preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', (string) $string);
     }
 }

@@ -147,20 +147,17 @@ if (version_compare($oldVersion, '3.15.17', '<')) {
 }
 
 if (version_compare($oldVersion, '3.16.0.3', '<')) {
+    if (!$this->isConfigWriteable()) {
+        $message = new Message('The file "config/cleanurl.config.php" at the root of Omeka is not writeable.'); // @translate
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+    }
+
     $message = new Message(
         'The module has been rewritten and the whole configuration has been simplified. You should check your config, because the upgrade of the configuration is not automatic.' // @translate
     );
     $message->setEscapeHtml(false);
     $messenger = new Messenger();
     $messenger->addWarning($message);
-
-    $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
-    if (!is_writeable(dirname($filepath))
-        || (file_exists($filepath) && !is_writeable($filepath))
-    ) {
-        $message = new Message('The file "config/cleanurl.config.php" at the root of Omeka is not writeable.'); // @translate
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
-    }
 
     if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
         @rename(OMEKA_PATH . '/config/clean_url.config.php', OMEKA_PATH . '/config/clean_url.config.old.php');
@@ -174,8 +171,78 @@ if (version_compare($oldVersion, '3.16.0.3', '<')) {
     $settings->delete('cleanurl_media_default');
 }
 
-if (version_compare($oldVersion, '3.16.0.3', '>=') && version_compare($oldVersion, '3.16.1.3', '<=')) {
+if (version_compare($oldVersion, '3.16.1.3', '<')) {
+    if (!$this->isConfigWriteable()) {
+        $message = new Message('The file "config/cleanurl.config.php" at the root of Omeka is not writeable.'); // @translate
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+    }
+
+    $module = $services->get('Omeka\ModuleManager')->getModule('Generic');
+    if ($module && version_compare($module->getIni('version'), '3.3.25', '<')) {
+        $translator = $services->get('MvcTranslator');
+        $message = new \Omeka\Stdlib\Message(
+            $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
+            'Generic', '3.3.25'
+        );
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+    }
+
+    // Manage upgrade from old version.
+    if (version_compare($oldVersion, '3.16.0.3', '<')) {
+        $main = '';
+        $main1 = trim($settings->get('cleanurl_main_path', ''), '/');
+        $main .= mb_strlen($main1) ? $main1 . '/' : '';
+        $main2 = trim($settings->get('cleanurl_main_path_2', ''), '/');
+        $main .= mb_strlen($main2) ? $main2 . '/' : '';
+        $main3 = trim($settings->get('cleanurl_main_path_3', ''), '/');
+        $main .= mb_strlen($main3) ? $main3 . '/' : '';
+        $defaults = [
+            'item_set' => $main . '{item_set_identifier}',
+            'item' => $main . '{item_identifier}',
+            'media' => $main . '{item_identifier}/{media_id}',
+        ];
+        $patterns = [
+            'item_set' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'item' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'media' => '',
+        ];
+        foreach (['item_set', 'item', 'media'] as $resourceType) {
+            $options = [
+                'default' => $defaults[$resourceType],
+                'short' => '',
+                'paths' => [],
+                'pattern' => $patterns[$resourceType],
+                'pattern_short' => '',
+                'property' => $settings->get('cleanurl_identifier_property', 10),
+                'prefix' => $settings->get('cleanurl_identifier_prefix', ''),
+                'prefix_part_of' => $settings->get('cleanurl_identifier_prefix_part_of', false),
+                'keep_slash' => (bool) $settings->get("cleanurl_{$resourceType}_keep_raw", false),
+                'case_sensitive' => $settings->get('cleanurl_identifier_case_sensitive', false),
+                ];
+            $settings->set("cleanurl_$resourceType", $options);
+        }
+    }
+    // Manage upgrade for 3.16.0.3.
+    else {
+        foreach (['item_set', 'item', 'media'] as $resourceType) {
+            $options = [
+                'default' => $settings->get("cleanurl_{$resourceType}_default", ''),
+                'short' => $settings->get("cleanurl_{$resourceType}_short", ''),
+                'paths' => $settings->get("cleanurl_{$resourceType}_paths", []),
+                'pattern' => $settings->get("cleanurl_{$resourceType}_pattern", ''),
+                'pattern_short' => $settings->get("cleanurl_{$resourceType}_pattern_short", ''),
+                'property' => $settings->get('cleanurl_identifier_property', 10),
+                'prefix' => $settings->get('cleanurl_identifier_prefix', ''),
+                'prefix_part_of' => $settings->get('cleanurl_identifier_prefix_part_of', false),
+                'keep_slash' => (bool) $settings->get('cleanurl_identifier_keep_slash', false),
+                'case_sensitive' => $settings->get('cleanurl_identifier_case_sensitive', false),
+            ];
+            $settings->set("cleanurl_$resourceType", $options);
+        }
+    }
+
     $removed = [
+        // older.
         'cleanurl_identifier_unspace',
         'cleanurl_identifier_undefined',
         'cleanurl_main_path',
@@ -198,8 +265,47 @@ if (version_compare($oldVersion, '3.16.0.3', '>=') && version_compare($oldVersio
         'cleanurl_media_item_undefined',
         'cleanurl_media_media_undefined',
         'cleanurl_media_format_position',
+        // 3.16.0.3.
+        'cleanurl_identifier_property',
+        'cleanurl_identifier_prefix',
+        'cleanurl_identifier_short',
+        'cleanurl_identifier_prefix_part_of',
+        'cleanurl_identifier_case_sensitive',
+        'cleanurl_identifier_keep_slash',
+        'cleanurl_item_set_paths',
+        'cleanurl_item_set_default',
+        'cleanurl_item_set_short',
+        'cleanurl_item_set_pattern',
+        'cleanurl_item_set_pattern_short',
+        'cleanurl_item_paths',
+        'cleanurl_item_default',
+        'cleanurl_item_short',
+        'cleanurl_item_pattern',
+        'cleanurl_item_pattern_short',
+        'cleanurl_media_paths',
+        'cleanurl_media_default',
+        'cleanurl_media_short',
+        'cleanurl_media_pattern',
+        'cleanurl_media_pattern_short',
+        'cleanurl_quick_settings',
     ];
     foreach ($removed as $name) {
         $settings->delete($name);
     }
+
+    if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.config.php');
+    }
+    if (file_exists(OMEKA_PATH . '/config/clean_url.config.old.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.config.old.php');
+    }
+    if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.dynamic.php');
+    }
+    if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.old.php')) {
+        @unlink(OMEKA_PATH . '/config/clean_url.dynamic.old.php');
+    }
+
+    $this->cacheCleanData();
+    $this->cacheRouteSettings();
 }
