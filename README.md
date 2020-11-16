@@ -152,7 +152,7 @@ There are multiple way to config arks:
     alphabet (uppercase and lowercase letters).
   - Item:
     - Path: `ark:/12345/{item_identifier_short}`.
-    - Pattern: `[a-zA-Z][a-zA-Z0-9]*]` (or something else)
+    - Pattern: `[a-zA-Z][a-zA-Z0-9]*`(or something else)
   - Media: `ark:/12345/{item_identifier_short}/{media_id}`.
 - Without a prefix:
   - Identifier are case sensitive: set true if you choose a format with a full
@@ -160,7 +160,7 @@ There are multiple way to config arks:
   - Don't escape the slash `/`.
   - Item:
     - Path: `{item_identifier}`.
-    - Pattern: `[a-zA-Z][a-zA-Z0-9_/:-]*]`(or something else, but with `/` and `:`)
+    - Pattern: `[a-zA-Z][a-zA-Z0-9:/]*`(or something else, but with `:` and `/`)
   - Media: `{item_identifier}/{media_id}`.
 
 Other options are at your convenience.
