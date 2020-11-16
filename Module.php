@@ -22,6 +22,8 @@ use CleanUrl\Form\ConfigForm;
 use Generic\AbstractModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\ModuleManager\ModuleEvent;
+use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Renderer\PhpRenderer;
@@ -30,6 +32,38 @@ use Omeka\Stdlib\Message;
 class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
+
+    public function init(ModuleManager $moduleManager): void
+    {
+        $moduleManager->getEventManager()->attach(ModuleEvent::EVENT_MERGE_CONFIG, [$this, 'onEventMergeConfig']);
+    }
+
+    public function onEventMergeConfig(ModuleEvent $event): void
+    {
+        // Check if the main site is skipped, else the standard urls apply.
+        if (!SLUG_MAIN_SITE) {
+            return;
+        }
+
+        /** @var \Laminas\ModuleManager\Listener\ConfigListener $configListener */
+        $configListener = $event->getParam('configListener');
+        // At this point, the config is read only, so it is copied and replaced.
+        $config = $configListener->getMergedConfig(false);
+
+        // Manage the routes for the main site when "s/site-slug/" is skipped.
+        // So copy routes from "site", without starting "/".
+        foreach ($config['router']['routes']['site']['child_routes'] as $routeName => $options) {
+            // Skip some routes for pages that are set directly in the config.
+            if (isset($config['router']['routes']['top']['child_routes'][$routeName])) {
+                continue;
+            }
+            $config['router']['routes']['top']['child_routes'][$routeName] = $options;
+            $config['router']['routes']['top']['child_routes'][$routeName]['options']['route'] =
+                ltrim($config['router']['routes']['top']['child_routes'][$routeName]['options']['route'], '/');
+        }
+
+        $configListener->setMergedConfig($config);
+    }
 
     public function getConfig()
     {
