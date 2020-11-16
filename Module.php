@@ -430,12 +430,12 @@ class Module extends AbstractModule
             foreach (array_filter($paths) as $path) {
                 foreach ($resourceTypes as $resource) {
                     if (!$hasPattern[$resource]['full'] && mb_strpos($path, "{{$resource}_identifier}") !== false) {
-                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resource, $path); // @translate
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z0-9_-]+", is required to use the path "%s".', $resource, $path); // @translate
                         $messenger->addError($message);
                         $hasError = true;
                     }
                     if (!$hasPattern[$resource]['full'] && !$hasPattern[$resource]['short'] && mb_strpos($path, "{{$resource}_identifier_short}") !== false) {
-                        $message = new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resource, $path); // @translate
+                        $message = new Message('A pattern for "%s", for example "[a-zA-Z0-9_-]+", is required to use the path "%s".', $resource, $path); // @translate
                         $messenger->addError($message);
                         $hasError = true;
                     }
@@ -927,10 +927,10 @@ class Module extends AbstractModule
         $checkPatterns = function (string $path) use ($resourceTypes, $params, $messager): bool {
             foreach ($resourceTypes as $resourceType) {
                 if (mb_strpos($path, "{{$resourceType}_identifier}") !== false && !$params[$resourceType]['pattern']) {
-                    $messager(new Message('A pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resourceType, $path)); // @translate
+                    $messager(new Message('A pattern for "%s", for example "[a-zA-Z0-9_-]+", is required to use the path "%s".', $resourceType, $path)); // @translate
                     return false;
                 } elseif (mb_strpos($path, "{{$resourceType}_identifier_short}") !== false && !$params[$resourceType]['pattern_short']) {
-                    $messager(new Message('A short pattern for "%s", for example "[a-zA-Z][a-zA-Z0-9_-]*", is required to use the path "%s".', $resourceType, $path)); // @translate
+                    $messager(new Message('A short pattern for "%s", for example "[a-zA-Z0-9_-]+", is required to use the path "%s".', $resourceType, $path)); // @translate
                     return false;
                 }
             }
