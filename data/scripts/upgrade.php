@@ -309,3 +309,8 @@ if (version_compare($oldVersion, '3.16.1.3', '<')) {
     $this->cacheCleanData();
     $this->cacheRouteSettings();
 }
+
+if (version_compare($oldVersion, '3.16.2.3', '<')) {
+    $this->cacheCleanData();
+    $this->cacheRouteSettings();
+}

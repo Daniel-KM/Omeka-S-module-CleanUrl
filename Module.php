@@ -285,8 +285,12 @@ class Module extends AbstractModule
             $params[$posted] = mb_strlen($value) ? $value . '/' : '';
         }
 
+        $siteSlug = $params['cleanurl_site_slug'];
+        $pageSlug = $params['cleanurl_page_slug'];
+
         // Check the default site.
-        $skip = $params['cleanurl_site_skip_main'];
+        $skip = $params['cleanurl_site_skip_main']
+            || !($siteSlug . $pageSlug);
         if ($skip) {
             $default = $settings->get('default_site', '');
             if ($default) {
@@ -297,7 +301,7 @@ class Module extends AbstractModule
                 }
             }
             if (!$default) {
-                $message = new Message('There is no default site: "/s/site-slug" cannot be skipped.'); // @translate
+                $message = new Message('There is no default site: "/s/site-slug" cannot be empty or skipped.'); // @translate
                 $messenger->addError($message);
                 return false;
             }
@@ -336,17 +340,16 @@ class Module extends AbstractModule
         }
 
         // Check the option site slug.
-        $slug = $params['cleanurl_site_slug'];
-        if (mb_strlen($slug)
-            && $slug !== 's/'
-            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
+        if (mb_strlen($siteSlug)
+            && $siteSlug !== 's/'
+            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($siteSlug, '/') . '|') !== false
         ) {
-            $message = new Message('The slug "%s" is used or reserved and the prefix for sites cannot be updated.', $slug); // @translate
+            $message = new Message('The slug "%s" is used or reserved and the prefix for sites cannot be updated.', $siteSlug); // @translate
             $messenger->addError($message);
             $hasError = true;
         }
-
-        if (!mb_strlen($slug)) {
+        // Check the existing slugs with reserved slugs.
+        else {
             $result = [];
             $slugs = $connection->query('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
@@ -354,7 +357,7 @@ class Module extends AbstractModule
                     $result[] = $slug;
                 }
             }
-            if ($result) {
+            if (count($result)) {
                 $message = new Message(
                     'The sites "%s" use a reserved string and the prefix for sites cannot be removed.', // @translate
                     implode('", "', $result)
@@ -365,17 +368,16 @@ class Module extends AbstractModule
         }
 
         // Check the option page slug.
-        $slug = $params['cleanurl_page_slug'];
-        if (mb_strlen($slug)
-            && $slug !== 'page/'
-            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false
+        if (mb_strlen($pageSlug)
+            && $pageSlug !== 'page/'
+            && mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($pageSlug, '/') . '|') !== false
         ) {
-            $message = new Message('The slug "%s" is used or reserved and the prefix for pages cannot be updated.', $slug); // @translate
+            $message = new Message('The slug "%s" is used or reserved and the prefix for pages cannot be updated.', $pageSlug); // @translate
             $messenger->addError($message);
             $hasError = true;
         }
-
-        if (!mb_strlen($slug)) {
+        // Check the existing slugs with reserved slugs.
+        else {
             $result = [];
             $slugs = $connection->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
@@ -586,6 +588,12 @@ class Module extends AbstractModule
         // Update main site.
         $default = $settings->get('default_site', '');
         $skip = $settings->get('cleanurl_site_skip_main');
+        $siteSlug = $settings->get('cleanurl_site_slug');
+        $pageSlug = $settings->get('cleanurl_page_slug');
+
+        // Check the default site.
+        $skip = $skip
+            || !($siteSlug . $pageSlug);
         if ($default) {
             try {
                 $default = $services->get('Omeka\ApiManager')->read('sites', ['id' => $default])->getContent()->slug();
@@ -970,7 +978,9 @@ class Module extends AbstractModule
         if ($params['admin_use']) {
             $siteParts[] = 'admin';
         }
-        if ($params['default_site'] && $params['site_skip_main']) {
+        if ($params['default_site']
+            && ($params['site_skip_main'] || !($params['site_slug'] . $params['page_slug']))
+        ) {
             $siteParts[] = 'top';
         }
 
