@@ -85,46 +85,6 @@ return [
                 // Allows to access main site resources and pages.
                 // TODO Find a way to avoid to copy all the site routes, in particular for modules. Add "|" to the regex of site slug?
                 'child_routes' => SLUG_MAIN_SITE ? [
-                    'resource' => [
-                        'type' => \Laminas\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => ':controller[/:action]',
-                            'constraints' => [
-                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            ],
-                            'defaults' => [
-                                'action' => 'browse',
-                            ],
-                        ],
-                    ],
-                    'resource-id' => [
-                        'type' => \Laminas\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => ':controller/:id[/:action]',
-                            'constraints' => [
-                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'id' => '\d+',
-                            ],
-                            'defaults' => [
-                                'action' => 'show',
-                            ],
-                        ],
-                    ],
-                    'item-set' => [
-                        'type' => \Laminas\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => 'item-set/:item-set-id',
-                            'defaults' => [
-                                'controller' => 'Item',
-                                'action' => 'browse',
-                            ],
-                            'constraints' => [
-                                'item-set-id' => '\d+',
-                            ],
-                        ],
-                    ],
                     'page-browse' => [
                         'type' => \Laminas\Router\Http\Literal::class,
                         'options' => [
@@ -143,19 +103,6 @@ return [
                             'defaults' => [
                                 'controller' => 'Page',
                                 'action' => 'show',
-                            ],
-                        ],
-                    ],
-                    'cross-site-search' => [
-                        'type' => \Laminas\Router\Http\Segment::class,
-                        'options' => [
-                            'route' => '/cross-site-search[/:action]',
-                            'defaults' => [
-                                'controller' => 'CrossSiteSearch',
-                                'action' => 'index',
-                            ],
-                            'constraints' => [
-                                'action' => '[a-zA-Z0-9_-]+',
                             ],
                         ],
                     ],
