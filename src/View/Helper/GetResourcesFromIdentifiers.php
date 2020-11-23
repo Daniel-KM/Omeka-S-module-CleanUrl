@@ -239,7 +239,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         return $identifiers;
     }
 
-    protected function convertNameToResourceClass(string $resourceName): ?string
+    protected function convertNameToResourceClass(?string $resourceName): ?string
     {
         $resourceClasses = [
             'items' => \Omeka\Entity\Item::class,
@@ -272,7 +272,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         return $resourceClasses[$resourceName] ?? null;
     }
 
-    protected function convertResourceClassToResourceName(string $resourceClass): string
+    protected function convertResourceClassToResourceName(?string $resourceClass): string
     {
         $resourceNames = [
             \Omeka\Entity\ItemSet::class => 'item_sets',

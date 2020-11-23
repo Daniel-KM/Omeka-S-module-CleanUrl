@@ -97,7 +97,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         return $result;
     }
 
-    protected function convertNameToResourceClass(string $resourceName): ?string
+    protected function convertNameToResourceClass(?string $resourceName): ?string
     {
         $resourceClasses = [
             'items' => Item::class,
@@ -130,7 +130,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         return $resourceClasses[$resourceName] ?? null;
     }
 
-    protected function convertResourceClassToResourceName(string $resourceClass): string
+    protected function convertResourceClassToResourceName(?string $resourceClass): string
     {
         $resourceNames = [
             \Omeka\Entity\ItemSet::class => 'item_sets',

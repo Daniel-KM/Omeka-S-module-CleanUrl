@@ -123,7 +123,8 @@ class Module extends AbstractModule
 
         $settings = $services->get('Omeka\Settings');
         $helpers = $services->get('ViewHelperManager');
-        $cleanUrlSettings = $settings->get('cleanurl_settings', ['routes' => [], 'route_aliases' => []]);
+        $defaultSettings = ['routes' => [], 'route_aliases' => []];
+        $cleanUrlSettings = $settings->get('cleanurl_settings', []) + $defaultSettings;
 
         $router
             ->addRoute('clean-url', [
