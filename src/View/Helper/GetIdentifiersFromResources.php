@@ -59,7 +59,7 @@ class GetIdentifiersFromResources extends AbstractHelper
         return $isSingle ? reset($result) : $result;
     }
 
-    protected function convertNameToResourceClass(string $resourceName): ?string
+    protected function convertNameToResourceClass(?string $resourceName): ?string
     {
         $resourceClasses = [
             'items' => Item::class,
