@@ -361,9 +361,13 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
-        return empty($this->routeAliases[$context][$mapRouteName])
+        if (!empty($this->routeAliases[$context][$mapRouteName])) {
+            return reset($this->routeAliases[$context][$mapRouteName]);
+        }
+
+        return empty($this->routeAliases[$context][$mapRouteName . '-default'])
             ? null
-            : reset($this->routeAliases[$context][$mapRouteName]);
+            : reset($this->routeAliases[$context][$mapRouteName . '-default']);
     }
 
     /**

@@ -1042,6 +1042,7 @@ class Module extends AbstractModule
                         'context' => $isAdmin ? 'admin' : 'site',
                         'regex' => $baseRoutes[$sitePart]['base_regex'] . str_replace(array_keys($regexes), array_values($regexes), $resourcePath),
                         'spec' => $spec,
+                        'part' => $sitePart,
                         'parts' => $parts,
                         'route_name' => $routeName,
                         'defaults' => [
@@ -1095,37 +1096,26 @@ class Module extends AbstractModule
             }
         }
 
-        // Add missing routes to simplify url building.
-        foreach ($siteParts as $sitePart) {
-            if (empty($params['route_aliases'][$sitePart]['item-set'])) {
-                $params['route_aliases'][$sitePart]['item-set'] = [];
-            }
-            if (empty($params['route_aliases'][$sitePart]['item'])) {
-                $params['route_aliases'][$sitePart]['item'] = [];
-                if (!empty($params['route_aliases'][$sitePart]['item-set-item'])) {
-                    $params['route_aliases'][$sitePart]['item'][] = reset($params['route_aliases'][$sitePart]['item-set-item']);
+        // Add missing routes to simplify url building: use the default one,
+        // that is the first in the list.
+        $firstRoute = function ($part, $resourceType, $routePath = null) use ($params): ?string {
+            foreach ($params['routes'] as $routeName => $route) {
+                if ($route['part'] === $part
+                    && $route['resource_type'] === $resourceType
+                    && (empty($routePath) || $route['resource_path'] === $routePath)
+                ) {
+                    return $routeName;
                 }
             }
-            if (empty($params['route_aliases'][$sitePart]['media'])) {
-                $params['route_aliases'][$sitePart]['media'] = [];
-                if (!empty($params['route_aliases'][$sitePart]['item-set-item-media'])) {
-                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-set-item-media']);
-                } elseif (!empty($params['route_aliases'][$sitePart]['item-media'])) {
-                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-media']);
-                } elseif (!empty($params['route_aliases'][$sitePart]['item-set-media'])) {
-                    $params['route_aliases'][$sitePart]['media'][] = reset($params['route_aliases'][$sitePart]['item-set-media']);
-                }
-            }
+            return null;
+        };
 
-            // Append the short routes.
-            foreach ($resourceTypes as $controllerName => $resourceType) {
-                if (empty($params[$resourceType]['short'])) {
-                    $params['route_aliases'][$sitePart][$controllerName . '-short'][] = reset($params['route_aliases'][$sitePart][$controllerName]) ?: null;
-                } else {
-                    $k = array_search($params[$resourceType]['short'], $mapRoutes[$resourceType] ?? []);
-                    $params['route_aliases'][$sitePart][$controllerName . '-short'][] = $k === false
-                        ? (reset($params['route_aliases'][$sitePart][$controllerName]) ?: null)
-                        : $k;
+        // Append the default and short routes.
+        foreach (['default', 'short'] as $routeType) {
+            foreach ($siteParts as $sitePart) {
+                foreach ($resourceTypes as $controllerName => $resourceType) {
+                    $routeName = $firstRoute($sitePart, $resourcesParams[$resourceType]['name'], $params[$resourceType][$routeType] ?? null);
+                    $params['route_aliases'][$sitePart][$controllerName . '-' . $routeType] = $routeName ? [$routeName] : [];
                 }
             }
         }
