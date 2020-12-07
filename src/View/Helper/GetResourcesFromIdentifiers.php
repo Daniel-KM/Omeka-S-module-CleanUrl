@@ -142,7 +142,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         // A quick check for performance.
         if (count($identifiers) === 1 && ($noPrefix)) {
             $identifier = (string) key($identifiers);
-            $parameters['identifier'] = $isCaseSensitive ? $identifier : mb_strtolower($identifier);
+            $parameters['identifier'] = $isCaseSensitive ? $identifier : mb_strtolower((string) $identifier);
             $variants[$parameters['identifier']] = $identifier;
             $qb
                 ->andWhere($expr->eq('value.value' . $collation, ':identifier'));
@@ -171,7 +171,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
                         if (mb_strpos((string) $identifier, $prefix) === 0) {
-                            $variants[mb_strtolower($identifier)] = $identifier;
+                            $variants[mb_strtolower((string) $identifier)] = $identifier;
                         } else {
                             $variants[mb_strtolower($prefix . $identifier)] = $identifier;
                             $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
