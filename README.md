@@ -2,7 +2,8 @@ Clean Url (module for Omeka S)
 ==============================
 
 > __New versions of this module and support for Omeka S version 3.0 and above
-> are available on [GitLab], which seems to respect users and privacy better.__
+> are available on [GitLab], which seems to respect users and privacy better
+> than the previous repository.__
 
 [Clean Url] is a module for [Omeka S] that creates clean, readable and search
 engine optimized URLs like `https://example.com/my_item_set/dc:identifier`
