@@ -169,7 +169,7 @@ class CleanRoute implements RouteInterface
                 }
             }
 
-            // Check if the resource identifiers is a reserved word.
+            // Check if the resource identifier is a reserved word.
             // They are managed here currently for simplicity.
             $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
             foreach ($params as $key => $value) {
