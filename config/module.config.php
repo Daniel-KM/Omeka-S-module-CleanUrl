@@ -26,11 +26,11 @@ $regexSitePage = SLUG_PAGE
 return [
     'service_manager' => [
         'invokables' => [
-            'CleanUrl\MvcListeners' => Mvc\MvcListeners::class,
+            Mvc\MvcListeners::class => Mvc\MvcListeners::class,
         ],
     ],
     'listeners' => [
-        'CleanUrl\MvcListeners',
+        Mvc\MvcListeners::class,
     ],
     'view_manager' => [
         'controller_map' => [
