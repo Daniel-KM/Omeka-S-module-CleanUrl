@@ -126,6 +126,12 @@ class Module extends AbstractModule
         $defaultSettings = ['routes' => [], 'route_aliases' => []];
         $cleanUrlSettings = $settings->get('cleanurl_settings', []) + $defaultSettings;
 
+        $configRoutes = $services->get('Config')['router']['routes'];
+
+        // Top routes are managed during init above.
+        $childRoutes = $configRoutes['site']['child_routes']['resource-id']['child_routes'] ?? []
+            + $configRoutes['admin']['child_routes']['id']['child_routes'] ?? [];
+
         $router
             ->addRoute('clean-url', [
                 'type' => \CleanUrl\Router\Http\CleanRoute::class,
@@ -140,6 +146,8 @@ class Module extends AbstractModule
                     'getResourceFromIdentifier' => $helpers->get('getResourceFromIdentifier'),
                     'getResourceIdentifier' => $helpers->get('getResourceIdentifier'),
                 ],
+                'may_terminate' => !empty($childRoutes),
+                'child_routes' => $childRoutes,
             ]);
     }
 
