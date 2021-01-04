@@ -52,6 +52,11 @@ if (version_compare($oldVersion, '3.15.13', '<')) {
     $t = $services->get('MvcTranslator');
     $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
 
+    if (!method_exists($this, 'preInstallCopyConfigFiles')) {
+        $message = new Message('Your previous version is too old to do a direct upgrade to the current version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module.'); // @translate
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+    }
+
     if (!$this->preInstallCopyConfigFiles()) {
         $message = $t->translate('Unable to copy config files "config/clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka.'); // @translate
         $messenger->addWarning($message);
