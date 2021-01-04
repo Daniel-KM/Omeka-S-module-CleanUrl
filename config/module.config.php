@@ -87,6 +87,7 @@ return [
                 'child_routes' => SLUG_MAIN_SITE ? [
                     'page-browse' => [
                         'type' => \Laminas\Router\Http\Literal::class,
+                        'priority' => 5,
                         'options' => [
                             'route' => SLUG_PAGE ? rtrim(SLUG_PAGE, '/') : 'page',
                             'defaults' => [
@@ -97,6 +98,8 @@ return [
                     ],
                     'page' => [
                         'type' => \CleanUrl\Router\Http\RegexPage::class,
+                        // The priority avoids to exclude the slug page as a controller in top/resource and top/resource-id.
+                        'priority' => 5,
                         'options' => [
                             'regex' => $regexSitePage,
                             'spec' => SLUG_PAGE . '%page-slug%',
