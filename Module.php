@@ -129,8 +129,8 @@ class Module extends AbstractModule
         $configRoutes = $services->get('Config')['router']['routes'];
 
         // Top routes are managed during init above.
-        $childRoutes = $configRoutes['site']['child_routes']['resource-id']['child_routes'] ?? []
-            + $configRoutes['admin']['child_routes']['id']['child_routes'] ?? [];
+        $childRoutes = ($configRoutes['site']['child_routes']['resource-id']['child_routes'] ?? [])
+            + ($configRoutes['admin']['child_routes']['id']['child_routes'] ?? []);
 
         $router
             ->addRoute('clean-url', [
