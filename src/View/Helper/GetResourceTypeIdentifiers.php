@@ -52,6 +52,9 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         $qb = $this->connection->createQueryBuilder()
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'resource.id = value.resource_id')
+            // An identifier is always literal: it identifies a resource inside
+            // the base. It can't be an external uri or a linked resource.
+            ->where('value.type = "literal"')
             ->andWhere('value.property_id = :property_id')
             ->setParameter('property_id', $this->options[$resourceName]['property'])
             ->andWhere('resource.resource_type = :resource_type')

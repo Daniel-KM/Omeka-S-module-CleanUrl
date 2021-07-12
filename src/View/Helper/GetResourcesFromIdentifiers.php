@@ -106,6 +106,9 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             ->addGroupBy('value.value' . $collation)
             ->addOrderBy('"id"', 'ASC')
             ->addOrderBy('value.id', 'ASC')
+            // An identifier is always literal: it identifies a resource inside
+            // the base. It can't be an external uri or a linked resource.
+            ->where('value.type = "literal"')
             ->andWhere($expr->eq('value.property_id', ':property_id'));
         $parameters['property_id'] = (int) $this->options[$resourceName]['property'];
 
@@ -140,7 +143,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         // and with or without space. Nevertheless, the check is quick.
 
         // A quick check for performance.
-        if (count($identifiers) === 1 && ($noPrefix)) {
+        if (count($identifiers) === 1 && $noPrefix) {
             $identifier = (string) key($identifiers);
             $parameters['identifier'] = $isCaseSensitive ? $identifier : mb_strtolower((string) $identifier);
             $variants[$parameters['identifier']] = $identifier;

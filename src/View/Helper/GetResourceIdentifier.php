@@ -87,17 +87,19 @@ class GetResourceIdentifier extends AbstractHelper
             $sqlWhereText = '';
         }
 
-        $sql = "
-            SELECT value.value
-            FROM value
-                LEFT JOIN resource ON (value.resource_id = resource.id)
-            WHERE value.property_id = :property_id
-                AND resource.resource_type = :resource_type
-                AND resource.id = :resource_id
-                $sqlWhereText
-            ORDER BY value.id
-            LIMIT 1
-        ";
+        $sql = <<<SQL
+SELECT `value`.`value`
+FROM `value`
+    LEFT JOIN `resource` ON (`value`.`resource_id` = `resource`.`id`)
+WHERE `value`.`type` = "literal"
+    AND `value`.`property_id` = :property_id
+    AND `resource`.`resource_type` = :resource_type
+    AND `resource`.`id` = :resource_id
+    $sqlWhereText
+ORDER BY `value`.`id`
+LIMIT 1
+;
+SQL;
         $identifier = $this->connection->fetchColumn($sql, $bind);
 
         // Keep only the identifier without the configured prefix.

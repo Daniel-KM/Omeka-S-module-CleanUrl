@@ -81,6 +81,8 @@ to avoid issues.
 Simply set an identifier for each record in a field. The recommended field is
 `Dublin Core:Identifier`.
 
+- An identifier is always literal: it identifies a resource inside the base. It
+  can't be an external uri or a linked resource.
 - Identifiers can be any strings with any characters. Identifier are url-encoded
   according to the standard, but it is recommended to avoid characters like "%"
   or "$".
