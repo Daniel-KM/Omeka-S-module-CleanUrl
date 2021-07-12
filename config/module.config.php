@@ -158,7 +158,7 @@ return [
                 'default' => 'collection/{item_set_identifier}',
                 'short' => '',
                 'paths' => [],
-                'pattern' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                'pattern' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
                 'pattern_short' => '',
                 // 10 is the hard-coded id of "dcterms:identifier" in default install.
                 'property' => 10,
@@ -172,7 +172,7 @@ return [
                 'default' => 'document/{item_identifier}',
                 'short' => '',
                 'paths' => [],
-                'pattern' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                'pattern' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
                 'pattern_short' => '',
                 'property' => 10,
                 'prefix' => '',
