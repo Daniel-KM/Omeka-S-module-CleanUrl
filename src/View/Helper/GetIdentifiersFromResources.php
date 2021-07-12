@@ -7,7 +7,6 @@ use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Entity\Item;
 use Omeka\Entity\ItemSet;
 use Omeka\Entity\Media;
-use Omeka\Entity\Resource;
 
 class GetIdentifiersFromResources extends AbstractHelper
 {
@@ -62,32 +61,32 @@ class GetIdentifiersFromResources extends AbstractHelper
     protected function convertNameToResourceClass(?string $resourceName): ?string
     {
         $resourceClasses = [
-            'items' => Item::class,
-            'item_sets' => ItemSet::class,
-            'media' => Media::class,
+            'items' => \Omeka\Entity\Item::class,
+            'item_sets' => \Omeka\Entity\ItemSet::class,
+            'media' => \Omeka\Entity\Media::class,
             'resources' => '',
             'resource' => '',
-            'resource:item' => Item::class,
-            'resource:itemset' => ItemSet::class,
-            'resource:media' => Media::class,
+            'resource:item' => \Omeka\Entity\Item::class,
+            'resource:itemset' => \Omeka\Entity\ItemSet::class,
+            'resource:media' => \Omeka\Entity\Media::class,
             // Avoid a check and make the plugin more flexible.
-            \Omeka\Api\Representation\ItemRepresentation::class => Item::class,
-            \Omeka\Api\Representation\ItemSetRepresentation::class => ItemSet::class,
-            \Omeka\Api\Representation\MediaRepresentation::class => Media::class,
-            Item::class => Item::class,
-            ItemSet::class => ItemSet::class,
-            Media::class => Media::class,
-            Resource::class => '',
-            'o:item' => Item::class,
-            'o:item_set' => ItemSet::class,
-            'o:media' => Media::class,
+            \Omeka\Api\Representation\ItemRepresentation::class => \Omeka\Entity\Item::class,
+            \Omeka\Api\Representation\ItemSetRepresentation::class => \Omeka\Entity\ItemSet::class,
+            \Omeka\Api\Representation\MediaRepresentation::class => \Omeka\Entity\Media::class,
+            \Omeka\Entity\Item::class => \Omeka\Entity\Item::class,
+            \Omeka\Entity\ItemSet::class => \Omeka\Entity\ItemSet::class,
+            \Omeka\Entity\Media::class => \Omeka\Entity\Media::class,
+            \Omeka\Entity\Resource::class => '',
+            'o:item' => \Omeka\Entity\Item::class,
+            'o:item_set' => \Omeka\Entity\ItemSet::class,
+            'o:media' => \Omeka\Entity\Media::class,
             // Other resource types.
-            'item' => Item::class,
-            'item_set' => ItemSet::class,
-            'item-set' => ItemSet::class,
-            'itemset' => ItemSet::class,
-            'resource:item_set' => ItemSet::class,
-            'resource:item-set' => ItemSet::class,
+            'item' => \Omeka\Entity\Item::class,
+            'item_set' => \Omeka\Entity\ItemSet::class,
+            'item-set' => \Omeka\Entity\ItemSet::class,
+            'itemset' => \Omeka\Entity\ItemSet::class,
+            'resource:item_set' => \Omeka\Entity\ItemSet::class,
+            'resource:item-set' => \Omeka\Entity\ItemSet::class,
         ];
         return $resourceClasses[$resourceName] ?? null;
     }
