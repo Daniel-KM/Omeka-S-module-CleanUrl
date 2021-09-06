@@ -87,7 +87,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 ->select([
                     $isCaseSensitive
                         ? 'ANY_VALUE(value.value) AS "identifier"'
-                        : "LOWER(ANY_VALUE(value.value)) AS 'identifier'",
+                        : 'LOWER(ANY_VALUE(value.value)) AS "identifier"',
                     'ANY_VALUE(value.resource_id) AS "id"',
                 ]);
         } else {
@@ -103,7 +103,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $qb
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
-            ->addGroupBy('value.value' . $collation)
+            ->addGroupBy('"identifier"' . $collation)
             ->addOrderBy('"id"', 'ASC')
             ->addOrderBy('value.id', 'ASC')
             // An identifier is always literal: it identifies a resource inside
@@ -210,11 +210,8 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 ->andWhere($expr->in('value.value' . $collation, $placeholders));
         }
 
-        $qb
-            ->setParameters($parameters);
-
-        $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
-        $result = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $stmt = $this->connection->executeQuery($qb, $parameters);
+        $result = $stmt->fetchAllAssociative();
 
         // Get representations and check numeric identifiers as resource id.
         // It allows to check rights too (currently, Connection is used, not EntityManager).
