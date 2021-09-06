@@ -52,7 +52,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      *   not found. Note: the number of found resources may be lower than the
      *   identifiers in case of duplicate identifiers.
      */
-    public function __invoke(array $identifiers, $resourceName = null): array
+    public function __invoke(array $identifiers, ?string $resourceName = null): array
     {
         // Identifiers are flipped to prepare result.
         // Even if keys are strings, they may be integers because of automatic
@@ -229,16 +229,48 @@ class GetResourcesFromIdentifiers extends AbstractHelper
 
         // Check remaining numeric identifiers, for example when some resources
         // don't have an identifier and the id is used instead of.
-        $remainingNumeric = array_keys(array_filter($identifiers, function ($v, $k) {
-            return is_null($v) && is_numeric($k) && ($k = (int) $k);
+        $identifiers = $this->appendResourcesFromNumeric($identifiers, $resourceName);
+
+        return $identifiers;
+    }
+
+    /**
+     * Complete an array of resources by id.
+     *
+     * @param array $identifiers The keys are the id.
+     */
+    protected function appendResourcesFromNumeric(array $identifiers, string $resourceName): array
+    {
+        $ids = array_keys(array_filter($identifiers, function ($v, $k) {
+            // Check only missing resources with a integer key.
+            return is_null($v)
+                && is_numeric($k)
+                && $k == (int) $k;
         }, ARRAY_FILTER_USE_BOTH));
-        if (count($remainingNumeric)) {
-            $remainingNumeric = $api->search($resourceName, ['id' => $remainingNumeric])->getContent();
-            foreach ($remainingNumeric as $remaining) {
-                $identifiers[$remaining->id()] = $remaining;
-            }
+        if (!count($ids)) {
+            return $identifiers;
         }
 
+        // Omeka doesn't allow search() for "resources", so do a direct query.
+        /** @see \Omeka\Api\Adapter\ResourceAdapter::search() */
+        $api = $this->view->api();
+
+        if ($resourceName !== 'resources') {
+            $resources = $api->search($resourceName, ['id' => $ids])->getContent();
+            foreach ($resources as $resource) {
+                $identifiers[$resource->id()] = $resource;
+            }
+            return $identifiers;
+        }
+
+        // TODO Improve performance of search resources by id.
+        foreach ($ids as $id) {
+            try {
+                $resource = $api->read($resourceName, ['id' => $id])->getContent();
+                $identifiers[$resource->id()] = $resource;
+            } catch (NotFoundException $e) {
+            }
+        }
         return $identifiers;
     }
 
