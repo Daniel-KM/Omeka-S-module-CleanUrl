@@ -318,7 +318,7 @@ class Module extends AbstractModule
             // Check all pages of the default site.
             // TODO Manage the case where the default site is updated after (rare).
             $result = [];
-            $slugs = $connection->query('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -332,7 +332,7 @@ class Module extends AbstractModule
                 $messenger->addError($message);
                 $hasError = true;
             }
-            $slugs = $connection->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
@@ -360,7 +360,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->query('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -388,7 +388,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->query('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -634,7 +634,7 @@ class Module extends AbstractModule
         $sql = 'SELECT slug FROM site;';
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
-        $stmt = $connection->query($sql);
+        $stmt = $connection->executeQuery($sql);
         $slugs = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         $replaceRegex = $this->prepareRegex($slugs);
         $regex = "~const SLUGS_SITE = '[^']*?';~";
