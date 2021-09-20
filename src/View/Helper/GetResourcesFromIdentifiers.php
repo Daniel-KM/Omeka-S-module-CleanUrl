@@ -18,21 +18,10 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      */
     protected $options;
 
-    /**
-     * @param bool
-     */
-    protected $supportAnyValue;
-
-    /**
-     * @param \Doctrine\DBAL\Connection $connection
-     * @param array $options
-     * @param bool $supportAnyValue
-     */
-    public function __construct(Connection $connection, array $options, bool $supportAnyValue)
+    public function __construct(Connection $connection, array $options)
     {
         $this->connection = $connection;
         $this->options = $options;
-        $this->supportAnyValue = $supportAnyValue;
     }
 
     /**
@@ -82,23 +71,14 @@ class GetResourcesFromIdentifiers extends AbstractHelper
 
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
-        if ($this->supportAnyValue) {
-            $qb
-                ->select([
-                    $isCaseSensitive
-                        ? 'ANY_VALUE(value.value) AS "identifier"'
-                        : 'LOWER(ANY_VALUE(value.value)) AS "identifier"',
-                    'ANY_VALUE(value.resource_id) AS "id"',
-                ]);
-        } else {
-            $qb
-                ->select([
-                    $isCaseSensitive
-                        ? 'MIN(value.value) AS "identifier"'
-                        : 'LOWER(MIN(value.value)) AS "identifier"',
-                    'MIN(value.resource_id) AS "id"',
-                ]);
-        }
+        $qb
+            ->select([
+                // MIN is a way to fix mysql "only_full_group_by" issue without "ANY_VALUE".
+                $isCaseSensitive
+                    ? 'MIN(value.value) AS "identifier"'
+                    : 'LOWER(MIN(value.value)) AS "identifier"',
+                'MIN(value.resource_id) AS "id"',
+            ]);
 
         $qb
             ->from('value', 'value')
