@@ -94,9 +94,9 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             $qb
                 ->select([
                     $isCaseSensitive
-                        ? 'value.value AS "identifier"'
-                        : 'LOWER(value.value) AS "identifier"',
-                    'value.resource_id AS "id"',
+                        ? 'MIN(value.value) AS "identifier"'
+                        : 'LOWER(MIN(value.value)) AS "identifier"',
+                    'MIN(value.resource_id) AS "id"',
                 ]);
         }
 
