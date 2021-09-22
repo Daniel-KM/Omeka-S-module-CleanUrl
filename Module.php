@@ -146,7 +146,10 @@ class Module extends AbstractModule
                     'getResourceFromIdentifier' => $helpers->get('getResourceFromIdentifier'),
                     'getResourceIdentifier' => $helpers->get('getResourceIdentifier'),
                 ],
-                'may_terminate' => !empty($childRoutes),
+                // Fix https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/11
+                // FIXME Go thorough to find why site/resource-id answer by a site/resource (so, above during merge of child routes).
+                // 'may_terminate' => !empty($childRoutes),
+                'may_terminate' => true,
                 'child_routes' => $childRoutes,
             ]);
     }
