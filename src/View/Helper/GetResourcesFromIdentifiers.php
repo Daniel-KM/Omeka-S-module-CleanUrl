@@ -191,7 +191,10 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         }
 
         $stmt = $this->connection->executeQuery($qb, $parameters);
-        $result = $stmt->fetchAllAssociative();
+        $result = [];
+        foreach ($stmt->fetchAllAssociative() as $val) {
+            $result[$val["identifier"]] = $val["id"];
+        }
 
         // Get representations and check numeric identifiers as resource id.
         // It allows to check rights too (currently, Connection is used, not EntityManager).
