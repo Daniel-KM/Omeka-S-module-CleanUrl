@@ -85,7 +85,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
             ->addGroupBy('"identifier"' . $collation)
             ->addOrderBy('"id"', 'ASC')
-            ->addOrderBy('value.id', 'ASC')
             // An identifier is always literal: it identifies a resource inside
             // the base. It can't be an external uri or a linked resource.
             ->where('value.type = "literal"')
