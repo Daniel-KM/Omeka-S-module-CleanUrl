@@ -151,9 +151,9 @@ class CleanRoute implements RouteInterface
             $regex = $data['regex'];
 
             if (is_null($pathOffset)) {
-                $result = preg_match('(^' . $regex . ')', $path, $matches);
+                $result = preg_match('(^' . $regex . '$)', $path, $matches);
             } else {
-                $result = preg_match('(\G' . $regex . ')', $path, $matches, 0, $pathOffset);
+                $result = preg_match('(\G' . $regex . '$)', $path, $matches, 0, $pathOffset);
             }
 
             if (!$result) {
