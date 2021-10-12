@@ -317,8 +317,7 @@ class CleanRoute implements RouteInterface
         }
         if ($context === 'site') {
             $context = SLUG_MAIN_SITE !== false
-                && !empty($params['site-slug'])
-                && $params['site-slug'] === SLUG_MAIN_SITE
+                && (empty($params['site-slug']) || $params['site-slug'] === SLUG_MAIN_SITE)
                 ? 'top'
                 : 'public';
         }
