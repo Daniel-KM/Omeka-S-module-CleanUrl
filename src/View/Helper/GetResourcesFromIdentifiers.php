@@ -72,17 +72,16 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
         $qb
-            ->select([
+            ->select(
                 // MIN is a way to fix mysql "only_full_group_by" issue without "ANY_VALUE".
                 $isCaseSensitive
                     ? 'MIN(value.value) AS "identifier"'
                     : 'LOWER(MIN(value.value)) AS "identifier"',
-                'MIN(value.resource_id) AS "id"',
-            ]);
-
-        $qb
+                'MIN(value.resource_id) AS "id"'
+            )
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
+            // "identifier" with double quotes were not accepted in old versions.
             ->addGroupBy('"identifier"' . $collation)
             ->addOrderBy('"id"', 'ASC')
             // An identifier is always literal: it identifies a resource inside
@@ -189,11 +188,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 ->andWhere($expr->in('value.value' . $collation, $placeholders));
         }
 
-        $stmt = $this->connection->executeQuery($qb, $parameters);
-        $result = [];
-        foreach ($stmt->fetchAllAssociative() as $val) {
-            $result[$val["identifier"]] = $val["id"];
-        }
+        $result = $this->connection->executeQuery($qb, $parameters)->fetchAllKeyValue();
 
         // Get representations and check numeric identifiers as resource id.
         // It allows to check rights too (currently, Connection is used, not EntityManager).
