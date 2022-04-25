@@ -568,7 +568,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $data['o:slug'] .= '_' . substr(str_replace(['+', '/'], '', base64_encode(random_bytes(20))), 0, 4);
+        $data['o:slug'] .= '_' . substr(str_replace(['+', '/', '='], ['', '', ''], base64_encode(random_bytes(128))), 0, 4);
         $request->setContent($data);
 
         $message = new Message('The slug "%s" is used or reserved. A random string has been automatically appended.', $slug); // @translate

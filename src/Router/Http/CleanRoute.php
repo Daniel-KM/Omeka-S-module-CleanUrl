@@ -745,8 +745,7 @@ class CleanRoute implements RouteInterface
                 // The media representation doesn't have the position.
                 // $view->api() cannot set a response content.
                 return $this->entityManager
-                    ->getRepository(\Omeka\Entity\Media::class)
-                    ->find($resource->id())
+                    ->find(\Omeka\Entity\Media::class, $resource->id())
                     ->getPosition();
             default:
                 return null;
@@ -772,8 +771,7 @@ class CleanRoute implements RouteInterface
     protected function mediaBelongsToItemSet(int $mediaId, int $itemSetId): bool
     {
         $media = $this->entityManager
-            ->getRepository(\Omeka\Entity\Media::class)
-            ->find($mediaId);
+            ->find(\Omeka\Entity\Media::class, $mediaId);
         return $this->itemBelongsToItemSet($media->getItem()->getId(), $itemSetId);
     }
 

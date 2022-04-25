@@ -67,28 +67,27 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         if ($lengthPrefix) {
             if ($skipPrefix) {
                 $qb
-                    ->select([
-                        // $qb->expr()->trim($qb->expr()->substring('value.text', $lengthPrefix + 1)),
-                        '(TRIM(SUBSTR(value.value, ' . ($lengthPrefix + 1) . ')))',
-                    ]);
+                    ->select(
+                        // $qb->expr()->trim($qb->expr()->substring('value.text', $lengthPrefix + 1))
+                        '(TRIM(SUBSTR(value.value, ' . ($lengthPrefix + 1) . ')))'
+                    );
             } else {
                 $qb
-                    ->select([
-                        'value.value',
-                    ]);
+                    ->select(
+                        'value.value'
+                    );
             }
             $qb
                 ->andWhere('value.value LIKE :value_value')
                 ->setParameter('value_value', $prefix . '%');
         } else {
             $qb
-                ->select([
-                    'value.value',
-                ]);
+                ->select(
+                    'value.value'
+                );
         }
 
-        $stmt = $this->connection->executeQuery($qb, $qb->getParameters());
-        $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $result = $this->connection->executeQuery($qb, $qb->getParameters())->fetchFirstColumn();
 
         if ($encode) {
             $keepSlash = $this->options[$resourceName]['keep_slash'];
