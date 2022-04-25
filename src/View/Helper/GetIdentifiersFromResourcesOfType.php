@@ -146,6 +146,7 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
         }
 
         // Create a temporary table when the number of resources is very big.
+        // TODO Use a cache table like module Reference.
         $tempTable = count($resources) > self::CHUNK_RECORDS;
         if ($tempTable) {
             $query = 'DROP TABLE IF EXISTS `temp_resources`;';
