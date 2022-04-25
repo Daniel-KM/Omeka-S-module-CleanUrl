@@ -17,7 +17,10 @@ use Omeka\Stdlib\Message;
  */
 $services = $serviceLocator;
 $settings = $services->get('Omeka\Settings');
+
+@require dirname(__DIR__, 2) . '/config/cleanurl.config.php';
 $config = @require dirname(__DIR__, 2) . '/config/module.config.php';
+
 $connection = $services->get('Omeka\Connection');
 $entityManager = $services->get('Omeka\EntityManager');
 $plugins = $services->get('ControllerPluginManager');
