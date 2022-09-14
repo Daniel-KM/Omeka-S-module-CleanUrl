@@ -397,7 +397,7 @@ class Module extends AbstractModule
                     $result[] = $slug;
                 }
             }
-            if ($result) {
+            if ($result && !mb_strlen($pageSlug)) {
                 $message = new Message(
                     'The site pages "%s" use a reserved string and the prefix for pages cannot be removed.', // @translate
                     implode('", "', $result)
