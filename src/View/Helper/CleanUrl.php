@@ -174,6 +174,13 @@ class CleanUrl extends Url
                 }
                 break;
 
+            // TODO In menu search too.
+            case substr($name, 0, 12) === 'search-page-':
+                $searchPage = $this->view->api()->read('search_configs', ['id' => substr($name, 12)])->getContent();
+                return $this->getBasePath()
+                    . '/s/' . $this->currentSite()->slug()
+                    . '/' . $searchPage->path();
+
             default:
                 break;
         }
@@ -287,5 +294,17 @@ class CleanUrl extends Url
             \Omeka\Entity\Media::class => 'media',
         ];
         return $controllers[$name] ?? null;
+    }
+
+    /**
+     * Get the current site from the view or the root view (main layout).
+     */
+    protected function currentSite(): ?\Omeka\Api\Representation\SiteRepresentation
+    {
+        return $this->view->site ?? $this->view->site = $this->view
+            ->getHelperPluginManager()
+            ->get(\Laminas\View\Helper\ViewModel::class)
+            ->getRoot()
+            ->getVariable('site');
     }
 }
