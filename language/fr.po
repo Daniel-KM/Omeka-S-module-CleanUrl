@@ -7,17 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-22 00:00+0000\n"
-"PO-Revision-Date: 2021-11-22 00:00+0000\n"
+"POT-Creation-Date: 2023-01-09 00:00+0000\n"
+"PO-Revision-Date: 2023-01-09 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.0\n"
+"X-Generator: Poedit 2.4.2\n"
 
-#: data/scripts/upgrade.php:61 data/scripts/upgrade.php:143
+#: data/scripts/upgrade.php:63 data/scripts/upgrade.php:144
 msgid ""
 "Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
 "clean_url.dynamic.php\" in the config directory of Omeka."
@@ -26,7 +26,7 @@ msgstr ""
 "php\" ou \"config/clean_url.dynamic.php\" dans le dossier de configuration "
 "d’Omeka."
 
-#: data/scripts/upgrade.php:67
+#: data/scripts/upgrade.php:69
 msgid ""
 "Check the new config file \"config/clean_url.config.php\" and remove the old "
 "one in the config directory of Omeka."
@@ -80,25 +80,45 @@ msgstr ""
 "\"config/cleanurl.config.php\". Cela est nécessaire pour ignorer les chemins "
 "des sites."
 
-#: Module.php:509
+#: Module.php:510
 msgid "[none]"
 msgstr "[aucun]"
 
-#: src/Generic/AbstractModule.php:66
+#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:88
+#: src/Generic/AbstractModule.php:861
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr "Ce module requiert le module \"%s\"."
 
-#: src/Generic/AbstractModule.php:73
+#: src/Generic/AbstractModule.php:93
 #, php-format
 msgid "This module requires modules \"%s\"."
 msgstr "Ce module requiert les modules \"%s\"."
 
-#: src/Generic/AbstractModule.php:80
+#: src/Generic/AbstractModule.php:101
 msgid "This module has resources that cannot be installed."
 msgstr "Ce module a des ressources qui ne peuvent pas être installées."
 
-#: src/Generic/AbstractModule.php:725
+#: src/Generic/AbstractModule.php:108
+msgid ""
+"This module cannot install its tables, because they exist already. Try to "
+"remove them first."
+msgstr ""
+"Ce module ne peut pas installer ses tables car elles existent déjà. Essayez "
+"de les supprimer manuellement."
+
+#: src/Generic/AbstractModule.php:369
+#, php-format
+msgid "The module removed tables \"%s\" from a previous broken install."
+msgstr ""
+"Le module a supprimé les tables « %s » depuis une installation échouée."
+
+#: src/Generic/AbstractModule.php:856
+#, php-format
+msgid "This module requires the module \"%1$s\", version %2$s or above."
+msgstr "Ce module requiert le module « %1$s », version %2$s ou supérieure."
+
+#: src/Generic/AbstractModule.php:953
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
@@ -107,7 +127,7 @@ msgstr ""
 "Le module \"%s\" a été automatiquement désactivé car ses dépendances ne sont "
 "plus disponibles."
 
-#: data/scripts/upgrade.php:56
+#: data/scripts/upgrade.php:58
 msgid ""
 "Your previous version is too old to do a direct upgrade to the current "
 "version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module."
@@ -116,7 +136,7 @@ msgstr ""
 "vers la nouvelle version. Mettez d’abord à niveau vers la version 3.15.13, "
 "ou désinstallez et réinstallez le module."
 
-#: data/scripts/upgrade.php:64 data/scripts/upgrade.php:145
+#: data/scripts/upgrade.php:66 data/scripts/upgrade.php:146
 msgid ""
 "The file \"clean_url.config.php\" and/or \"config/clean_url.dynamic.php\" in "
 "the config directory of Omeka is not writeable."
@@ -124,7 +144,7 @@ msgstr ""
 "Le fichier \"clean_url.config.php\" ou \"config/clean_url.dynamic.php\" dans "
 "le dossier de configuration d’Omeka ne peut pas être modifié."
 
-#: data/scripts/upgrade.php:156 data/scripts/upgrade.php:181
+#: data/scripts/upgrade.php:157 data/scripts/upgrade.php:181
 msgid ""
 "The file \"config/cleanurl.config.php\" at the root of Omeka is not "
 "writeable."
@@ -132,7 +152,7 @@ msgstr ""
 "Le fichier \"config/cleanurl.config.php\" dans le dossier de configuration "
 "d’Omeka n’est pas modifiable."
 
-#: data/scripts/upgrade.php:161
+#: data/scripts/upgrade.php:162
 msgid ""
 "The module has been rewritten and the whole configuration has been "
 "simplified. You should check your config, because the upgrade of the "
@@ -142,7 +162,7 @@ msgstr ""
 "simplifiée. Il est recommandé de vérifier la configuration car la mise à "
 "jour n’ est pas automatique."
 
-#: Module.php:86 Module.php:590
+#: Module.php:86 Module.php:591
 msgid ""
 "The file \"cleanurl.config.php\" in the config directory of Omeka is not "
 "writeable."
@@ -150,7 +170,7 @@ msgstr ""
 "Le fichier \"cleanurl.config.php\" dans le dossier de configuration d’Omeka "
 "n’est pas modifiable."
 
-#: Module.php:279
+#: Module.php:280
 msgid ""
 "The config of the module cannot be saved in \"config/cleanurl.config.php\". "
 "It is required to skip the site paths."
@@ -159,13 +179,13 @@ msgstr ""
 "cleanurl.config.php\". Cela est nécessaire pour ignorer les chemins des "
 "sites."
 
-#: Module.php:316
+#: Module.php:317
 msgid "There is no default site: \"/s/site-slug\" cannot be empty or skipped."
 msgstr ""
 "Aucun site par défaut n'est défini : \"/s/site-slug\" ne peut pas être vide "
 "ou enlevé."
 
-#: Module.php:332
+#: Module.php:333
 #, php-format
 msgid ""
 "The sites \"%s\" use a reserved string and the \"/s/site-slug\" cannot be "
@@ -174,7 +194,7 @@ msgstr ""
 "Les sites \"%s\" utilisent une chaîne réservée et \"/s/site-slug\" ne peut "
 "pas être enlevé."
 
-#: Module.php:346
+#: Module.php:347
 #, php-format
 msgid ""
 "The site pages \"%s\" use a reserved string and \"/s/site-slug\" cannot be "
@@ -183,7 +203,7 @@ msgstr ""
 "Les pages de site \"%s\" utilisent une chaîne réservée et \"/s/site-slug\" "
 "ne peut pas être enlevé."
 
-#: Module.php:359
+#: Module.php:360
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for sites cannot be "
@@ -192,16 +212,16 @@ msgstr ""
 "Le segment \"%s\" est utilisé ou réservé et le préfixe pour les sites ne "
 "peut pas être mis à jour."
 
-#: Module.php:374
+#: Module.php:375
 #, php-format
 msgid ""
 "The sites \"%s\" use a reserved string and the prefix for sites cannot be "
 "removed."
 msgstr ""
 "Les sites \"%s\" utilisent une chaîne réservée et le préfixe pour les sites "
-"ne peut enlevé."
+"ne peut être enlevé."
 
-#: Module.php:387
+#: Module.php:388
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for pages cannot be "
@@ -210,7 +230,7 @@ msgstr ""
 "Le segment \"%s\" est utilisé ou réservé et le préfixe des pages ne peut pas "
 "être modifié."
 
-#: Module.php:402
+#: Module.php:403
 #, php-format
 msgid ""
 "The site pages \"%s\" use a reserved string and the prefix for pages cannot "
@@ -219,11 +239,11 @@ msgstr ""
 "Les pages de site \"%s\" utilisent une chaîne réservée et le préfixe pour "
 "les pages ne peut pas être enlevé."
 
-#: Module.php:403
+#: Module.php:404
 msgid "\", \""
 msgstr "\", \""
 
-#: Module.php:445 Module.php:450 Module.php:942
+#: Module.php:446 Module.php:451 Module.php:944
 #, php-format
 msgid ""
 "A pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to use the "
@@ -232,7 +252,7 @@ msgstr ""
 "Un modèle pour \"%s\", par exemple \"[a-zA-Z0-9_-]+\", est nécessaire pour "
 "le chemin \"%s\"."
 
-#: Module.php:574
+#: Module.php:575
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved. A random string has been automatically "
@@ -241,7 +261,7 @@ msgstr ""
 "Le segment \"%s\" est utilisé ou réservé. Une chaîne aléatoire a été "
 "automatiquement ajoutée."
 
-#: Module.php:845
+#: Module.php:847
 #, php-format
 msgid ""
 "The path \"%s\" for item sets should contain one and only one item set "
@@ -250,46 +270,46 @@ msgstr ""
 "Le chemin \"%s\" pour les collections doit contenir un identifiant et un "
 "seul."
 
-#: Module.php:863
+#: Module.php:865
 #, php-format
 msgid "The path \"%s\" for item sets should not contain identifier \"%s\"."
 msgstr ""
 "Le chemin \"%s\" pour les collections ne doit pas contenir l’identifiant \"%s"
 "\"."
 
-#: Module.php:880
+#: Module.php:882
 #, php-format
 msgid ""
 "The path \"%s\" for items should contain one and only one item identifier."
 msgstr ""
 "Le chemin \"%s\" pour les contenus doit contenir un identifiant et un seul."
 
-#: Module.php:895
+#: Module.php:897
 #, php-format
 msgid "The path \"%s\" for items should not contain identifier \"%s\"."
 msgstr ""
 "Le chemin \"%s\" pour les contenus ne doit pas contenir l’identifiant \"%s\"."
 
-#: Module.php:913
+#: Module.php:915
 #, php-format
 msgid ""
 "The path \"%s\" for medias should contain one and only one item identifier."
 msgstr ""
 "Le chemin \"%s\" pour les médias doit contenir un identifiant et un seul."
 
-#: Module.php:924
+#: Module.php:926
 #, php-format
 msgid "The path \"%s\" for medias should not contain identifier \"%s\"."
 msgstr ""
 "Le chemin \"%s\" pour les médias ne doit pas contenir l’identifiant \"%s\"."
 
-#: Module.php:932
+#: Module.php:934
 #, php-format
 msgid "The path \"%s\" for medias should contain an item identifier."
 msgstr ""
 "Le chemin \"%s\" pour les médias doit contenir un identifiant du contenu."
 
-#: Module.php:945
+#: Module.php:947
 #, php-format
 msgid ""
 "A short pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to "
@@ -297,6 +317,10 @@ msgid ""
 msgstr ""
 "Un modèle pour \"%s\", par exemple \"[a-zA-Z0-9_-]+\", est nécessaire pour "
 "le chemin \"%s\"."
+
+#: src/View/Helper/GetMediaFromPosition.php:58
+msgid "Item should be an Item, an ItemRepresentation or an integer."
+msgstr "L’item doit être un Item, un ItemRepresentation ou un entier."
 
 #: src/Form/ConfigForm.php:22
 msgid "Sites and pages"
@@ -410,10 +434,6 @@ msgstr "Les identifiants ont une barre \"/\" à ne pas échapper"
 #: src/Form/ConfigForm.php:243
 msgid "Identifiers are case sensitive"
 msgstr "Les identifiants sont sensibles à la casse"
-
-#: src/View/Helper/GetMediaFromPosition.php:58
-msgid "Item should be an Item, an ItemRepresentation or an integer."
-msgstr "L’item doit être un Item, un ItemRepresentation ou un entier."
 
 #~ msgid "Clean identifier"
 #~ msgstr "Identifiant normalisé"
