@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-22 00:00+0000\n"
+"POT-Creation-Date: 2023-01-09 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,13 +17,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:61 data/scripts/upgrade.php:143
+#: data/scripts/upgrade.php:63 data/scripts/upgrade.php:144
 msgid ""
 "Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
 "clean_url.dynamic.php\" in the config directory of Omeka."
 msgstr ""
 
-#: data/scripts/upgrade.php:67
+#: data/scripts/upgrade.php:69
 msgid ""
 "Check the new config file \"config/clean_url.config.php\" and remove the old "
 "one in the config directory of Omeka."
@@ -65,176 +65,197 @@ msgid ""
 "config.php\". It is required to skip the site paths."
 msgstr ""
 
-#: Module.php:509
+#: Module.php:510
 msgid "[none]"
 msgstr ""
 
-#: src/Generic/AbstractModule.php:66
+#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:88
+#: src/Generic/AbstractModule.php:861
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:73
+#: src/Generic/AbstractModule.php:93
 #, php-format
 msgid "This module requires modules \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:80
+#: src/Generic/AbstractModule.php:101
 msgid "This module has resources that cannot be installed."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:725
+#: src/Generic/AbstractModule.php:108
+msgid ""
+"This module cannot install its tables, because they exist already. Try to "
+"remove them first."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:369
+#, php-format
+msgid "The module removed tables \"%s\" from a previous broken install."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:856
+#, php-format
+msgid "This module requires the module \"%1$s\", version %2$s or above."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:953
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
 "unavailable."
 msgstr ""
 
-#: data/scripts/upgrade.php:56
+#: data/scripts/upgrade.php:58
 msgid ""
 "Your previous version is too old to do a direct upgrade to the current "
 "version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module."
 msgstr ""
 
-#: data/scripts/upgrade.php:64 data/scripts/upgrade.php:145
+#: data/scripts/upgrade.php:66 data/scripts/upgrade.php:146
 msgid ""
 "The file \"clean_url.config.php\" and/or \"config/clean_url.dynamic.php\" in "
 "the config directory of Omeka is not writeable."
 msgstr ""
 
-#: data/scripts/upgrade.php:156 data/scripts/upgrade.php:181
+#: data/scripts/upgrade.php:157 data/scripts/upgrade.php:181
 msgid ""
 "The file \"config/cleanurl.config.php\" at the root of Omeka is not "
 "writeable."
 msgstr ""
 
-#: data/scripts/upgrade.php:161
+#: data/scripts/upgrade.php:162
 msgid ""
 "The module has been rewritten and the whole configuration has been "
 "simplified. You should check your config, because the upgrade of the "
 "configuration is not automatic."
 msgstr ""
 
-#: Module.php:86 Module.php:590
+#: Module.php:86 Module.php:591
 msgid ""
 "The file \"cleanurl.config.php\" in the config directory of Omeka is not "
 "writeable."
 msgstr ""
 
-#: Module.php:279
+#: Module.php:280
 msgid ""
 "The config of the module cannot be saved in \"config/cleanurl.config.php\". "
 "It is required to skip the site paths."
 msgstr ""
 
-#: Module.php:316
+#: Module.php:317
 msgid "There is no default site: \"/s/site-slug\" cannot be empty or skipped."
 msgstr ""
 
-#: Module.php:332
+#: Module.php:333
 #, php-format
 msgid ""
 "The sites \"%s\" use a reserved string and the \"/s/site-slug\" cannot be "
 "skipped."
 msgstr ""
 
-#: Module.php:346
+#: Module.php:347
 #, php-format
 msgid ""
 "The site pages \"%s\" use a reserved string and \"/s/site-slug\" cannot be "
 "skipped."
 msgstr ""
 
-#: Module.php:359
+#: Module.php:360
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for sites cannot be "
 "updated."
 msgstr ""
 
-#: Module.php:374
+#: Module.php:375
 #, php-format
 msgid ""
 "The sites \"%s\" use a reserved string and the prefix for sites cannot be "
 "removed."
 msgstr ""
 
-#: Module.php:387
+#: Module.php:388
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved and the prefix for pages cannot be "
 "updated."
 msgstr ""
 
-#: Module.php:402
+#: Module.php:403
 #, php-format
 msgid ""
 "The site pages \"%s\" use a reserved string and the prefix for pages cannot "
 "be removed."
 msgstr ""
 
-#: Module.php:403
+#: Module.php:404
 msgid "\", \""
 msgstr ""
 
-#: Module.php:445 Module.php:450 Module.php:942
+#: Module.php:446 Module.php:451 Module.php:944
 #, php-format
 msgid ""
 "A pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to use the "
 "path \"%s\"."
 msgstr ""
 
-#: Module.php:574
+#: Module.php:575
 #, php-format
 msgid ""
 "The slug \"%s\" is used or reserved. A random string has been automatically "
 "appended."
 msgstr ""
 
-#: Module.php:845
+#: Module.php:847
 #, php-format
 msgid ""
 "The path \"%s\" for item sets should contain one and only one item set "
 "identifier."
 msgstr ""
 
-#: Module.php:863
+#: Module.php:865
 #, php-format
 msgid "The path \"%s\" for item sets should not contain identifier \"%s\"."
 msgstr ""
 
-#: Module.php:880
+#: Module.php:882
 #, php-format
 msgid ""
 "The path \"%s\" for items should contain one and only one item identifier."
 msgstr ""
 
-#: Module.php:895
+#: Module.php:897
 #, php-format
 msgid "The path \"%s\" for items should not contain identifier \"%s\"."
 msgstr ""
 
-#: Module.php:913
+#: Module.php:915
 #, php-format
 msgid ""
 "The path \"%s\" for medias should contain one and only one item identifier."
 msgstr ""
 
-#: Module.php:924
+#: Module.php:926
 #, php-format
 msgid "The path \"%s\" for medias should not contain identifier \"%s\"."
 msgstr ""
 
-#: Module.php:932
+#: Module.php:934
 #, php-format
 msgid "The path \"%s\" for medias should contain an item identifier."
 msgstr ""
 
-#: Module.php:945
+#: Module.php:947
 #, php-format
 msgid ""
 "A short pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to "
 "use the path \"%s\"."
+msgstr ""
+
+#: src/View/Helper/GetMediaFromPosition.php:58
+msgid "Item should be an Item, an ItemRepresentation or an integer."
 msgstr ""
 
 #: src/Form/ConfigForm.php:22
@@ -341,8 +362,4 @@ msgstr ""
 
 #: src/Form/ConfigForm.php:243
 msgid "Identifiers are case sensitive"
-msgstr ""
-
-#: src/View/Helper/GetMediaFromPosition.php:58
-msgid "Item should be an Item, an ItemRepresentation or an integer."
 msgstr ""
