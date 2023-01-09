@@ -267,8 +267,9 @@ class Module extends AbstractModule
         $params = $form->getData();
         $params['cleanurl_settings'] = [];
 
-        $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+        /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
+        $messenger = $services->get('ControllerPluginManager')->get('messenger');
         $hasError = false;
 
         // TODO Move the formatters and validators inside the config form.
@@ -321,7 +322,7 @@ class Module extends AbstractModule
             // Check all pages of the default site.
             // TODO Manage the case where the default site is updated after (rare).
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -335,7 +336,7 @@ class Module extends AbstractModule
                 $messenger->addError($message);
                 $hasError = true;
             }
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
@@ -363,7 +364,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -391,7 +392,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchAll(\PDO::FETCH_COLUMN);
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -638,7 +639,7 @@ class Module extends AbstractModule
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
         $stmt = $connection->executeQuery($sql);
-        $slugs = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $slugs = $stmt->fetchFirstColumn();
         $replaceRegex = $this->prepareRegex($slugs);
         $regex = "~const SLUGS_SITE = '[^']*?';~";
         $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
@@ -798,7 +799,8 @@ class Module extends AbstractModule
         };
 
         if ($displayMessages) {
-            $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
+            /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+            $messenger = $services->get('ControllerPluginManager')->get('messenger');
             $messager = function ($message) use ($messenger): void {
                 $messenger->addError($message);
             };

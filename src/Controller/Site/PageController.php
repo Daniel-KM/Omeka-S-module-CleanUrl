@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace CleanUrl\Controller\Site;
 
 use Laminas\View\Model\ViewModel;
@@ -40,9 +41,9 @@ class PageController extends \Omeka\Controller\Site\PageController
         // Copy of parent method.
 
         if ($slug) {
-          $pageBodyClass = 'page site-page-' . preg_replace('([^a-zA-Z0-9\-])', '-', $slug);
+            $pageBodyClass = 'page site-page-' . preg_replace('([^a-zA-Z0-9\-])', '-', $slug);
         } else {
-          $pageBodyClass = 'page site-page';
+            $pageBodyClass = 'page site-page';
         }
 
         $this->viewHelpers()->get('sitePagePagination')->setPage($page);
