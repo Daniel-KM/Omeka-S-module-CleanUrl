@@ -2,29 +2,29 @@
 
 namespace CleanUrl;
 
-use Omeka\Mvc\Controller\Plugin\Messenger;
 use Omeka\Stdlib\Message;
 
 /**
  * @var Module $this
- * @var \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator
+ * @var \Laminas\ServiceManager\ServiceLocatorInterface $services
  * @var string $newVersion
  * @var string $oldVersion
  *
  * @var \Doctrine\DBAL\Connection $connection
  * @var \Doctrine\ORM\EntityManager $entityManager
  * @var \Omeka\Api\Manager $api
+ * @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger
  */
-$services = $serviceLocator;
-$settings = $services->get('Omeka\Settings');
 
 @require dirname(__DIR__, 2) . '/config/cleanurl.config.php';
 $config = @require dirname(__DIR__, 2) . '/config/module.config.php';
 
-$connection = $services->get('Omeka\Connection');
-$entityManager = $services->get('Omeka\EntityManager');
 $plugins = $services->get('ControllerPluginManager');
 $api = $plugins->get('api');
+$settings = $services->get('Omeka\Settings');
+$connection = $services->get('Omeka\Connection');
+$messenger = $plugins->get('messenger');
+$entityManager = $services->get('Omeka\EntityManager');
 
 if (version_compare($oldVersion, '3.14', '<')) {
     $settings->set('clean_url_identifier_property',
@@ -35,7 +35,7 @@ if (version_compare($oldVersion, '3.14', '<')) {
     $settings->set('clean_url_media_allowed',
         unserialize($settings->get('clean_url_media_allowed')));
 
-    $this->cacheItemSetsRegex($serviceLocator);
+    $this->cacheItemSetsRegex($services);
 }
 
 if (version_compare($oldVersion, '3.15.3', '<')) {
@@ -53,7 +53,6 @@ if (version_compare($oldVersion, '3.15.5', '<')) {
 
 if (version_compare($oldVersion, '3.15.13', '<')) {
     $t = $services->get('MvcTranslator');
-    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
 
     if (!method_exists($this, 'preInstallCopyConfigFiles')) {
         $message = new Message('Your previous version is too old to do a direct upgrade to the current version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module.'); // @translate
@@ -140,7 +139,6 @@ if (version_compare($oldVersion, '3.15.17', '<')) {
     $source = __DIR__ . '/../../config/clean_url.config.php';
     $dest = OMEKA_PATH . '/config/clean_url.config.php';
     $t = $services->get('MvcTranslator');
-    $messenger = new \Omeka\Mvc\Controller\Plugin\Messenger;
     $logger = $services->get('Omeka\Logger');
     if (!is_readable($source) || !is_writeable(dirname($dest)) || !is_writeable($dest)) {
         $message = $t->translate('Unable to copy config files "config/clean_url.config.php" and/or "config/clean_url.dynamic.php" in the config directory of Omeka.'); // @translate
@@ -164,7 +162,6 @@ if (version_compare($oldVersion, '3.16.0.3', '<')) {
         'The module has been rewritten and the whole configuration has been simplified. You should check your config, because the upgrade of the configuration is not automatic.' // @translate
     );
     $message->setEscapeHtml(false);
-    $messenger = new Messenger();
     $messenger->addWarning($message);
 
     if (file_exists(OMEKA_PATH . '/config/clean_url.config.php')) {
