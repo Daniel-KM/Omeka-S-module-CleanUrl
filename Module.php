@@ -87,11 +87,11 @@ class Module extends AbstractModule
         }
         $services = $this->getServiceLocator();
         $module = $services->get('Omeka\ModuleManager')->getModule('Generic');
-        if ($module && version_compare($module->getIni('version') ?? '', '3.3.27', '<')) {
+        if ($module && version_compare($module->getIni('version') ?? '', '3.4.41', '<')) {
             $translator = $services->get('MvcTranslator');
             $message = new \Omeka\Stdlib\Message(
                 $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
-                'Generic', '3.3.27'
+                'Generic', '3.4.41'
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
