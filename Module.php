@@ -228,7 +228,6 @@ class Module extends AbstractModule
     public function getConfigForm(PhpRenderer $renderer)
     {
         $services = $this->getServiceLocator();
-        $settings = $services->get('Omeka\Settings');
         $messenger = $services->get('ControllerPluginManager')->get('messenger');
 
         $translate = $renderer->plugin('translate');
@@ -244,10 +243,6 @@ class Module extends AbstractModule
 
         if (!$this->isConfigWriteable()) {
             $messenger->addError(new Message('Warning: the config of the module cannot be saved in "config/cleanurl.config.php". It is required to skip the site paths.')); // @translate
-        }
-
-        if (!$settings->get('default_site')) {
-            $messenger->addError(new Message('The module requires a default site for now. Set it in main settings first.')); // @translate
         }
 
         return $html
@@ -1149,10 +1144,6 @@ class Module extends AbstractModule
             'route_aliases' => [],
         ];
         $settings->set('cleanurl_settings', array_intersect_key($params, $keys));
-
-        if (!$params['default_site']) {
-            $messager(new Message('The module requires a default site for now. Set it in main settings, then resubmit the config.')); // @translate
-        }
     }
 
     protected function prepareRegex(array $list)
