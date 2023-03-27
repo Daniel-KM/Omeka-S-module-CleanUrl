@@ -310,13 +310,8 @@ if (version_compare($oldVersion, '3.16.1.3', '<')) {
     if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.old.php')) {
         @unlink(OMEKA_PATH . '/config/clean_url.dynamic.old.php');
     }
-
-    $this->cacheCleanData();
-    $this->cacheRouteSettings();
 }
 
-if (version_compare($oldVersion, '3.16.3.3', '<')) {
-    $this->getConfig();
-    $this->cacheCleanData();
-    $this->cacheRouteSettings();
-}
+$this->getConfig();
+$this->cacheCleanData();
+$this->cacheRouteSettings();
