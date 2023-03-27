@@ -67,8 +67,9 @@ class Module extends AbstractModule
 
     public function getConfig()
     {
-        require_once file_exists(OMEKA_PATH . '/config/cleanurl.config.php')
-            ? OMEKA_PATH . '/config/cleanurl.config.php'
+        $localCleanUrlConfig = OMEKA_PATH . '/config/cleanurl.config.php';
+        require_once file_exists($localCleanUrlConfig)
+            ? $localCleanUrlConfig
             : __DIR__ . '/config/cleanurl.config.php';
         return include __DIR__ . '/config/module.config.php';
     }
@@ -123,7 +124,10 @@ class Module extends AbstractModule
 
         $settings = $services->get('Omeka\Settings');
         $helpers = $services->get('ViewHelperManager');
-        $defaultSettings = ['routes' => [], 'route_aliases' => []];
+        $defaultSettings = [
+            'routes' => [],
+            'route_aliases' => [],
+        ];
         $cleanUrlSettings = $settings->get('cleanurl_settings', []) + $defaultSettings;
 
         $configRoutes = $services->get('Config')['router']['routes'];
@@ -322,7 +326,7 @@ class Module extends AbstractModule
             // Check all pages of the default site.
             // TODO Manage the case where the default site is updated after (rare).
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER BY id;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -336,7 +340,7 @@ class Module extends AbstractModule
                 $messenger->addError($message);
                 $hasError = true;
             }
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
@@ -364,7 +368,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER by id;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -392,7 +396,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -635,11 +639,7 @@ class Module extends AbstractModule
 
         // Update list of sites.
         // Get all site slugs, public or not.
-        $sql = 'SELECT slug FROM site;';
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $services->get('Omeka\Connection');
-        $stmt = $connection->executeQuery($sql);
-        $slugs = $stmt->fetchFirstColumn();
+        $slugs = $services->get('Omeka\Connection')->executeQuery('SELECT slug FROM site ORDER BY id;')->fetchFirstColumn();
         $replaceRegex = $this->prepareRegex($slugs);
         $regex = "~const SLUGS_SITE = '[^']*?';~";
         $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
@@ -660,7 +660,11 @@ class Module extends AbstractModule
         $logger = $services->get('Omeka\Logger');
 
         // Controller name and resource types.
-        $resourceTypes = ['item-set' => 'item_set', 'item' => 'item', 'media' => 'media'];
+        $resourceTypes = [
+            'item-set' => 'item_set',
+            'item' => 'item',
+            'media' => 'media',
+        ];
 
         $defaults = [
             'default' => 'resource/{resource_id}',
@@ -694,7 +698,8 @@ class Module extends AbstractModule
 
         // Default, short and core urls are merged to manage paths simpler,
         // Set the default route the first in stacks if any for performance.
-        foreach (['resource' => 'resource', 'item_set' => 'item-set', 'item' => 'item', 'media' => 'media'] as $resourceType => $controller) {
+        // foreach (['resource' => 'resource', 'item_set' => 'item-set', 'item' => 'item', 'media' => 'media'] as $resourceType => $controller) {
+        foreach (['resource', 'item_set', 'item', 'media'] as $resourceType) {
             array_unshift($params[$resourceType]['paths'], $params[$resourceType]['default']);
             $params[$resourceType]['paths'][] = $params[$resourceType]['short'];
             // Core paths.

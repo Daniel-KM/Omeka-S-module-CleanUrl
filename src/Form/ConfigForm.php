@@ -69,7 +69,7 @@ class ConfigForm extends Form
             ])
             ->appendResourceFieldset('cleanurl_item_set', [
                 'default_placeholder' => 'collection/{item_set_identifier}',
-                'pattern_placeholder' => '[a-zA-Z0-9_-]+',
+                'pattern_placeholder' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
                 'prefix_placeholder' => 'ark:/12345/',
             ])
             ->add([
@@ -81,7 +81,7 @@ class ConfigForm extends Form
             ])
             ->appendResourceFieldset('cleanurl_item', [
                 'default_placeholder' => 'document/{item_identifier}',
-                'pattern_placeholder' => '[a-zA-Z0-9_-]+',
+                'pattern_placeholder' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
                 'prefix_placeholder' => 'ark:/12345/',
             ])
             ->add([
