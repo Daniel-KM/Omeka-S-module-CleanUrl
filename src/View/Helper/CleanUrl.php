@@ -174,13 +174,6 @@ class CleanUrl extends Url
                 }
                 break;
 
-            // TODO In menu search too.
-            case substr($name, 0, 12) === 'search-page-':
-                $searchPage = $this->view->api()->read('search_configs', ['id' => substr($name, 12)])->getContent();
-                return $this->getBasePath()
-                    . '/s/' . $this->currentSite()->slug()
-                    . '/' . $searchPage->path();
-
             default:
                 break;
         }
