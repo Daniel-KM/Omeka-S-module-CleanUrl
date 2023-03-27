@@ -13,6 +13,17 @@ class PageController extends \Omeka\Controller\Site\PageController
         /** @var \Omeka\Api\Representation\SiteRepresentation $site */
         $site = $this->currentSite();
 
+        /**
+         * Fix issue without site slug.
+         * @see \Omeka\Mvc\MvcListeners::preparePublicSite()
+         *
+         * @var \Omeka\Mvc\Status $status
+         */
+        $siteSlug = $this->status()->getRouteMatch()->getParam('site-slug');
+        if (!$siteSlug && $site) {
+            $site = null;
+        }
+
         // @see \Omeka\Controller\Site\PageController::indexAction()
         $slug = $this->params('page-slug');
         if ($slug) {
