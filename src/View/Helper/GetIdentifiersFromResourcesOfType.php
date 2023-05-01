@@ -106,7 +106,11 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
             ->andWhere('value.property_id = :property_id')
             ->setParameter('property_id', $this->options[$resourceName]['property'])
             // Only one identifier by resource.
-            ->groupBy(['value.resource_id'])
+            ->groupBy(
+                // Set value.id to fix only_full_group_by.
+                'value.resource_id',
+                'value.id'
+            )
             ->addOrderBy('value.resource_id', 'ASC')
             ->addOrderBy('value.id', 'ASC')
             ->andWhere('resource.resource_type = :resource_type')
