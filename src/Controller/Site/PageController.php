@@ -34,13 +34,15 @@ class PageController extends \Omeka\Controller\Site\PageController
          * @var \Omeka\Mvc\Status $status
          */
         $siteSlug = $this->status()->getRouteMatch()->getParam('site-slug');
-        if (!$siteSlug && $site) {
+        $isSiteSlug = is_string($siteSlug) && strlen($siteSlug);
+        if ($site && !$isSiteSlug) {
             $site = null;
         }
 
         // @see \Omeka\Controller\Site\PageController::indexAction()
         $slug = $this->params('page-slug');
-        if ($slug) {
+        $isPageSlug = is_string($slug) && strlen($slug);
+        if ($isPageSlug) {
             if (!$site) {
                 $site = $this->defaultSite();
                 if (!$site) {
@@ -86,7 +88,7 @@ class PageController extends \Omeka\Controller\Site\PageController
             }
         }
 
-        if ($slug) {
+        if ($isPageSlug) {
             $pageBodyClass = 'page site-page-' . preg_replace('([^a-zA-Z0-9\-])', '-', $slug);
         } else {
             $pageBodyClass = 'page site-page';
