@@ -96,7 +96,7 @@ WHERE `value`.`type` = "literal"
     AND `resource`.`resource_type` = :resource_type
     AND `resource`.`id` = :resource_id
     $sqlWhereText
-ORDER BY `value`.`id`
+ORDER BY `value`.`id` ASC
 LIMIT 1
 ;
 SQL;

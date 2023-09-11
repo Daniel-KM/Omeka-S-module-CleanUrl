@@ -326,7 +326,7 @@ class Module extends AbstractModule
             // Check all pages of the default site.
             // TODO Manage the case where the default site is updated after (rare).
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER BY id;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -340,7 +340,7 @@ class Module extends AbstractModule
                 $messenger->addError($message);
                 $hasError = true;
             }
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
@@ -368,7 +368,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER by id;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site ORDER by id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -396,7 +396,7 @@ class Module extends AbstractModule
         // Check the existing slugs with reserved slugs.
         else {
             $result = [];
-            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id;')->fetchFirstColumn();
+            $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
                     $result[] = $slug;
@@ -639,7 +639,7 @@ class Module extends AbstractModule
 
         // Update list of sites.
         // Get all site slugs, public or not.
-        $slugs = $services->get('Omeka\Connection')->executeQuery('SELECT slug FROM site ORDER BY id;')->fetchFirstColumn();
+        $slugs = $services->get('Omeka\Connection')->executeQuery('SELECT slug FROM site ORDER BY id ASC;')->fetchFirstColumn();
         $replaceRegex = $this->prepareRegex($slugs);
         $regex = "~const SLUGS_SITE = '[^']*?';~";
         $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
