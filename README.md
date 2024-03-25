@@ -245,7 +245,7 @@ module was rewritten to manage various requirements.
 [BibLibre]: https://github.com/biblibre
 [Ark]: https://gitlab.com/Daniel-KM/Omeka-S-module-Ark
 [Generic]: https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
-[Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
 [config/clean_url.config.php]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
