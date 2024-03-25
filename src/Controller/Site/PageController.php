@@ -115,13 +115,12 @@ class PageController extends \Omeka\Controller\Site\PageController
     protected function defaultSite(): ?SiteRepresentation
     {
         $defaultSiteId = (int) $this->settings()->get('default_site');
-        if ($defaultSiteId) {
-            try {
-                return $this->api()->read('sites', ['id' => $defaultSiteId])->getContent();
-            } catch (ApiException\NotFoundException $e) {
-                // Nothing.
-            }
+        try {
+            return $defaultSiteId
+                ? $this->api()->read('sites', ['id' => $defaultSiteId])->getContent()
+                : null;
+        } catch (ApiException\NotFoundException $e) {
+            return null;
         }
-        return null;
     }
 }
