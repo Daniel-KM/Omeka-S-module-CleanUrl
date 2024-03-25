@@ -7,23 +7,24 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-09 00:00+0000\n"
-"PO-Revision-Date: 2023-01-09 00:00+0000\n"
+"POT-Creation-Date: 2024-03-18 00:00+0000"
+"MI+ZONE\n"
+"PO-Revision-Date: \n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: data/scripts/upgrade.php:63 data/scripts/upgrade.php:144
 msgid ""
 "Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
 "clean_url.dynamic.php\" in the config directory of Omeka."
 msgstr ""
-"Impossible de copier le fichier de configuration \"config/clean_url.config."
-"php\" ou \"config/clean_url.dynamic.php\" dans le dossier de configuration "
+"Impossible de copier le fichier de configuration « config/clean_url.config."
+"php » ou « config/clean_url.dynamic.php » dans le dossier de configuration "
 "d’Omeka."
 
 #: data/scripts/upgrade.php:69
@@ -31,25 +32,25 @@ msgid ""
 "Check the new config file \"config/clean_url.config.php\" and remove the old "
 "one in the config directory of Omeka."
 msgstr ""
-"Vérifier le nouveau fichier de configuration \"config/clean_url.config.php\" "
-"et supprimer l’ancien dans le dossier \"config\" d’Omeka."
+"Vérifier le nouveau fichier de configuration « config/clean_url.config.php » "
+"et supprimer l’ancien dans le dossier « config » d’Omeka."
 
-#: data/scripts/upgrade.php:189 Module.php:93
+#: data/scripts/upgrade.php:189 Module.php:94
 #, php-format
 msgid "This module requires the module \"%s\", version %s or above."
-msgstr "Ce module requiert le module \"%s\", version \"%s\" ou supérieur."
+msgstr "Ce module requiert le module « %s », version « %s » ou supérieur."
 
-#: Module.php:227
+#: Module.php:234
 msgid ""
 "\"Clean Url\" module allows to have clean, readable and search engine "
 "optimized urls for pages and resources, like https://example.net/"
 "item_set_identifier/item_identifier."
 msgstr ""
-"Le module \"Clean Url\" permet de diffuser des urls claires, lisibles, et "
+"Le module « Clean Url » permet de diffuser des urls claires, lisibles, et "
 "optimisées pour les moteurs de recherche pour les pages et les ressources, "
 "comme http://exemple.com/ma_collection/id_contenu."
 
-#: Module.php:229
+#: Module.php:236
 msgid ""
 "For identifiers, it is recommended to use a pattern that includes at least "
 "one letter to avoid confusion with internal numerical ids."
@@ -57,7 +58,7 @@ msgstr ""
 "Pour les identifiants, il est recommandé d’utiliser un modèle qui inclut au "
 "moins une lettre pour éviter la confusion avec les numéros internes."
 
-#: Module.php:231
+#: Module.php:238
 msgid ""
 "For a good seo, it’s not recommended to have multiple urls for the same "
 "resource."
@@ -65,41 +66,31 @@ msgstr ""
 "Pour un bon SEO, il n’est pas recommandé d’avoir plusieurs urls pour une "
 "même ressource."
 
-#: Module.php:233
+#: Module.php:240
 #, php-format
 msgid "See %s for more information."
 msgstr "Voir %s pour plus d’informations."
 
-#: Module.php:239
-#, php-format
-msgid ""
-"%sWarning%s: the config of the module cannot be saved in \"config/cleanurl."
-"config.php\". It is required to skip the site paths."
-msgstr ""
-"%sAttention%s: la configuration du module ne peut pas être enregistrée dans "
-"\"config/cleanurl.config.php\". Cela est nécessaire pour ignorer les chemins "
-"des sites."
-
-#: Module.php:510
+#: Module.php:549
 msgid "[none]"
 msgstr "[aucun]"
 
-#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:88
-#: src/Generic/AbstractModule.php:861
+#: src/Generic/AbstractModule.php:67 src/Generic/AbstractModule.php:75
+#: src/Generic/AbstractModule.php:857
 #, php-format
 msgid "This module requires the module \"%s\"."
-msgstr "Ce module requiert le module \"%s\"."
+msgstr "Ce module requiert le module « %s »."
 
-#: src/Generic/AbstractModule.php:93
+#: src/Generic/AbstractModule.php:80
 #, php-format
 msgid "This module requires modules \"%s\"."
-msgstr "Ce module requiert les modules \"%s\"."
+msgstr "Ce module requiert les modules « %s »."
 
-#: src/Generic/AbstractModule.php:101
+#: src/Generic/AbstractModule.php:88
 msgid "This module has resources that cannot be installed."
 msgstr "Ce module a des ressources qui ne peuvent pas être installées."
 
-#: src/Generic/AbstractModule.php:108
+#: src/Generic/AbstractModule.php:95
 msgid ""
 "This module cannot install its tables, because they exist already. Try to "
 "remove them first."
@@ -107,24 +98,24 @@ msgstr ""
 "Ce module ne peut pas installer ses tables car elles existent déjà. Essayez "
 "de les supprimer manuellement."
 
-#: src/Generic/AbstractModule.php:369
+#: src/Generic/AbstractModule.php:365
 #, php-format
 msgid "The module removed tables \"%s\" from a previous broken install."
 msgstr ""
 "Le module a supprimé les tables « %s » depuis une installation échouée."
 
-#: src/Generic/AbstractModule.php:856
+#: src/Generic/AbstractModule.php:852
 #, php-format
 msgid "This module requires the module \"%1$s\", version %2$s or above."
 msgstr "Ce module requiert le module « %1$s », version %2$s ou supérieure."
 
-#: src/Generic/AbstractModule.php:953
+#: src/Generic/AbstractModule.php:949
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
 "unavailable."
 msgstr ""
-"Le module \"%s\" a été automatiquement désactivé car ses dépendances ne sont "
+"Le module « %s » a été automatiquement désactivé car ses dépendances ne sont "
 "plus disponibles."
 
 #: data/scripts/upgrade.php:58
@@ -162,7 +153,7 @@ msgstr ""
 "simplifiée. Il est recommandé de vérifier la configuration car la mise à "
 "jour n’ est pas automatique."
 
-#: Module.php:86 Module.php:591
+#: Module.php:87 Module.php:635
 msgid ""
 "The file \"cleanurl.config.php\" in the config directory of Omeka is not "
 "writeable."
@@ -170,7 +161,16 @@ msgstr ""
 "Le fichier \"cleanurl.config.php\" dans le dossier de configuration d’Omeka "
 "n’est pas modifiable."
 
-#: Module.php:280
+#: Module.php:246
+msgid ""
+"Warning: the config of the module cannot be saved in \"config/cleanurl."
+"config.php\". It is required to skip the site paths."
+msgstr ""
+"Attention : la configuration du module ne peut pas être enregistrée dans "
+"« config/cleanurl.config.php ». Cela est nécessaire pour ignorer les chemins "
+"des sites."
+
+#: Module.php:286
 msgid ""
 "The config of the module cannot be saved in \"config/cleanurl.config.php\". "
 "It is required to skip the site paths."
@@ -179,144 +179,166 @@ msgstr ""
 "cleanurl.config.php\". Cela est nécessaire pour ignorer les chemins des "
 "sites."
 
-#: Module.php:317
-msgid "There is no default site: \"/s/site-slug\" cannot be empty or skipped."
+#: Module.php:324
+msgid "Set a default site if you want to remove the part \"/s/site-slug\"."
 msgstr ""
-"Aucun site par défaut n'est défini : \"/s/site-slug\" ne peut pas être vide "
-"ou enlevé."
+"Définissez un site par défaut si vous voulez supprimer l’élément « /s/site-"
+"slug »."
 
-#: Module.php:333
-#, php-format
+#: Module.php:341
 msgid ""
-"The sites \"%s\" use a reserved string and the \"/s/site-slug\" cannot be "
-"skipped."
+"The sites \"{site_slugs}\" use a reserved string which prevents \"/s/site-"
+"slug\" from being removed. Rename these sites if you want to skip \"/s/site-"
+"slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
-"Les sites \"%s\" utilisent une chaîne réservée et \"/s/site-slug\" ne peut "
-"pas être enlevé."
+"Les sites « {site_slugs} » utilisent des mots réservés, ce qui empêche de "
+"supprimer « /s/site-slug ». Renommez ces sites si vous voulez enlever « /s/"
+"site-slug ». Voir la {link}liste des mots réservés{link_end}."
 
-#: Module.php:347
-#, php-format
+#: Module.php:356
 msgid ""
-"The site pages \"%s\" use a reserved string and \"/s/site-slug\" cannot be "
-"skipped."
+"The sites pages \"{page_slugs}\" use a reserved string or a site slug which "
+"prevents \"/s/site-slug\" from being removed. Rename these pages if you want "
+"to skip \"/s/site-slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
-"Les pages de site \"%s\" utilisent une chaîne réservée et \"/s/site-slug\" "
-"ne peut pas être enlevé."
+"Les pages de sites « {page_slugs} » utilisent des mots réservés ou un nom de "
+"site, ce qui empêche de supprimer « /s/site-slug ». Renommez ces pages si "
+"vous voulez enlever « /s/site-slug ». Voir la {link}liste des mots "
+"réservés{link_end}."
 
-#: Module.php:360
-#, php-format
+#: Module.php:370
 msgid ""
-"The slug \"%s\" is used or reserved and the prefix for sites cannot be "
-"updated."
+"The prefix \"{slug}\" is reserved, which prevents from being used as a "
+"prefix. Use another prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
-"Le segment \"%s\" est utilisé ou réservé et le préfixe pour les sites ne "
-"peut pas être mis à jour."
+"Le préfixe « {slug} » est un mot réservé, ce qui empêche de l’utiliser comme "
+"préfixe. Utilisez un autre préfixe. Voir la {link}liste des mots "
+"réservés{link_end}."
 
-#: Module.php:375
-#, php-format
+#: Module.php:380
 msgid ""
-"The sites \"%s\" use a reserved string and the prefix for sites cannot be "
-"removed."
+"The prefix \"{slug}\" is already set for a site, which prevents from being "
+"used as a prefix. Use another prefix or rename the site. See the {link}list "
+"of reserved strings{link_end}."
 msgstr ""
-"Les sites \"%s\" utilisent une chaîne réservée et le préfixe pour les sites "
-"ne peut être enlevé."
+"Le préfixe « {slug} » est déjà défini pour un site, ce qui empêche de "
+"l’utiliser comme préfixe. Utilisez un autre préfixe ou renommer le site. "
+"Voir la {link}liste des mots réservés{link_end}."
 
-#: Module.php:388
-#, php-format
+#: Module.php:396
 msgid ""
-"The slug \"%s\" is used or reserved and the prefix for pages cannot be "
-"updated."
+"The sites \"{site_slugs}\" use a reserved string which prevents the prefix "
+"for site from being removed. Rename these sites if you want to skip the "
+"prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
-"Le segment \"%s\" est utilisé ou réservé et le préfixe des pages ne peut pas "
-"être modifié."
+"Les sites « {site_slugs} » utilisent des mots réservés, ce qui empêche de "
+"supprimer le préfixe des sites. Renommez ces sites si vous voulez enlever le "
+"préfixe. Voir la {link}liste des mots réservés{link_end}."
 
-#: Module.php:403
-#, php-format
+#: Module.php:410
 msgid ""
-"The site pages \"%s\" use a reserved string and the prefix for pages cannot "
-"be removed."
+"The prefix \"{slug}\" is reserved, which prevents from being used as a "
+"prefix for pages. Use another prefix. See the {link}list of reserved "
+"strings{link_end}."
 msgstr ""
-"Les pages de site \"%s\" utilisent une chaîne réservée et le préfixe pour "
-"les pages ne peut pas être enlevé."
+"Le préfixe « {slug} » est un mot réservé, ce qui empêche de l’utiliser comme "
+"préfixe pour les pages. Utilisez un autre préfixe. Voir la {link}liste des "
+"mots réservés{link_end}."
 
-#: Module.php:404
-msgid "\", \""
-msgstr "\", \""
-
-#: Module.php:446 Module.php:451 Module.php:944
-#, php-format
+#: Module.php:420
 msgid ""
-"A pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to use the "
-"path \"%s\"."
+"The prefix \"{slug}\" is already set for a site, which prevents from being "
+"used as a prefix for pages. Use another prefix or rename the site. See the "
+"{link}list of reserved strings{link_end}."
 msgstr ""
-"Un modèle pour \"%s\", par exemple \"[a-zA-Z0-9_-]+\", est nécessaire pour "
-"le chemin \"%s\"."
+"Le préfixe « {slug} » est déjà défini pour un site, ce qui empêche de "
+"l’utiliser comme préfixe pour les pages. Utilisez un autre préfixe ou "
+"renommer le site. Voir la {link}liste des mots réservés{link_end}."
 
-#: Module.php:575
-#, php-format
+#: Module.php:436
 msgid ""
-"The slug \"%s\" is used or reserved. A random string has been automatically "
-"appended."
+"The sites pages \"{page_slugs}\" use a reserved string which prevents the "
+"prefix for pages from being removed. Rename these pages if you want to skip "
+"the prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
-"Le segment \"%s\" est utilisé ou réservé. Une chaîne aléatoire a été "
+"Les pages de sites « {page_slugs} » utilisent des mots réservés, ce qui "
+"empêche de supprimer le préfixe des pages. Renommez ces pages si vous voulez "
+"enlever le préfixe. Voir la {link}liste des mots réservés{link_end}."
+
+#: Module.php:480 Module.php:488 Module.php:1011
+msgid ""
+"A pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
+"required to use the path \"{path}\"."
+msgstr ""
+"Un modèle pour « {resource_type} », par exemple \"[a-zA-Z0-9_-]+\", est "
+"nécessaire pour le chemin « {path} »."
+
+#: Module.php:618
+msgid ""
+"The slug \"{slug}\" is used or reserved. A random string has been "
+"automatically appended."
+msgstr ""
+"Le segment « {slug} » est utilisé ou réservé. Une chaîne aléatoire a été "
 "automatiquement ajoutée."
 
-#: Module.php:847
-#, php-format
+#: Module.php:893
 msgid ""
-"The path \"%s\" for item sets should contain one and only one item set "
+"The path \"{path}\" for item sets should contain one and only one item set "
 "identifier."
 msgstr ""
-"Le chemin \"%s\" pour les collections doit contenir un identifiant et un "
+"Le chemin « {path} » pour les collections doit contenir un identifiant et un "
 "seul."
 
-#: Module.php:865
-#, php-format
-msgid "The path \"%s\" for item sets should not contain identifier \"%s\"."
-msgstr ""
-"Le chemin \"%s\" pour les collections ne doit pas contenir l’identifiant \"%s"
-"\"."
-
-#: Module.php:882
-#, php-format
+#: Module.php:914
 msgid ""
-"The path \"%s\" for items should contain one and only one item identifier."
+"The path \"{path}\" for item sets should not contain identifier "
+"\"{identifier}\"."
 msgstr ""
-"Le chemin \"%s\" pour les contenus doit contenir un identifiant et un seul."
-
-#: Module.php:897
-#, php-format
-msgid "The path \"%s\" for items should not contain identifier \"%s\"."
-msgstr ""
-"Le chemin \"%s\" pour les contenus ne doit pas contenir l’identifiant \"%s\"."
-
-#: Module.php:915
-#, php-format
-msgid ""
-"The path \"%s\" for medias should contain one and only one item identifier."
-msgstr ""
-"Le chemin \"%s\" pour les médias doit contenir un identifiant et un seul."
-
-#: Module.php:926
-#, php-format
-msgid "The path \"%s\" for medias should not contain identifier \"%s\"."
-msgstr ""
-"Le chemin \"%s\" pour les médias ne doit pas contenir l’identifiant \"%s\"."
+"Le chemin « {path} » pour les collections ne doit pas contenir l’identifiant "
+"« {identifier} »."
 
 #: Module.php:934
-#, php-format
-msgid "The path \"%s\" for medias should contain an item identifier."
-msgstr ""
-"Le chemin \"%s\" pour les médias doit contenir un identifiant du contenu."
-
-#: Module.php:947
-#, php-format
 msgid ""
-"A short pattern for \"%s\", for example \"[a-zA-Z0-9_-]+\", is required to "
-"use the path \"%s\"."
+"The path \"{path}\" for items should contain one and only one item "
+"identifier."
 msgstr ""
-"Un modèle pour \"%s\", par exemple \"[a-zA-Z0-9_-]+\", est nécessaire pour "
-"le chemin \"%s\"."
+"Le chemin « {path} » pour les contenus doit contenir un identifiant et un "
+"seul."
+
+#: Module.php:952
+msgid ""
+"The path \"{path}\" for items should not contain identifier \"{identifier}\"."
+msgstr ""
+"Le chemin « {path} » pour les contenus ne doit pas contenir l’identifiant "
+"« {identifier} »."
+
+#: Module.php:973
+msgid ""
+"The path \"{path}\" for medias should contain one and only one item "
+"identifier."
+msgstr ""
+"Le chemin « {path} » pour les médias doit contenir un identifiant et un seul."
+
+#: Module.php:987
+msgid ""
+"The path \"{path}\" for medias should not contain identifier "
+"\"{identifier}\"."
+msgstr ""
+"Le chemin « {path} » pour les médias ne doit pas contenir l’identifiant "
+"« {identifier} »."
+
+#: Module.php:998
+msgid "The path \"{path}\" for medias should contain an item identifier."
+msgstr ""
+"Le chemin « {path} » pour les médias doit contenir un identifiant du contenu."
+
+#: Module.php:1017
+msgid ""
+"A short pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
+"required to use the path \"{path}\"."
+msgstr ""
+"Un modèle pour « {resource_type} », par exemple \"[a-zA-Z0-9_-]+\", est "
+"nécessaire pour le chemin « {path} »."
 
 #: src/View/Helper/GetMediaFromPosition.php:58
 msgid "Item should be an Item, an ItemRepresentation or an integer."
@@ -328,7 +350,7 @@ msgstr "Sites et pages"
 
 #: src/Form/ConfigForm.php:29
 msgid "Skip \"s/site-slug/\" for default site"
-msgstr "Enlever \"s/site-slug/\" du site par défaut"
+msgstr "Enlever « s/site-slug/ » du site par défaut"
 
 #: src/Form/ConfigForm.php:30
 msgid "The main site is defined in the main settings."
@@ -372,7 +394,7 @@ msgid ""
 "cleanurl.config.php or here, one by row."
 msgstr ""
 "Cette option permet de corriger les routes pour les modules non gérés. On "
-"peut les ajouter dans le fichier \"cleanurl.config.php\" ou ici, une par "
+"peut les ajouter dans le fichier « cleanurl.config.php » ou ici, une par "
 "ligne."
 
 #: src/Form/ConfigForm.php:144
@@ -419,7 +441,7 @@ msgid ""
 "resource id will be used."
 msgstr ""
 "Ce préfixe permet de trouver un identifiant quand une ressource en a "
-"plusieurs : \"ark:\", \"notice:\", or \"doc =\". Inclure l’espace si besoin. "
+"plusieurs : « ark: », « notice: », or « doc = ». Inclure l’espace si besoin. "
 "Laisser vide pour utiliser le premier identifiant. Si l’identifiant n’existe "
 "pas, l’identifiant Omeka sera utilisé."
 
@@ -429,11 +451,72 @@ msgstr "Le préfixe fait partie de l’identifiant"
 
 #: src/Form/ConfigForm.php:233
 msgid "Identifiers have slash, so don’t escape it"
-msgstr "Les identifiants ont une barre \"/\" à ne pas échapper"
+msgstr "Les identifiants ont une barre « / » à ne pas échapper"
 
 #: src/Form/ConfigForm.php:243
 msgid "Identifiers are case sensitive"
 msgstr "Les identifiants sont sensibles à la casse"
+
+#: src/Controller/Site/PageController.php:49
+msgid "Cannot render page: no default site was set."
+msgstr "Impossible d’afficher la page : aucun site par défaut n’est défini."
+
+#~ msgid ""
+#~ "There is no default site: \"/s/site-slug\" cannot be empty or skipped."
+#~ msgstr ""
+#~ "Aucun site par défaut n'est défini : \"/s/site-slug\" ne peut pas être "
+#~ "vide ou enlevé."
+
+#, php-format
+#~ msgid ""
+#~ "The sites \"%s\" use a reserved string and the \"/s/site-slug\" cannot be "
+#~ "skipped."
+#~ msgstr ""
+#~ "Les sites \"%s\" utilisent une chaîne réservée et \"/s/site-slug\" ne "
+#~ "peut pas être enlevé."
+
+#, php-format
+#~ msgid ""
+#~ "The site pages \"%s\" use a reserved string and \"/s/site-slug\" cannot "
+#~ "be skipped."
+#~ msgstr ""
+#~ "Les pages de site \"%s\" utilisent une chaîne réservée et \"/s/site-"
+#~ "slug\" ne peut pas être enlevé."
+
+#, php-format
+#~ msgid ""
+#~ "The slug \"%s\" is used or reserved and the prefix for sites cannot be "
+#~ "updated."
+#~ msgstr ""
+#~ "Le segment \"%s\" est utilisé ou réservé et le préfixe pour les sites ne "
+#~ "peut pas être mis à jour."
+
+#, php-format
+#~ msgid ""
+#~ "The sites \"%s\" use a reserved string and the prefix for sites cannot be "
+#~ "removed."
+#~ msgstr ""
+#~ "Les sites \"%s\" utilisent une chaîne réservée et le préfixe pour les "
+#~ "sites ne peut être enlevé."
+
+#, php-format
+#~ msgid ""
+#~ "The slug \"%s\" is used or reserved and the prefix for pages cannot be "
+#~ "updated."
+#~ msgstr ""
+#~ "Le segment \"%s\" est utilisé ou réservé et le préfixe des pages ne peut "
+#~ "pas être modifié."
+
+#, php-format
+#~ msgid ""
+#~ "The site pages \"%s\" use a reserved string and the prefix for pages "
+#~ "cannot be removed."
+#~ msgstr ""
+#~ "Les pages de site \"%s\" utilisent une chaîne réservée et le préfixe pour "
+#~ "les pages ne peut pas être enlevé."
+
+#~ msgid "\", \""
+#~ msgstr "\", \""
 
 #~ msgid "Clean identifier"
 #~ msgstr "Identifiant normalisé"
@@ -503,8 +586,8 @@ msgstr "Les identifiants sont sensibles à la casse"
 #~ "avec \"~\" comme délimiteur, trié du premier à vérifier au dernier."
 
 #~ msgid ""
-#~ "Some settings may be configured in the file \"config/clean_url.config.php"
-#~ "\" in the root of Omeka."
+#~ "Some settings may be configured in the file \"config/clean_url.config."
+#~ "php\" in the root of Omeka."
 #~ msgstr ""
 #~ "Certains paramètres peuvent être configurés dans le fichier \"config/"
 #~ "clean_url.config.php\" à la racine d’Omeka."
