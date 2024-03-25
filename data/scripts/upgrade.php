@@ -16,7 +16,7 @@ use Omeka\Stdlib\Message;
  * @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger
  */
 
-@require dirname(__DIR__, 2) . '/config/cleanurl.config.php';
+@require_once dirname(__DIR__, 2) . '/config/cleanurl.config.php';
 $config = @require dirname(__DIR__, 2) . '/config/module.config.php';
 
 $plugins = $services->get('ControllerPluginManager');
@@ -312,6 +312,7 @@ if (version_compare($oldVersion, '3.16.1.3', '<')) {
     }
 }
 
+// TODO Use TraitModule.
 $this->getConfig();
 $this->cacheCleanData();
 $this->cacheRouteSettings();
