@@ -11,6 +11,16 @@ use Laminas\Stdlib\RequestInterface as Request;
  */
 class RegexPage extends Regex
 {
+    /**
+     * Priority used for route stacks.
+     *
+     * The property should be public.
+     * @see \Laminas\Router\RouteInterface
+     *
+     * @var int
+     */
+    public $priority;
+
     public function match(Request $request, $pathOffset = null)
     {
         if (!method_exists($request, 'getUri')) {

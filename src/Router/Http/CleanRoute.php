@@ -57,6 +57,16 @@ class CleanRoute implements RouteInterface
     protected $getResourceIdentifier;
 
     /**
+     * Priority used for route stacks.
+     *
+     * The property should be public.
+     * @see \Laminas\Router\RouteInterface
+     *
+     * @var int
+     */
+    public $priority;
+
+    /**
      * @var array
      */
     protected $routes;
