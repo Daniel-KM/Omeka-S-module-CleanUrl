@@ -15,13 +15,13 @@ namespace CleanUrl;
  * (admin, api, item, login, etc.).
  * It can be edited as needed. This regex pattern must start with a "|".
  */
-const SLUGS_RESERVED = '|access|adminer|annotation|ark|ark%3A|ark:|atom|auth|basket|bulk|bulk-check|bulk-import|bulk-export|cartography|collecting|comment|correction|cron|css-editor|csvimport|custom-ontology|custom-vocab|download|ebook|edition|elastic|elastic-search|embed|embed-item|embed-page|epub|export|favorite|feed|find|graph|guest|iiif|iiif-img|iiif-search|iiif-server|image-server|import|item-sets-tree|ixif|ixif-media|ldap|login-admin|map|map-browse|ns|oai|oai-pmh|oauth|output|pdf|rss|saml|scripto|search|search-manager|selection|sitemap|solr|statistics|stats|story|storymap|subscription|tag|tagging|tags|timeline|unapi|upload|uri-dereferencer|value-annotation|value-suggest|vocab-suggest|xml-sitemap|zip|zotero|zotero-import';
+const SLUGS_RESERVED = '|access|adminer|annotation|ark%3A|ark:|ark|atom|auth|basket|bulk-check|bulk-import|bulk-export|bulk|cartography|collecting|comment|correction|cron|css-editor|csvimport|custom-ontology|custom-vocab|download|ebook|edition|elastic-search|elastic|embed-item|embed-page|embed|epub|export|favorite|feed|find|graph|guest|iiif-img|iiif-presentation|iiif-search|iiif-server|iiif|image-server|import|item-sets-tree|ixif|ixif-media|ldap|login-admin|map-browse|map|ns|oai-pmh|oai|oauth|output|pdf|rss|saml|scripto|search-manager|search|selection|sitemap|solr|sso|statistics|stats|storymap|story|subscription|tagging|tags|tag|timeline|unapi|upload|uri-dereferencer|value-annotation|value-suggest|vocab-suggest|xml-sitemap|zip|zotero-import|zotero';
 
 /**
  * @todo Remove the "s", that is not required, but kept for now for modules and themes that don't use helper url(). Anyway it's not working.
  * @todo Create the list dynamically from the routes.
  */
-const SLUGS_CORE = 'item|item-set|media|page|api|api-context|admin|asset|login|logout|create-password|forgot-password|maintenance|migrate|install|files|cross-site-search|s|index|job|log|module|property|resource|resource-class|resource-template|setting|site|system-info|task|user|value|vocabulary';
+const SLUGS_CORE = 'item-set|item|media|page|api-context|api-local|api|admin|asset|login|logout|create-password|forgot-password|maintenance|migrate|install|files|cross-site-search|s|index|job|log|module|property|resource-class|resource-template|resource|setting|site|system-info|task|user|value|vocabulary';
 
 /**
  * Allows to have a main site url without "/s/site-slug".
