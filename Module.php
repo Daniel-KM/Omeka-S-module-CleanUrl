@@ -2,24 +2,12 @@
 
 namespace CleanUrl;
 
-/*
- * Clean Url
- *
- * Allows to have links like https://example.net/collection/dcterms:identifier.
- *
- * @copyright Daniel Berthereau, 2012-2023
- * @copyright BibLibre, 2016-2017
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
- */
-
-if (!class_exists(\Generic\AbstractModule::class)) {
-    require file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
-        ? dirname(__DIR__) . '/Generic/AbstractModule.php'
-        : __DIR__ . '/src/Generic/AbstractModule.php';
+if (!class_exists(\Common\TraitModule::class)) {
+    require_once dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
 use CleanUrl\Form\ConfigForm;
-use Generic\AbstractModule;
+use Common\TraitModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ModuleManager\ModuleEvent;
@@ -27,10 +15,22 @@ use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Renderer\PhpRenderer;
+use Omeka\Module\AbstractModule;
 use Omeka\Stdlib\Message;
 
+/**
+ * Clean Url
+ *
+ * Allows to have links like https://example.net/collection/dcterms:identifier.
+ *
+ * @copyright Daniel Berthereau, 2012-2024
+ * @copyright BibLibre, 2016-2017
+ * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
+ */
 class Module extends AbstractModule
 {
+    use TraitModule;
+
     const NAMESPACE = __NAMESPACE__;
 
     public function init(ModuleManager $moduleManager): void
@@ -86,13 +86,15 @@ class Module extends AbstractModule
         if (!$this->isConfigWriteable()) {
             throw new \Omeka\Module\Exception\ModuleCannotInstallException('The file "cleanurl.config.php" in the config directory of Omeka is not writeable.'); // @translate
         }
+
         $services = $this->getServiceLocator();
-        $module = $services->get('Omeka\ModuleManager')->getModule('Generic');
-        if ($module && version_compare($module->getIni('version') ?? '', '3.4.43', '<')) {
-            $translator = $services->get('MvcTranslator');
+        $plugins = $services->get('ControllerPluginManager');
+        $translate = $plugins->get('translate');
+
+        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.62')) {
             $message = new \Omeka\Stdlib\Message(
-                $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
-                'Generic', '3.4.43'
+                $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
+                'Common', '3.4.62'
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
@@ -246,7 +248,7 @@ class Module extends AbstractModule
         }
 
         return $html
-            . parent::getConfigForm($renderer);
+            . $this->getConfigFormAuto($renderer);
     }
 
     public function handleConfigForm(AbstractController $controller)
