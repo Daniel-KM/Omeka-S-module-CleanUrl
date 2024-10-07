@@ -6,9 +6,15 @@ use Laminas\Mvc\Exception\RuntimeException;
 use Laminas\View\Model\ViewModel;
 use Omeka\Api\Exception as ApiException;
 use Omeka\Api\Representation\SiteRepresentation;
+use Omeka\Site\Theme\Theme;
 
 class PageController extends \Omeka\Controller\Site\PageController
 {
+    public function __construct(?Theme $currentTheme)
+    {
+        $this->currentTheme = $currentTheme;
+    }
+
     public function showAction()
     {
         /**
@@ -102,6 +108,18 @@ class PageController extends \Omeka\Controller\Site\PageController
             'pageBodyClass' => $pageBodyClass,
             'displayNavigation' => true,
         ]);
+
+        // Set the configured page template, if any.
+        if ($this->currentTheme) {
+            $templateName = $page->layoutDataValue('template_name');
+            if ($templateName) {
+                // Verify that the current theme provides this template.
+                $config = $this->currentTheme->getConfigSpec();
+                if (isset($config['page_templates'][$templateName])) {
+                    $view->setTemplate(sprintf('common/page-template/%s', $templateName));
+                }
+            }
+        }
 
         $contentView = clone $view;
         $contentView

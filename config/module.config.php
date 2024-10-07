@@ -58,9 +58,9 @@ return [
         ],
     ],
     'controllers' => [
-        'invokables' => [
+        'factories' => [
             // Override the page controller used for the root url.
-            'Omeka\Controller\Site\Page' => Controller\Site\PageController::class,
+            'Omeka\Controller\Site\Page' => Service\Controller\Site\PageControllerFactory::class,
         ],
     ],
     'router' => [
