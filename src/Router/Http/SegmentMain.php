@@ -11,6 +11,16 @@ use Laminas\Router\Http\Segment;
  */
 class SegmentMain extends Segment
 {
+    /**
+     * Priority used for route stacks.
+     *
+     * The property should be public.
+     * @see \Laminas\Router\RouteInterface
+     *
+     * @var int
+     */
+    public $priority;
+
     public function assemble(array $params = [], array $options = [])
     {
         return SLUG_MAIN_SITE && isset($params['site-slug']) && $params['site-slug'] === SLUG_MAIN_SITE
