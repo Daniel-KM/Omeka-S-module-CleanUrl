@@ -194,6 +194,7 @@ TODO
 - [ ] Forward/Redirect to the canonical url
 - [x] Replace the check with/without space by a job that cleans all identifiers (see Bulk Check).
 - [ ] Remove the management of the space to get resources from identifiers with a prefix.
+- [ ] Improve speed to create url, in particular when creating urls in bulk (module Mapping). Create a table? Or even a single setting with the full list id/identifier?
 
 
 Warning
@@ -237,7 +238,7 @@ altered, and that no provisions are either added or removed herefrom.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2023 (see [Daniel-KM] on GitLab)
+* Copyright Daniel Berthereau, 2012-2024 (see [Daniel-KM] on GitLab)
 * Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
