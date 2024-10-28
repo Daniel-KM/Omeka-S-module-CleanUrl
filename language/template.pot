@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 00:00+0000\n"
+"POT-Creation-Date: 2024-10-28 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:63 data/scripts/upgrade.php:144
-msgid ""
-"Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
-"clean_url.dynamic.php\" in the config directory of Omeka."
-msgstr ""
-
-#: data/scripts/upgrade.php:69
-msgid ""
-"Check the new config file \"config/clean_url.config.php\" and remove the old "
-"one in the config directory of Omeka."
-msgstr ""
-
-#: data/scripts/upgrade.php:189
-#, php-format
-msgid "This module requires the module \"%s\", version %s or above."
-msgstr ""
-
-#: Module.php:96
+#: data/scripts/upgrade.php:37 Module.php:96
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
@@ -67,29 +50,46 @@ msgstr ""
 msgid "[none]"
 msgstr ""
 
-#: data/scripts/upgrade.php:58
+#: data/scripts/upgrade.php:73
 msgid ""
 "Your previous version is too old to do a direct upgrade to the current "
 "version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module."
 msgstr ""
 
-#: data/scripts/upgrade.php:66 data/scripts/upgrade.php:146
+#: data/scripts/upgrade.php:80 data/scripts/upgrade.php:165
+msgid ""
+"Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
+"clean_url.dynamic.php\" in the config directory of Omeka."
+msgstr ""
+
+#: data/scripts/upgrade.php:84 data/scripts/upgrade.php:168
 msgid ""
 "The file \"clean_url.config.php\" and/or \"config/clean_url.dynamic.php\" in "
 "the config directory of Omeka is not writeable."
 msgstr ""
 
-#: data/scripts/upgrade.php:157 data/scripts/upgrade.php:181
+#: data/scripts/upgrade.php:88
+msgid ""
+"Check the new config file \"config/clean_url.config.php\" and remove the old "
+"one in the config directory of Omeka."
+msgstr ""
+
+#: data/scripts/upgrade.php:179 data/scripts/upgrade.php:203
 msgid ""
 "The file \"config/cleanurl.config.php\" at the root of Omeka is not "
 "writeable."
 msgstr ""
 
-#: data/scripts/upgrade.php:162
+#: data/scripts/upgrade.php:184
 msgid ""
 "The module has been rewritten and the whole configuration has been "
 "simplified. You should check your config, because the upgrade of the "
 "configuration is not automatic."
+msgstr ""
+
+#: data/scripts/upgrade.php:212
+msgid ""
+"This module requires the module \"{module}\", version {version} or above."
 msgstr ""
 
 #: Module.php:87 Module.php:644
