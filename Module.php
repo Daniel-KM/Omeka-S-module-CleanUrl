@@ -786,7 +786,7 @@ class Module extends AbstractModule
                 'namespace' => 'CleanUrl\Controller\Admin',
                 'site_slug' => null,
                 'forward' => [
-                    'route_name' => 'admin/default',
+                    'route_name' => 'admin/id',
                     'namespace' => 'Omeka\Controller\Admin',
                     'controller' => [
                         'item_set' => 'Omeka\Controller\Admin\ItemSet',
