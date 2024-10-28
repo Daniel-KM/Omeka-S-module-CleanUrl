@@ -26,6 +26,7 @@ use Traversable;
  * Manage clean urls for all Omeka resources and pages according to the config.
  *
  * @todo Store all routes of all resources and pages in the database?
+ * @todo Store at least the identifier in a specific table to allow to create urls in bulk or quickly.
  *
  * Partially derived from route \Laminas\Router\Http\Regex and \Laminas\Router\Http\Segment.
  */
