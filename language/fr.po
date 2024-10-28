@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 00:00+0000\n"
+"POT-Creation-Date: 2024-10-28 00:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
@@ -17,29 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: data/scripts/upgrade.php:63 data/scripts/upgrade.php:144
-msgid ""
-"Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
-"clean_url.dynamic.php\" in the config directory of Omeka."
-msgstr ""
-"Impossible de copier le fichier de configuration « config/clean_url.config."
-"php » ou « config/clean_url.dynamic.php » dans le dossier de configuration "
-"d’Omeka."
-
-#: data/scripts/upgrade.php:69
-msgid ""
-"Check the new config file \"config/clean_url.config.php\" and remove the old "
-"one in the config directory of Omeka."
-msgstr ""
-"Vérifier le nouveau fichier de configuration « config/clean_url.config.php » "
-"et supprimer l’ancien dans le dossier « config » d’Omeka."
-
-#: data/scripts/upgrade.php:189
-#, php-format
-msgid "This module requires the module \"%s\", version %s or above."
-msgstr "Ce module requiert le module « %s », version « %s » ou supérieur."
-
-#: Module.php:96
+#: data/scripts/upgrade.php:37 Module.php:96
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
@@ -79,7 +57,7 @@ msgstr "Voir %s pour plus d’informations."
 msgid "[none]"
 msgstr "[aucun]"
 
-#: data/scripts/upgrade.php:58
+#: data/scripts/upgrade.php:73
 msgid ""
 "Your previous version is too old to do a direct upgrade to the current "
 "version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module."
@@ -88,7 +66,16 @@ msgstr ""
 "vers la nouvelle version. Mettez d’abord à niveau vers la version 3.15.13, "
 "ou désinstallez et réinstallez le module."
 
-#: data/scripts/upgrade.php:66 data/scripts/upgrade.php:146
+#: data/scripts/upgrade.php:80 data/scripts/upgrade.php:165
+msgid ""
+"Unable to copy config files \"config/clean_url.config.php\" and/or \"config/"
+"clean_url.dynamic.php\" in the config directory of Omeka."
+msgstr ""
+"Impossible de copier le fichier de configuration « config/clean_url.config."
+"php » ou « config/clean_url.dynamic.php » dans le dossier de configuration "
+"d’Omeka."
+
+#: data/scripts/upgrade.php:84 data/scripts/upgrade.php:168
 msgid ""
 "The file \"clean_url.config.php\" and/or \"config/clean_url.dynamic.php\" in "
 "the config directory of Omeka is not writeable."
@@ -96,7 +83,15 @@ msgstr ""
 "Le fichier \"clean_url.config.php\" ou \"config/clean_url.dynamic.php\" dans "
 "le dossier de configuration d’Omeka ne peut pas être modifié."
 
-#: data/scripts/upgrade.php:157 data/scripts/upgrade.php:181
+#: data/scripts/upgrade.php:88
+msgid ""
+"Check the new config file \"config/clean_url.config.php\" and remove the old "
+"one in the config directory of Omeka."
+msgstr ""
+"Vérifier le nouveau fichier de configuration « config/clean_url.config.php » "
+"et supprimer l’ancien dans le dossier « config » d’Omeka."
+
+#: data/scripts/upgrade.php:179 data/scripts/upgrade.php:203
 msgid ""
 "The file \"config/cleanurl.config.php\" at the root of Omeka is not "
 "writeable."
@@ -104,7 +99,7 @@ msgstr ""
 "Le fichier \"config/cleanurl.config.php\" dans le dossier de configuration "
 "d’Omeka n’est pas modifiable."
 
-#: data/scripts/upgrade.php:162
+#: data/scripts/upgrade.php:184
 msgid ""
 "The module has been rewritten and the whole configuration has been "
 "simplified. You should check your config, because the upgrade of the "
@@ -113,6 +108,12 @@ msgstr ""
 "Le module a été entièrement réécrit et l’ensemble de la configuration a été "
 "simplifiée. Il est recommandé de vérifier la configuration car la mise à "
 "jour n’ est pas automatique."
+
+#: data/scripts/upgrade.php:212
+msgid ""
+"This module requires the module \"{module}\", version {version} or above."
+msgstr ""
+"Ce module requiert le module « {module} », version {version} ou supérieure."
 
 #: Module.php:87 Module.php:644
 msgid ""
