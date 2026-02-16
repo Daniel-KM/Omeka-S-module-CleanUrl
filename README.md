@@ -50,6 +50,15 @@ to manage routing quickly, in particular when there are no site and page paths.
 Contrary to a previous version, this file is automatically updated and should
 not be updated manually.
 
+* For test
+
+The module includes a comprehensive test suite with unit and functional tests.
+Run them from the root of Omeka:
+
+```sh
+vendor/bin/phpunit -c modules/CleanUrl/phpunit.xml --testdox
+```
+
 
 Usage
 -----
@@ -238,7 +247,7 @@ altered, and that no provisions are either added or removed herefrom.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2024 (see [Daniel-KM] on GitLab)
+* Copyright Daniel Berthereau, 2012-2025 (see [Daniel-KM] on GitLab)
 * Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
