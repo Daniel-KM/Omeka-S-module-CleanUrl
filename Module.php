@@ -67,10 +67,18 @@ class Module extends AbstractModule
 
     public function getConfig()
     {
-        $localCleanUrlConfig = OMEKA_PATH . '/config/cleanurl.config.php';
-        require_once file_exists($localCleanUrlConfig)
-            ? $localCleanUrlConfig
-            : __DIR__ . '/config/cleanurl.config.php';
+        require_once __DIR__ . '/config/cleanurl.config.php';
+
+        // Dynamic route constants are stored in a setting and defined here
+        // because the service manager is not yet available at this stage.
+        if (!defined('CleanUrl\SLUG_MAIN_SITE')) {
+            $data = $this->readRouteData();
+            define('CleanUrl\SLUG_MAIN_SITE', $data['main_site'] ?? false);
+            define('CleanUrl\SLUG_SITE', $data['site'] ?? 's/');
+            define('CleanUrl\SLUG_PAGE', $data['page'] ?? 'page/');
+            define('CleanUrl\SLUGS_SITE', $data['sites'] ?? '');
+        }
+
         return include __DIR__ . '/config/module.config.php';
     }
 
@@ -95,10 +103,6 @@ class Module extends AbstractModule
 
     protected function preInstall(): void
     {
-        if (!$this->isConfigWriteable()) {
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException('The file "cleanurl.config.php" in the config directory of Omeka is not writeable.'); // @translate
-        }
-
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
         $translate = $plugins->get('translate');
@@ -116,13 +120,6 @@ class Module extends AbstractModule
     {
         $this->cacheCleanData();
         $this->cacheRouteSettings();
-    }
-
-    protected function isConfigWriteable(): bool
-    {
-        $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
-        return (file_exists($filepath) && is_writeable($filepath))
-            || (!file_exists($filepath) && is_writeable(dirname($filepath)));
     }
 
     /**
@@ -242,8 +239,6 @@ class Module extends AbstractModule
     public function getConfigForm(PhpRenderer $renderer)
     {
         $services = $this->getServiceLocator();
-        $messenger = $services->get('ControllerPluginManager')->get('messenger');
-
         $translate = $renderer->plugin('translate');
         $html = $translate('"Clean Url" module allows to have clean, readable and search engine optimized urls for pages and resources, like https://example.net/item_set_identifier/item_identifier.') // @translate
             . '<br/>'
@@ -254,12 +249,6 @@ class Module extends AbstractModule
             . sprintf($translate('See %s for more information.'), // @translate
                 sprintf('<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme')
             );
-
-        if (!$this->isConfigWriteable()) {
-            $messenger->addError(new PsrMessage(
-                'Warning: the config of the module cannot be saved in "config/cleanurl.config.php". It is required to skip the site paths.' // @translate
-            ));
-        }
 
         return $html
             . $this->getConfigFormAuto($renderer);
@@ -293,14 +282,6 @@ class Module extends AbstractModule
         $hasError = false;
 
         // TODO Move the formatters and validators inside the config form.
-
-        // TODO Make it an hidden input to forbid submission.
-        if (!$this->isConfigWriteable()) {
-            $controller->messenger()->addError(
-                'The config of the module cannot be saved in "config/cleanurl.config.php". It is required to skip the site paths.' // @translate
-            );
-            $hasError = true;
-        }
 
         // Sanitize params first.
 
@@ -644,69 +625,86 @@ class Module extends AbstractModule
     }
 
     /**
-     * Cache site slugs in file config/clean_url.config.php.
+     * Cache dynamic route data (site slugs, prefixes) in a setting.
      */
     protected function cacheCleanData()
     {
         $services = $this->getServiceLocator();
-
-        $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
-        if (!$this->isConfigWriteable()) {
-            $logger = $services->get('Omeka\Logger');
-            $logger->err('The file "cleanurl.config.php" in the config directory of Omeka is not writeable.'); // @translate
-            return false;
-        }
-
         $settings = $services->get('Omeka\Settings');
 
-        // The file is always reset from the original file.
-        $sourceFilepath = __DIR__ . '/config/cleanurl.config.php';
-        $content = file_get_contents($sourceFilepath);
-
-        // Update main site.
+        // Compute main site.
         $default = $settings->get('default_site', '');
         $skip = $settings->get('cleanurl_site_skip_main');
         $siteSlug = $settings->get('cleanurl_site_slug');
         $pageSlug = $settings->get('cleanurl_page_slug');
 
-        // Check the default site.
         $skip = $skip
             || !($siteSlug . $pageSlug);
-        if ($default) {
+        $mainSite = false;
+        if ($skip && $default) {
             try {
-                $default = $services->get('Omeka\ApiManager')->read('sites', ['id' => $default])->getContent()->slug();
+                $mainSite = $services->get('Omeka\ApiManager')
+                    ->read('sites', ['id' => $default])->getContent()->slug();
             } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                $default = '';
+                $mainSite = false;
             }
         }
-        $replaceRegex = $skip && strlen($default) ? "'$default'" : 'false';
-        $regex = "~const SLUG_MAIN_SITE = (?:'[^']*?'|false);~";
-        $replace = "const SLUG_MAIN_SITE = $replaceRegex;";
-        $content = preg_replace($regex, $replace, $content, 1);
 
-        // Update options for site prefix.
+        // Site prefix.
         $siteSlug = trim($settings->get('cleanurl_site_slug', ''), ' /');
         $siteSlug = mb_strlen($siteSlug) ? $siteSlug . '/' : '';
-        $regex = "~const SLUG_SITE = '[^']*?';~";
-        $replace = "const SLUG_SITE = '$siteSlug';";
-        $content = preg_replace($regex, $replace, $content, 1);
 
-        // Update options for page prefix.
+        // Page prefix.
         $pageSlug = trim($settings->get('cleanurl_page_slug', ''), ' /');
         $pageSlug = mb_strlen($pageSlug) ? $pageSlug . '/' : '';
-        $regex = "~const SLUG_PAGE = '[^']*?';~";
-        $replace = "const SLUG_PAGE = '$pageSlug';";
-        $content = preg_replace($regex, $replace, $content, 1);
 
-        // Update list of sites.
-        // Get all site slugs, public or not.
-        $slugs = $services->get('Omeka\Connection')->executeQuery('SELECT slug FROM site ORDER BY id ASC;')->fetchFirstColumn();
-        $replaceRegex = $this->prepareRegex($slugs);
-        $regex = "~const SLUGS_SITE = '[^']*?';~";
-        $replace = "const SLUGS_SITE = '" . $replaceRegex . "';";
-        $content = preg_replace($regex, $replace, $content, 1);
+        // All site slugs as regex.
+        $slugs = $services->get('Omeka\Connection')
+            ->executeQuery('SELECT slug FROM site ORDER BY id ASC;')
+            ->fetchFirstColumn();
+        $slugsSite = $this->prepareRegex($slugs);
 
-        file_put_contents($filepath, $content);
+        $data = [
+            'main_site' => $mainSite ?: false,
+            'site' => $siteSlug,
+            'page' => $pageSlug,
+            'sites' => $slugsSite,
+        ];
+        $settings->set('cleanurl_route_data', $data);
+        return true;
+    }
+
+    /**
+     * Read dynamic route data directly from the database.
+     *
+     * The service manager is not available during getConfig(), so the setting
+     * is read via a direct PDO query.
+     */
+    private function readRouteData(): array
+    {
+        $configPath = OMEKA_PATH . '/config/database.ini';
+        if (!is_readable($configPath)) {
+            return [];
+        }
+        $ini = parse_ini_file($configPath);
+        if (!$ini) {
+            return [];
+        }
+        try {
+            $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4',
+                $ini['host'], $ini['dbname']);
+            $pdo = new \PDO($dsn, $ini['user'], $ini['password'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            ]);
+            $stmt = $pdo->prepare(
+                "SELECT value FROM setting WHERE id = 'cleanurl_route_data'"
+            );
+            $stmt->execute();
+            $value = $stmt->fetchColumn();
+            return $value ? json_decode($value, true) : [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**

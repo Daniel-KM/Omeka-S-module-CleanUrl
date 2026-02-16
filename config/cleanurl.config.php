@@ -2,11 +2,6 @@
 
 namespace CleanUrl;
 
-// IMPORTANT
-// The directory config/ of Omeka must be kept writeable, because this file is
-// automatically updated when a site slug is added or modified, or when a
-// setting is updated.
-
 /**
  * List of reserved slugs that cannot be used as site slug or page slug.
  * It is larger than needed in order to manage future modules or improvments,
@@ -24,28 +19,6 @@ const SLUGS_RESERVED = '|access|adminer|annotation|ark%3A|ark:|ark|atom|auth|bas
 const SLUGS_CORE = 'item-set|item|media|page|api-context|api-local|api|admin|asset|login|logout|create-password|forgot-password|maintenance|migrate|install|files|cross-site-search|s|index|job|log|module|property|resource-class|resource-template|resource|setting|site|system-info|task|user|value|vocabulary';
 
 /**
- * Allows to have a main site url without "/s/site-slug".
- */
-const SLUG_MAIN_SITE = false;
-
-/**
  * Hard coded.
  */
 const SLUG_SITE_DEFAULT = 's/';
-
-/**
- * Rename or remove /s/ from the urls of sites.
- * It must end with "/", or be an empty string. Default: "s/".
- */
-const SLUG_SITE = 's/';
-
-/**
- * Rename or remove /page/ from the urls of pages.
- * It must end with "/", or be an empty string. Default: "page/".
- */
-const SLUG_PAGE = 'page/';
-
-/**
- * Allows to have site urls without "s/" and page urls without "page/".
- */
-const SLUGS_SITE = '';
