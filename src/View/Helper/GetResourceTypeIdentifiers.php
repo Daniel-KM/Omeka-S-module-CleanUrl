@@ -2,6 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
+use CleanUrl\ResourceNameTrait;
 use Doctrine\DBAL\Connection;
 use Laminas\View\Helper\AbstractHelper;
 use Omeka\Entity\Item;
@@ -10,6 +11,7 @@ use Omeka\Entity\Media;
 
 class GetResourceTypeIdentifiers extends AbstractHelper
 {
+    use ResourceNameTrait;
     /**
      * @var Connection
      */
@@ -99,49 +101,6 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         return $result;
     }
 
-    protected function convertNameToResourceClass(?string $resourceName): ?string
-    {
-        $resourceClasses = [
-            'items' => Item::class,
-            'item_sets' => ItemSet::class,
-            'media' => Media::class,
-            'resources' => '',
-            'resource' => '',
-            'resource:item' => Item::class,
-            'resource:itemset' => ItemSet::class,
-            'resource:media' => Media::class,
-            // Avoid a check and make the plugin more flexible.
-            \Omeka\Api\Representation\ItemRepresentation::class => Item::class,
-            \Omeka\Api\Representation\ItemSetRepresentation::class => ItemSet::class,
-            \Omeka\Api\Representation\MediaRepresentation::class => Media::class,
-            Item::class => Item::class,
-            ItemSet::class => ItemSet::class,
-            Media::class => Media::class,
-            \Omeka\Entity\Resource::class => '',
-            'o:item' => Item::class,
-            'o:item_set' => ItemSet::class,
-            'o:media' => Media::class,
-            // Other resource types.
-            'item' => Item::class,
-            'item_set' => ItemSet::class,
-            'item-set' => ItemSet::class,
-            'itemset' => ItemSet::class,
-            'resource:item_set' => ItemSet::class,
-            'resource:item-set' => ItemSet::class,
-        ];
-        return $resourceClasses[$resourceName] ?? null;
-    }
-
-    protected function convertResourceClassToResourceName(?string $resourceClass): string
-    {
-        $resourceNames = [
-            \Omeka\Entity\ItemSet::class => 'item_sets',
-            \Omeka\Entity\Item::class => 'items',
-            \Omeka\Entity\Media::class => 'media',
-        ];
-        return $resourceNames[$resourceClass] ?? 'resources';
-    }
-
     /**
      * Encode a string.
      *
@@ -153,35 +112,4 @@ class GetResourceTypeIdentifiers extends AbstractHelper
      * @param bool $keepSlash
      * @return string
      */
-    protected function encode($value, $keepSlash = false): string
-    {
-        static $urlencodeCorrectionMap;
-
-        if ($urlencodeCorrectionMap === null) {
-            $urlencodeCorrectionMap = [];
-            $urlencodeCorrectionMap[false] = [
-                '%21' => '!', // sub-delims
-                '%24' => '$', // sub-delims
-                '%26' => '&', // sub-delims
-                '%27' => "'", // sub-delims
-                '%28' => '(', // sub-delims
-                '%29' => ')', // sub-delims
-                '%2A' => '*', // sub-delims
-                '%2B' => '+', // sub-delims
-                '%2C' => ',', // sub-delims
-                // '%2D' => '-', // unreserved - not touched by rawurlencode
-                // '%2E' => '.', // unreserved - not touched by rawurlencode
-                '%3A' => ':', // pchar
-                '%3B' => ';', // sub-delims
-                '%3D' => '=', // sub-delims
-                '%40' => '@', // pchar
-                // '%5F' => '_', // unreserved - not touched by rawurlencode
-                // '%7E' => '~', // unreserved - not touched by rawurlencode
-            ];
-            $urlencodeCorrectionMap[true] = $urlencodeCorrectionMap[false];
-            $urlencodeCorrectionMap[true]['%2F'] = '/';
-        }
-
-        return strtr(rawurlencode((string) $value), $urlencodeCorrectionMap[$keepSlash]);
-    }
 }
