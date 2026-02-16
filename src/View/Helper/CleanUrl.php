@@ -189,6 +189,8 @@ class CleanUrl extends Url
      *
      * @param array $params
      * @return array
+     *
+     * @todo Fix the deprecation when calling services from helper.
      */
     protected function appendSiteSlug(array $params): array
     {
@@ -200,6 +202,8 @@ class CleanUrl extends Url
 
     /**
      * @see \Laminas\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
+     *
+     * @todo Fix the deprecation when calling services from helper.
      */
     protected function prepareRouter(): void
     {
@@ -252,8 +256,12 @@ class CleanUrl extends Url
         ) {
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $this->view->getResourceFromIdentifier($params['resource_identifier']);
-            if (!$resource) {
-                $resource = $this->view->api()->read('resources', $params['resource_identifier'])->getContent();
+            if (!$resource && is_numeric($params['resource_identifier'])) {
+                try {
+                    $resource = $this->view->api()->read('resources', ['id' => $params['resource_identifier']])->getContent();
+                } catch (\Exception $e) {
+                    // Resource not found.
+                }
             }
             if ($resource) {
                 return $resource->getControllerName();

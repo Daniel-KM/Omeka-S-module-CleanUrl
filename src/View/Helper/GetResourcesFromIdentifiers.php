@@ -48,7 +48,15 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         // Identifiers are flipped to prepare result.
         // Even if keys are strings, they may be integers because of automatic
         // conversion for array keys.
-        $identifiers = array_fill_keys(array_filter(array_map([$this, 'trimUnicode'], array_map('rawurldecode', array_map('strval', $identifiers)))), null);
+        $cleaned = [];
+        foreach ($identifiers as $identifier) {
+            $v = $this->trimUnicode(rawurldecode((string) $identifier));
+            if ($v !== '') {
+                $cleaned[$v] = null;
+            }
+        }
+        $identifiers = $cleaned;
+        unset($cleaned);
 
         if (!count($identifiers)) {
             return [];
@@ -118,6 +126,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         $noPrefix = !$lengthPrefix;
         $prefixIsPartOfIdentifier = $lengthPrefix
             && $this->options[$resourceName]['prefix_part_of'];
+        $lowerPrefix = $isCaseSensitive || $noPrefix ? '' : mb_strtolower($prefix);
 
         // Many cases because support sensitive case, with or without prefix,
         // and with or without space. Nevertheless, the check is quick.
@@ -153,11 +162,12 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 // Same as above, but lower keys.
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
+                        $lowerIdentifier = mb_strtolower((string) $identifier);
                         if (mb_strpos((string) $identifier, $prefix) === 0) {
-                            $variants[mb_strtolower((string) $identifier)] = $identifier;
+                            $variants[$lowerIdentifier] = $identifier;
                         } else {
-                            $variants[mb_strtolower($prefix . $identifier)] = $identifier;
-                            $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
+                            $variants[$lowerPrefix . $lowerIdentifier] = $identifier;
+                            $variants[$lowerPrefix . ' ' . $lowerIdentifier] = $identifier;
                         }
                     }
                 }
@@ -171,8 +181,9 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 // Same as above, but lower keys.
                 else {
                     foreach (array_keys($identifiers) as $identifier) {
-                        $variants[mb_strtolower($prefix . $identifier)] = $identifier;
-                        $variants[mb_strtolower($prefix . ' ' . $identifier)] = $identifier;
+                        $lowerIdentifier = mb_strtolower((string) $identifier);
+                        $variants[$lowerPrefix . $lowerIdentifier] = $identifier;
+                        $variants[$lowerPrefix . ' ' . $lowerIdentifier] = $identifier;
                     }
                 }
             }
@@ -279,6 +290,6 @@ class GetResourcesFromIdentifiers extends AbstractHelper
      */
     protected function trimUnicode($string): string
     {
-        return preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', (string) $string);
+        return preg_replace('/^\s+|\s+$/u', '', (string) $string);
     }
 }
