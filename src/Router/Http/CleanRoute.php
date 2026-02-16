@@ -768,25 +768,28 @@ class CleanRoute implements RouteInterface
 
     protected function itemBelongsToItemSet(int $itemId, int $itemSetId): bool
     {
-        return $this->entityManager
-            ->getRepository(\Omeka\Entity\Item::class)
-            ->findOneBy(['id' => $itemId])
-            ->getItemSets()
-            ->offsetExists($itemSetId);
+        $sql = 'SELECT 1 FROM item_item_set WHERE item_id = ? AND item_set_id = ? LIMIT 1';
+        return (bool) $this->entityManager->getConnection()
+            ->executeQuery($sql, [$itemId, $itemSetId])
+            ->fetchOne();
     }
 
     protected function mediaBelongsToItem(int $mediaId, int $itemId): bool
     {
-        return (bool) $this->entityManager
-            ->getRepository(\Omeka\Entity\Media::class)
-            ->findOneBy(['id' => $mediaId, 'item' => $itemId]);
+        $sql = 'SELECT 1 FROM media WHERE id = ? AND item_id = ? LIMIT 1';
+        return (bool) $this->entityManager->getConnection()
+            ->executeQuery($sql, [$mediaId, $itemId])
+            ->fetchOne();
     }
 
     protected function mediaBelongsToItemSet(int $mediaId, int $itemSetId): bool
     {
-        $media = $this->entityManager
-            ->find(\Omeka\Entity\Media::class, $mediaId);
-        return $this->itemBelongsToItemSet($media->getItem()->getId(), $itemSetId);
+        $sql = 'SELECT 1 FROM media'
+            . ' INNER JOIN item_item_set ON media.item_id = item_item_set.item_id'
+            . ' WHERE media.id = ? AND item_item_set.item_set_id = ? LIMIT 1';
+        return (bool) $this->entityManager->getConnection()
+            ->executeQuery($sql, [$mediaId, $itemSetId])
+            ->fetchOne();
     }
 
     /**
