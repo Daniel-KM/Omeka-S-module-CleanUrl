@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-28 00:00+0000\n"
+"POT-Creation-Date: 2026-02-09 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,36 +17,36 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:37 Module.php:96
+#: data/scripts/upgrade.php:37 Module.php:100
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
 
-#: Module.php:236
+#: Module.php:231
 msgid ""
 "\"Clean Url\" module allows to have clean, readable and search engine "
 "optimized urls for pages and resources, like https://example.net/"
 "item_set_identifier/item_identifier."
 msgstr ""
 
-#: Module.php:238
+#: Module.php:233
 msgid ""
 "For identifiers, it is recommended to use a pattern that includes at least "
 "one letter to avoid confusion with internal numerical ids."
 msgstr ""
 
-#: Module.php:240
+#: Module.php:235
 msgid ""
 "For a good seo, it’s not recommended to have multiple urls for the same "
 "resource."
 msgstr ""
 
-#: Module.php:242
+#: Module.php:237
 #, php-format
 msgid "See %s for more information."
 msgstr ""
 
-#: Module.php:558
+#: Module.php:539
 msgid "[none]"
 msgstr ""
 
@@ -74,153 +74,133 @@ msgid ""
 "one in the config directory of Omeka."
 msgstr ""
 
-#: data/scripts/upgrade.php:179 data/scripts/upgrade.php:203
-msgid ""
-"The file \"config/cleanurl.config.php\" at the root of Omeka is not "
-"writeable."
-msgstr ""
-
-#: data/scripts/upgrade.php:184
+#: data/scripts/upgrade.php:179
 msgid ""
 "The module has been rewritten and the whole configuration has been "
 "simplified. You should check your config, because the upgrade of the "
 "configuration is not automatic."
 msgstr ""
 
-#: data/scripts/upgrade.php:212
+#: data/scripts/upgrade.php:200
 msgid ""
 "This module requires the module \"{module}\", version {version} or above."
 msgstr ""
 
-#: Module.php:87 Module.php:644
-msgid ""
-"The file \"cleanurl.config.php\" in the config directory of Omeka is not "
-"writeable."
+#: data/scripts/upgrade.php:335
+msgid "The specific config file is no more needed and was removed."
 msgstr ""
 
-#: Module.php:248
-msgid ""
-"Warning: the config of the module cannot be saved in \"config/cleanurl."
-"config.php\". It is required to skip the site paths."
-msgstr ""
-
-#: Module.php:288
-msgid ""
-"The config of the module cannot be saved in \"config/cleanurl.config.php\". "
-"It is required to skip the site paths."
-msgstr ""
-
-#: Module.php:326
+#: Module.php:307
 msgid "Set a default site if you want to remove the part \"/s/site-slug\"."
 msgstr ""
 
-#: Module.php:343
+#: Module.php:324
 msgid ""
 "The sites \"{site_slugs}\" use a reserved string which prevents \"/s/site-"
 "slug\" from being removed. Rename these sites if you want to skip \"/s/site-"
 "slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:358
+#: Module.php:339
 msgid ""
 "The sites pages \"{page_slugs}\" use a reserved string or a site slug which "
 "prevents \"/s/site-slug\" from being removed. Rename these pages if you want "
 "to skip \"/s/site-slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:373
+#: Module.php:354
 msgid ""
 "The prefix \"{slug}\" is reserved, which prevents from being used as a "
 "prefix. Use another prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:384
+#: Module.php:365
 msgid ""
 "The prefix \"{slug}\" is already set for a site, which prevents from being "
 "used as a prefix. Use another prefix or rename the site. See the {link}list "
 "of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:401
+#: Module.php:382
 msgid ""
 "The sites \"{site_slugs}\" use a reserved string which prevents the prefix "
 "for site from being removed. Rename these sites if you want to skip the "
 "prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:416
+#: Module.php:397
 msgid ""
 "The prefix \"{slug}\" is reserved, which prevents from being used as a "
 "prefix for pages. Use another prefix. See the {link}list of reserved "
 "strings{link_end}."
 msgstr ""
 
-#: Module.php:427
+#: Module.php:408
 msgid ""
 "The prefix \"{slug}\" is already set for a site, which prevents from being "
 "used as a prefix for pages. Use another prefix or rename the site. See the "
 "{link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:444
+#: Module.php:425
 msgid ""
 "The sites pages \"{page_slugs}\" use a reserved string which prevents the "
 "prefix for pages from being removed. Rename these pages if you want to skip "
 "the prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:489 Module.php:497 Module.php:1020
+#: Module.php:470 Module.php:478 Module.php:1019
 msgid ""
 "A pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
 msgstr ""
 
-#: Module.php:627
+#: Module.php:608
 msgid ""
 "The slug \"{slug}\" is used or reserved. A random string has been "
 "automatically appended."
 msgstr ""
 
-#: Module.php:902
+#: Module.php:901
 msgid ""
 "The path \"{path}\" for item sets should contain one and only one item set "
 "identifier."
 msgstr ""
 
-#: Module.php:923
+#: Module.php:922
 msgid ""
 "The path \"{path}\" for item sets should not contain identifier "
 "\"{identifier}\"."
 msgstr ""
 
-#: Module.php:943
+#: Module.php:942
 msgid ""
 "The path \"{path}\" for items should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:961
+#: Module.php:960
 msgid ""
 "The path \"{path}\" for items should not contain identifier \"{identifier}\"."
 msgstr ""
 
-#: Module.php:982
+#: Module.php:981
 msgid ""
 "The path \"{path}\" for medias should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:996
+#: Module.php:995
 msgid ""
-"The path \"{path}\" for medias should not contain identifier "
-"\"{identifier}\"."
+"The path \"{path}\" for medias should not contain identifier \"{identifier}"
+"\"."
 msgstr ""
 
-#: Module.php:1007
+#: Module.php:1006
 msgid "The path \"{path}\" for medias should contain an item identifier."
 msgstr ""
 
-#: Module.php:1026
+#: Module.php:1025
 msgid ""
 "A short pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
