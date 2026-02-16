@@ -193,11 +193,32 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         // Get representations and check numeric identifiers as resource id.
         // It allows to check rights too (currently, Connection is used, not EntityManager).
         $api = $this->view->api();
-        foreach (array_intersect_key($result, $variants) as $identifier => $id) {
-            try {
-                $identifiers[$variants[$identifier]] = $api->read($resourceName, ['id' => $id])->getContent();
-            } catch (NotFoundException $e) {
-                // Nothing to do.
+
+        // Batch fetch resources when possible.
+        $matchedResults = array_intersect_key($result, $variants);
+        $ids = array_values($matchedResults);
+        if ($ids) {
+            if ($resourceName !== 'resources') {
+                // Use batch search for specific resource types.
+                $resources = $api->search($resourceName, ['id' => $ids])->getContent();
+                $resourcesById = [];
+                foreach ($resources as $resource) {
+                    $resourcesById[$resource->id()] = $resource;
+                }
+                foreach ($matchedResults as $identifier => $id) {
+                    if (isset($resourcesById[$id])) {
+                        $identifiers[$variants[$identifier]] = $resourcesById[$id];
+                    }
+                }
+            } else {
+                // Fallback for generic 'resources' type (no batch search available).
+                foreach ($matchedResults as $identifier => $id) {
+                    try {
+                        $identifiers[$variants[$identifier]] = $api->read($resourceName, ['id' => $id])->getContent();
+                    } catch (NotFoundException $e) {
+                        // Nothing to do.
+                    }
+                }
             }
         }
 
