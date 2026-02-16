@@ -77,6 +77,18 @@ class Module extends AbstractModule
     public function onBootstrap(MvcEvent $event): void
     {
         parent::onBootstrap($event);
+
+        /** @see https://forum.omeka.org/t/csv-import-error-call-to-a-member-function-getparam/28675 */
+        // In CLI context (background jobs), set a minimal RouteMatch on the
+        // MvcEvent to prevent Status::getRouteMatch() from falling back to
+        // $router->match(), which can match CleanUrl routes and flag the
+        // request as a site request. This avoids "Call to a member function
+        // getParam() on null" in siteUrl() when modules serialize
+        // representations during jobs (e.g. CSVImport).
+        if (PHP_SAPI === 'cli' && !$event->getRouteMatch()) {
+            $event->setRouteMatch(new \Laminas\Router\Http\RouteMatch([]));
+        }
+
         // The page controller is already allowed, because it's an override.
         $this->addRoutes();
     }
