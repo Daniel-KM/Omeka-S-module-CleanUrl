@@ -68,7 +68,7 @@ class GetIdentifiersFromResourcesTest extends OmekaControllerTestCase
         $item = $this->api->create('items', [])->getContent();
 
         $identifier = $helper($item);
-        $this->assertTrue(is_null($identifier));
+        $this->assertTrue($identifier === null);
 
         $identifiers = $helper([$item]);
         $this->assertTrue(is_array($identifiers));

@@ -149,7 +149,7 @@ class CleanRoute implements RouteInterface
 
         $matches = [];
 
-        if (!is_null($pathOffset)) {
+        if ($pathOffset !== null) {
             $pathOffset = (int) $pathOffset;
         }
 
@@ -161,7 +161,7 @@ class CleanRoute implements RouteInterface
         foreach ($this->routes as /* $routeName =>*/ $data) {
             $regex = $data['regex'];
 
-            if (is_null($pathOffset)) {
+            if ($pathOffset === null) {
                 $result = preg_match('(^' . $regex . '$)', $path, $matches);
             } else {
                 $result = preg_match('(\G' . $regex . '$)', $path, $matches, 0, $pathOffset);
@@ -446,7 +446,7 @@ class CleanRoute implements RouteInterface
 
         // Second, get identifiers.
         foreach ($result as $part => $value) {
-            if (!is_null($value) && $value !== '') {
+            if ($value !== null && $value !== '') {
                 continue;
             }
             switch ($part) {
@@ -801,7 +801,7 @@ class CleanRoute implements RouteInterface
     {
         static $urlencodeCorrectionMap;
 
-        if (is_null($urlencodeCorrectionMap)) {
+        if ($urlencodeCorrectionMap === null) {
             $urlencodeCorrectionMap = [];
             $urlencodeCorrectionMap[false] = [
                 '%21' => '!', // sub-delims

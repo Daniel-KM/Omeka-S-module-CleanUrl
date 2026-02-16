@@ -53,7 +53,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
         }
 
         $resourceClass = $this->convertNameToResourceClass($resourceName);
-        if ($resourceName && is_null($resourceClass)) {
+        if ($resourceName && $resourceClass === null) {
             return $identifiers;
         }
         $resourceName = $this->convertResourceClassToResourceName($resourceClass);
@@ -217,7 +217,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
     {
         $ids = array_keys(array_filter($identifiers, function ($v, $k) {
             // Check only missing resources with a integer key.
-            return is_null($v)
+            return $v === null
                 && is_numeric($k)
                 && $k == (int) $k;
         }, ARRAY_FILTER_USE_BOTH));

@@ -157,7 +157,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
     {
         static $urlencodeCorrectionMap;
 
-        if (is_null($urlencodeCorrectionMap)) {
+        if ($urlencodeCorrectionMap === null) {
             $urlencodeCorrectionMap = [];
             $urlencodeCorrectionMap[false] = [
                 '%21' => '!', // sub-delims
