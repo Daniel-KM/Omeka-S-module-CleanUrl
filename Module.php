@@ -629,7 +629,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $data['o:slug'] .= '_' . substr(str_replace(['+', '/', '='], ['', '', ''], base64_encode(random_bytes(128))), 0, 4);
+        $data['o:slug'] .= '_' . substr(strtr(base64_encode(random_bytes(128)), ['+' => '', '/' => '', '=' => '']), 0, 4);
         $request->setContent($data);
 
         $services = $this->getServiceLocator();
@@ -1135,7 +1135,7 @@ class Module extends AbstractModule
                 }
                 foreach ($siteParts as $sitePart) {
                     $routeName = 'cleanurl_' . $resourceType . '_' . $sitePart . '_' . ++$index;
-                    $spec = $baseRoutes[$sitePart]['base_spec'] . str_replace(array_keys($specs), array_values($specs), $resourcePath);
+                    $spec = $baseRoutes[$sitePart]['base_spec'] . strtr($resourcePath, $specs);
                     $parts = $getSpecParts($spec);
                     $isAdmin = $sitePart === 'admin';
                     if ($sitePart === 'public') {
@@ -1146,7 +1146,7 @@ class Module extends AbstractModule
                         'resource_type' => $resourceParams['name'],
                         'resource_identifier' => trim($resourceIdentifier, '{}'),
                         'context' => $isAdmin ? 'admin' : 'site',
-                        'regex' => $baseRoutes[$sitePart]['base_regex'] . str_replace(array_keys($regexes), array_values($regexes), $resourcePath),
+                        'regex' => $baseRoutes[$sitePart]['base_regex'] . strtr($resourcePath, $regexes),
                         'spec' => $spec,
                         'part' => $sitePart,
                         'parts' => $parts,
@@ -1247,11 +1247,11 @@ class Module extends AbstractModule
 
         // Don't quote "-", it's useless for matches.
         $listRegex = array_map(function ($v) {
-            return str_replace('\\-', '-', preg_quote($v));
+            return strtr(preg_quote($v), ['\\-' => '-']);
         }, $list);
 
         // To avoid a bug with identifiers that contain a "/", that is not
         // escaped with preg_quote().
-        return str_replace('/', '\/', implode('|', $listRegex));
+        return strtr(implode('|', $listRegex), ['/' => '\/']);
     }
 }

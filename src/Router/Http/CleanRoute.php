@@ -296,11 +296,7 @@ class CleanRoute implements RouteInterface
         }
 
         $this->assembledParams = $this->routes[$routeName]['parts'];
-        return str_replace(
-            array_keys($replace),
-            array_values($replace),
-            $this->routes[$routeName]['spec']
-        );
+        return strtr($this->routes[$routeName]['spec'], $replace);
     }
 
     public function getAssembledParams()

@@ -54,7 +54,7 @@ if (version_compare($oldVersion, '3.14', '<')) {
 
 if (version_compare($oldVersion, '3.15.3', '<')) {
     foreach ($config[strtolower(__NAMESPACE__)]['config'] as $name => $value) {
-        $oldName = str_replace('cleanurl_', 'clean_url_', $name);
+        $oldName = strtr($name, ['cleanurl_' => 'clean_url_']);
         $settings->set($name, $settings->get($oldName, $value));
         $settings->delete($oldName);
     }
