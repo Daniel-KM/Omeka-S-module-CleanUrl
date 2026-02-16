@@ -45,9 +45,9 @@ if (version_compare($oldVersion, '3.14', '<')) {
         (int) $settings->get('clean_url_identifier_property'));
 
     $settings->set('clean_url_item_allowed',
-        unserialize($settings->get('clean_url_item_allowed')));
+        unserialize($settings->get('clean_url_item_allowed'), ['allowed_classes' => false]));
     $settings->set('clean_url_media_allowed',
-        unserialize($settings->get('clean_url_media_allowed')));
+        unserialize($settings->get('clean_url_media_allowed'), ['allowed_classes' => false]));
 
     $this->cacheItemSetsRegex($services);
 }

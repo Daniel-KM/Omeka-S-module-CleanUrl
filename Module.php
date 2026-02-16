@@ -353,7 +353,7 @@ class Module extends AbstractModule
             if ($result) {
                 $message = new PsrMessage(
                     'The sites "{site_slugs}" use a reserved string which prevents "/s/site-slug" from being removed. Rename these sites if you want to skip "/s/site-slug". See the {link}list of reserved strings{link_end}.', // @translate
-                    ['site_slugs' => implode('", "', $result), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                    ['site_slugs' => htmlspecialchars(implode('", "', $result), ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
                 );
                 $message->setEscapeHtml(false);
                 $messenger->addError($message);
@@ -368,7 +368,7 @@ class Module extends AbstractModule
             if ($result) {
                 $message = new PsrMessage(
                     'The sites pages "{page_slugs}" use a reserved string or a site slug which prevents "/s/site-slug" from being removed. Rename these pages if you want to skip "/s/site-slug". See the {link}list of reserved strings{link_end}.', // @translate
-                    ['page_slugs' => implode('", "', $result), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                    ['page_slugs' => htmlspecialchars(implode('", "', $result), ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
                 );
                 $message->setEscapeHtml(false);
                 $messenger->addError($message);
@@ -383,7 +383,7 @@ class Module extends AbstractModule
         ) {
             $message = new PsrMessage(
                 'The prefix "{slug}" is reserved, which prevents from being used as a prefix. Use another prefix. See the {link}list of reserved strings{link_end}.', // @translate
-                ['slug' => $siteSlug, 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                ['slug' => htmlspecialchars($siteSlug, ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
             );
             $message->setEscapeHtml(false);
             $messenger->addError($message);
@@ -394,7 +394,7 @@ class Module extends AbstractModule
         ) {
             $message = new PsrMessage(
                 'The prefix "{slug}" is already set for a site, which prevents from being used as a prefix. Use another prefix or rename the site. See the {link}list of reserved strings{link_end}.', // @translate
-                ['slug' => $siteSlug, 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                ['slug' => htmlspecialchars($siteSlug, ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
             );
             $message->setEscapeHtml(false);
             $messenger->addError($message);
@@ -411,7 +411,7 @@ class Module extends AbstractModule
             if (count($result)) {
                 $message = new PsrMessage(
                     'The sites "{site_slugs}" use a reserved string which prevents the prefix for site from being removed. Rename these sites if you want to skip the prefix. See the {link}list of reserved strings{link_end}.', // @translate
-                    ['site_slugs' => implode('", "', $result), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                    ['site_slugs' => htmlspecialchars(implode('", "', $result), ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
                 );
                 $message->setEscapeHtml(false);
                 $messenger->addError($message);
@@ -426,7 +426,7 @@ class Module extends AbstractModule
         ) {
             $message = new PsrMessage(
                 'The prefix "{slug}" is reserved, which prevents from being used as a prefix for pages. Use another prefix. See the {link}list of reserved strings{link_end}.', // @translate
-                ['slug' => $pageSlug, 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                ['slug' => htmlspecialchars($pageSlug, ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
             );
             $message->setEscapeHtml(false);
             $messenger->addError($message);
@@ -437,7 +437,7 @@ class Module extends AbstractModule
         ) {
             $message = new PsrMessage(
                 'The prefix "{slug}" is already set for a site, which prevents from being used as a prefix for pages. Use another prefix or rename the site. See the {link}list of reserved strings{link_end}.', // @translate
-                ['slug' => $pageSlug, 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                ['slug' => htmlspecialchars($pageSlug, ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
             );
             $message->setEscapeHtml(false);
             $messenger->addError($message);
@@ -454,7 +454,7 @@ class Module extends AbstractModule
             if ($result) {
                 $message = new PsrMessage(
                     'The sites pages "{page_slugs}" use a reserved string which prevents the prefix for pages from being removed. Rename these pages if you want to skip the prefix. See the {link}list of reserved strings{link_end}.', // @translate
-                    ['page_slugs' => implode('", "', $result), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
+                    ['page_slugs' => htmlspecialchars(implode('", "', $result), ENT_QUOTES, 'UTF-8'), 'link' => '<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/blob/master/config/cleanurl.config.php"  target="_blank" rel="noopener">', 'link_end' => '</a>']
                 );
                 $message->setEscapeHtml(false);
                 $messenger->addError($message);
