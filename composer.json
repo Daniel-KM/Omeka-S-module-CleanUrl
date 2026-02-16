@@ -1,7 +1,42 @@
 {
+    "name": "daniel-km/omeka-s-module-cleanurl",
+    "type": "omeka-s-module",
+    "description": "Module for Omeka S: Displays clean, seo and readable URLs like https://example.org/first_collection/dc:identifier, with or without site slug, for resources, sites and pages.",
+    "keywords": [
+        "Omeka S",
+        "Omeka S module",
+        "url",
+        "route",
+        "SEO",
+        "ark"
+    ],
+    "license": "CECILL-2.1",
+    "homepage": "https://gitlab.com/Daniel-KM/omeka-s-module-CleanUrl",
+    "authors": [
+        {
+            "name": "Daniel Berthereau",
+            "email": "Daniel.packagist@Berthereau.net"
+        }
+    ],
+    "support": {
+        "issues": "https://gitlab.com/Daniel-KM/omeka-s-module-CleanUrl/-/issues",
+        "forum": "https://forum.omeka.org/"
+    },
+    "_require (not set until Omeka S merges PR #2412)": {
+        "omeka/omeka-s": "^4.1",
+        "daniel-km/omeka-s-module-common": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "CleanUrl\\": "src/"
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "CleanUrlTest\\": "tests/CleanUrlTest/"
         }
+    },
+    "extra": {
+        "installer-name": "CleanUrl"
     }
 }
