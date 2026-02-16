@@ -744,7 +744,7 @@ class Module extends AbstractModule
             'default_site' => (int) $settings->get('default_site'),
             'site_skip_main' => (bool) $settings->get('cleanurl_site_skip_main', false),
             'site_slug' => $settings->get('cleanurl_site_slug', 's/'),
-            'page_slug' => $settings->get('cleanurl_site_slug', 'page/'),
+            'page_slug' => $settings->get('cleanurl_page_slug', 'page/'),
             'resource' => $settings->get('cleanurl_resource', $defaults) + $defaults,
             'item_set' => $settings->get('cleanurl_item_set', $defaults) + $defaults,
             'item' => $settings->get('cleanurl_item', $defaults) + $defaults,
