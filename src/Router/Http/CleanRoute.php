@@ -364,7 +364,7 @@ class CleanRoute implements RouteInterface
             ],
         ];
         $mapRouteName = $map[$routeName][$controllerName] ?? '';
-        if (empty($routeName)) {
+        if (empty($mapRouteName)) {
             return null;
         }
 
