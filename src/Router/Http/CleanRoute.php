@@ -10,6 +10,7 @@ use const CleanUrl\SLUGS_CORE;
 use const CleanUrl\SLUGS_RESERVED;
 use const CleanUrl\SLUGS_SITE;
 
+use CleanUrl\ResourceNameTrait;
 use CleanUrl\View\Helper\GetMediaFromPosition;
 use CleanUrl\View\Helper\GetResourceFromIdentifier;
 use CleanUrl\View\Helper\GetResourceIdentifier;
@@ -32,6 +33,8 @@ use Traversable;
  */
 class CleanRoute implements RouteInterface
 {
+    use ResourceNameTrait;
+
     /**
      * @var \Omeka\Api\Manager
      */
@@ -564,34 +567,6 @@ class CleanRoute implements RouteInterface
             : [];
     }
 
-    /**
-     * Normalize the controller name.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function controllerName($name): ?string
-    {
-        $controllers = [
-            'item-set' => 'item-set',
-            'item' => 'item',
-            'media' => 'media',
-            'item_sets' => 'item-set',
-            'items' => 'item',
-            'media' => 'media',
-            'Omeka\Controller\Admin\ItemSet' => 'item-set',
-            'Omeka\Controller\Admin\Item' => 'item',
-            'Omeka\Controller\Admin\Media' => 'media',
-            'Omeka\Controller\Site\ItemSet' => 'item-set',
-            'Omeka\Controller\Site\Item' => 'item',
-            'Omeka\Controller\Site\Media' => 'media',
-            \Omeka\Entity\ItemSet::class => 'item-set',
-            \Omeka\Entity\Item::class => 'item',
-            \Omeka\Entity\Media::class => 'media',
-        ];
-        return $controllers[$name] ?? null;
-    }
-
     protected function getResourceIdFromParams(array $params, array $data): ?int
     {
         if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
@@ -610,84 +585,87 @@ class CleanRoute implements RouteInterface
 
     protected function getResourceIdentifierFromParams(array $params, string $identifierName, string $output)
     {
-        $mapInput = [
-            'id' => [
-                'resource' => 'resources',
-                'type' => 'id',
-            ],
-            'resource_id' => [
-                'resource' => 'resources',
-                'type' => 'id',
-            ],
-            'item_set_id' => [
-                'resource' => 'item_sets',
-                'type' => 'id',
-            ],
-            'item_id' => [
-                'resource' => 'items',
-                'type' => 'id',
-            ],
-            'media_id' => [
-                'resource' => 'media',
-                'type' => 'id',
-            ],
+        static $mapInput;
+        if ($mapInput === null) {
+            $mapInput = [
+                'id' => [
+                    'resource' => 'resources',
+                    'type' => 'id',
+                ],
+                'resource_id' => [
+                    'resource' => 'resources',
+                    'type' => 'id',
+                ],
+                'item_set_id' => [
+                    'resource' => 'item_sets',
+                    'type' => 'id',
+                ],
+                'item_id' => [
+                    'resource' => 'items',
+                    'type' => 'id',
+                ],
+                'media_id' => [
+                    'resource' => 'media',
+                    'type' => 'id',
+                ],
 
-            'resource_identifier' => [
-                'resource' => 'resources',
-                'type' => 'identifier',
-            ],
-            'item_set_identifier' => [
-                'resource' => 'item_sets',
-                'type' => 'identifier',
-            ],
-            'item_identifier' => [
-                'resource' => 'items',
-                'type' => 'identifier',
-            ],
-            'media_identifier' => [
-                'resource' => 'media',
-                'type' => 'identifier',
-            ],
+                'resource_identifier' => [
+                    'resource' => 'resources',
+                    'type' => 'identifier',
+                ],
+                'item_set_identifier' => [
+                    'resource' => 'item_sets',
+                    'type' => 'identifier',
+                ],
+                'item_identifier' => [
+                    'resource' => 'items',
+                    'type' => 'identifier',
+                ],
+                'media_identifier' => [
+                    'resource' => 'media',
+                    'type' => 'identifier',
+                ],
 
-            'resource_identifier_short' => [
-                'resource' => 'resources',
-                'type' => 'identifier_short',
-            ],
-            'item_set_identifier_short' => [
-                'resource' => 'item_sets',
-                'type' => 'identifier_short',
-            ],
-            'item_identifier_short' => [
-                'resource' => 'items',
-                'type' => 'identifier_short',
-            ],
-            'media_identifier_short' => [
-                'resource' => 'media',
-                'type' => 'identifier_short',
-            ],
+                'resource_identifier_short' => [
+                    'resource' => 'resources',
+                    'type' => 'identifier_short',
+                ],
+                'item_set_identifier_short' => [
+                    'resource' => 'item_sets',
+                    'type' => 'identifier_short',
+                ],
+                'item_identifier_short' => [
+                    'resource' => 'items',
+                    'type' => 'identifier_short',
+                ],
+                'media_identifier_short' => [
+                    'resource' => 'media',
+                    'type' => 'identifier_short',
+                ],
 
-            'media_position' => [
-                'resource' => 'media',
-                'type' => 'position',
-            ],
+                'media_position' => [
+                    'resource' => 'media',
+                    'type' => 'position',
+                ],
 
-            'resource_resource' => [
-                'resource' => 'resources',
-                'type' => 'resource',
-            ],
-            'item_set_resource' => [
-                'resource' => 'item_sets',
-                'type' => 'resource',
-            ],
-            'item_resource' => [
-                'resource' => 'items',
-                'type' => 'resource',
-            ],
-            'media_resource' => [
-                'resource' => 'media',
-                'type' => 'resource',
-            ],
-        ];
+                'resource_resource' => [
+                    'resource' => 'resources',
+                    'type' => 'resource',
+                ],
+                'item_set_resource' => [
+                    'resource' => 'item_sets',
+                    'type' => 'resource',
+                ],
+                'item_resource' => [
+                    'resource' => 'items',
+                    'type' => 'resource',
+                ],
+                'media_resource' => [
+                    'resource' => 'media',
+                    'type' => 'resource',
+                ],
+            ];
+        }
 
         if (empty($params[$identifierName]) || !isset($mapInput[$identifierName])) {
             return null;
@@ -788,46 +766,4 @@ class CleanRoute implements RouteInterface
             ->fetchOne();
     }
 
-    /**
-     * Encode a string.
-     *
-     * This method avoids to raw-urlencode characters that don't need.
-     *
-     * @see \Laminas\Router\Http\Segment::encode()
-     *
-     * @param string $value
-     * @param bool $keepSlash
-     * @return string
-     */
-    protected function encode($value, $keepSlash = false): string
-    {
-        static $urlencodeCorrectionMap;
-
-        if ($urlencodeCorrectionMap === null) {
-            $urlencodeCorrectionMap = [];
-            $urlencodeCorrectionMap[false] = [
-                '%21' => '!', // sub-delims
-                '%24' => '$', // sub-delims
-                '%26' => '&', // sub-delims
-                '%27' => "'", // sub-delims
-                '%28' => '(', // sub-delims
-                '%29' => ')', // sub-delims
-                '%2A' => '*', // sub-delims
-                '%2B' => '+', // sub-delims
-                '%2C' => ',', // sub-delims
-                // '%2D' => '-', // unreserved - not touched by rawurlencode
-                // '%2E' => '.', // unreserved - not touched by rawurlencode
-                '%3A' => ':', // pchar
-                '%3B' => ';', // sub-delims
-                '%3D' => '=', // sub-delims
-                '%40' => '@', // pchar
-                // '%5F' => '_', // unreserved - not touched by rawurlencode
-                // '%7E' => '~', // unreserved - not touched by rawurlencode
-            ];
-            $urlencodeCorrectionMap[true] = $urlencodeCorrectionMap[false];
-            $urlencodeCorrectionMap[true]['%2F'] = '/';
-        }
-
-        return strtr(rawurlencode((string) $value), $urlencodeCorrectionMap[$keepSlash]);
-    }
 }

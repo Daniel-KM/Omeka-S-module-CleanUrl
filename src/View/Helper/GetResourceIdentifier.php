@@ -2,6 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
+use CleanUrl\ResourceNameTrait;
 use Doctrine\DBAL\Connection;
 use Laminas\View\Helper\AbstractHelper;
 use Omeka\Api\Representation\AbstractResourceRepresentation;
@@ -15,6 +16,7 @@ use Omeka\Entity\Resource;
 
 class GetResourceIdentifier extends AbstractHelper
 {
+    use ResourceNameTrait;
     /**
      * @var Connection
      */
@@ -116,35 +118,4 @@ class GetResourceIdentifier extends AbstractHelper
      * @param bool $keepSlash
      * @return string
      */
-    protected function encode($value, $keepSlash = false): string
-    {
-        static $urlencodeCorrectionMap;
-
-        if ($urlencodeCorrectionMap === null) {
-            $urlencodeCorrectionMap = [];
-            $urlencodeCorrectionMap[false] = [
-                '%21' => '!', // sub-delims
-                '%24' => '$', // sub-delims
-                '%26' => '&', // sub-delims
-                '%27' => "'", // sub-delims
-                '%28' => '(', // sub-delims
-                '%29' => ')', // sub-delims
-                '%2A' => '*', // sub-delims
-                '%2B' => '+', // sub-delims
-                '%2C' => ',', // sub-delims
-                // '%2D' => '-', // unreserved - not touched by rawurlencode
-                // '%2E' => '.', // unreserved - not touched by rawurlencode
-                '%3A' => ':', // pchar
-                '%3B' => ';', // sub-delims
-                '%3D' => '=', // sub-delims
-                '%40' => '@', // pchar
-                // '%5F' => '_', // unreserved - not touched by rawurlencode
-                // '%7E' => '~', // unreserved - not touched by rawurlencode
-            ];
-            $urlencodeCorrectionMap[true] = $urlencodeCorrectionMap[false];
-            $urlencodeCorrectionMap[true]['%2F'] = '/';
-        }
-
-        return strtr(rawurlencode((string) $value), $urlencodeCorrectionMap[$keepSlash]);
-    }
 }

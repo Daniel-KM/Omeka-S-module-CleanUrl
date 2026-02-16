@@ -2,6 +2,7 @@
 
 namespace CleanUrl\View\Helper;
 
+use CleanUrl\ResourceNameTrait;
 use Laminas\Mvc\ModuleRouteListener;
 use Laminas\Router\RouteMatch;
 use Laminas\View\Exception;
@@ -17,6 +18,7 @@ use Traversable;
  */
 class CleanUrl extends Url
 {
+    use ResourceNameTrait;
     /**
      * @var \CleanUrl\Router\Http\CleanRoute
      */
@@ -259,34 +261,6 @@ class CleanUrl extends Url
         }
 
         return '';
-    }
-
-    /**
-     * Normalize the controller name.
-     *
-     * @param string $name
-     * @return string|null
-     */
-    protected function controllerName(string $name): ?string
-    {
-        $controllers = [
-            'item-set' => 'item-set',
-            'item' => 'item',
-            'media' => 'media',
-            'item_sets' => 'item-set',
-            'items' => 'item',
-            'media' => 'media',
-            'Omeka\Controller\Admin\ItemSet' => 'item-set',
-            'Omeka\Controller\Admin\Item' => 'item',
-            'Omeka\Controller\Admin\Media' => 'media',
-            'Omeka\Controller\Site\ItemSet' => 'item-set',
-            'Omeka\Controller\Site\Item' => 'item',
-            'Omeka\Controller\Site\Media' => 'media',
-            \Omeka\Entity\ItemSet::class => 'item-set',
-            \Omeka\Entity\Item::class => 'item',
-            \Omeka\Entity\Media::class => 'media',
-        ];
-        return $controllers[$name] ?? null;
     }
 
     /**
