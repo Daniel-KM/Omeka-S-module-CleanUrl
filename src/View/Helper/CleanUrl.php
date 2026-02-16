@@ -218,7 +218,7 @@ class CleanUrl extends Url
      */
     protected function getBasePath(): string
     {
-        if (is_null($this->basePath)) {
+        if ($this->basePath === null) {
             $this->basePath = $this->getView()->basePath();
         }
         return $this->basePath;
