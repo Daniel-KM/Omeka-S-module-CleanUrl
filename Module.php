@@ -23,7 +23,7 @@ use Omeka\Module\AbstractModule;
  *
  * Allows to have links like https://example.net/collection/dcterms:identifier.
  *
- * @copyright Daniel Berthereau, 2012-2025
+ * @copyright Daniel Berthereau, 2012-2026
  * @copyright BibLibre, 2016-2017
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */

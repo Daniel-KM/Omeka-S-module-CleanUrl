@@ -37,7 +37,8 @@ if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActi
         $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
         'Common', '3.4.79'
     );
-    throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+    $messenger->addError($message);
+    throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $translate('Missing requirement. Unable to upgrade.')); // @translate
 }
 
 if (version_compare($oldVersion, '3.14', '<')) {
@@ -175,11 +176,6 @@ if (version_compare($oldVersion, '3.15.17', '<')) {
 }
 
 if (version_compare($oldVersion, '3.16.0.3', '<')) {
-    if (!$this->isConfigWriteable()) {
-        $message = new PsrMessage('The file "config/cleanurl.config.php" at the root of Omeka is not writeable.'); // @translate
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
-    }
-
     $message = new PsrMessage(
         'The module has been rewritten and the whole configuration has been simplified. You should check your config, because the upgrade of the configuration is not automatic.' // @translate
     );
@@ -198,13 +194,6 @@ if (version_compare($oldVersion, '3.16.0.3', '<')) {
 }
 
 if (version_compare($oldVersion, '3.16.1.3', '<')) {
-    if (!$this->isConfigWriteable()) {
-        $message = new PsrMessage(
-            'The file "config/cleanurl.config.php" at the root of Omeka is not writeable.' // @translate
-        );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
-    }
-
     $module = $services->get('Omeka\ModuleManager')->getModule('Generic');
     if ($module && version_compare($module->getIni('version') ?? '', '3.3.27', '<')) {
         $translator = $services->get('MvcTranslator');
@@ -333,6 +322,20 @@ if (version_compare($oldVersion, '3.16.1.3', '<')) {
     if (file_exists(OMEKA_PATH . '/config/clean_url.dynamic.old.php')) {
         @unlink(OMEKA_PATH . '/config/clean_url.dynamic.old.php');
     }
+}
+
+if (version_compare($oldVersion, '3.17.11', '<')) {
+    // Dynamic route data is now stored in a setting instead of a file in the
+    // root config/ directory.
+    $filepath = OMEKA_PATH . '/config/cleanurl.config.php';
+    if (file_exists($filepath)) {
+        @unlink($filepath);
+    }
+
+    $message = new PsrMessage(
+        'The specific config file is no more needed and was removed.' // @translate
+    );
+    $messenger->addSuccess($message);
 }
 
 // TODO Use TraitModule.
