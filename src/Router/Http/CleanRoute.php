@@ -599,8 +599,11 @@ class CleanRoute implements RouteInterface
     protected function getResourceIdFromParams(array $params, array $data): ?int
     {
         if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
-            $resourceIds = $this->api->search($data['resource_type'], ['id' => $params['resource_identifier'], 'limit' => 1], ['initialize' => false, 'returnScalar' => 'id'])->getContent();
-            return count($resourceIds) ? (int) reset($resourceIds) : null;
+            try {
+                return (int) $this->api->read($data['resource_type'], ['id' => $params['resource_identifier']], ['initialize' => false, 'finalize' => false])->getContent()->getId();
+            } catch (\Exception $e) {
+                return null;
+            }
         } elseif ($data['resource_identifier'] === 'media_position') {
             return $this->getResourceIdentifierFromParams($params, 'media_position', 'id');
         } else {
@@ -704,11 +707,11 @@ class CleanRoute implements RouteInterface
         $identifierType = $mapInput[$identifierName]['type'];
         switch ($identifierType) {
             case 'id':
-                $resources = $this->api->search($resourceType, ['id' => $resourceIdentifier, 'limit' => 1], ['initialize' => false])->getContent();
-                if (!count($resources)) {
+                try {
+                    $resource = $this->api->read($resourceType, ['id' => $resourceIdentifier], ['initialize' => false])->getContent();
+                } catch (\Exception $e) {
                     return null;
                 }
-                $resource = reset($resources);
                 break;
             case 'identifier':
             case 'identifier_short':
