@@ -95,7 +95,9 @@ class PageController extends \Omeka\Controller\Site\PageController
         }
 
         if ($isPageSlug) {
-            $pageBodyClass = 'page site-page-' . preg_replace('([^a-zA-Z0-9\-])', '-', $slug);
+            $pageBodyClass = 'page '
+                . $page->layoutDataValue('class')
+                . ' site-page-' . preg_replace('([^a-zA-Z0-9\-])', '-', $slug);
         } else {
             $pageBodyClass = 'page site-page';
         }
