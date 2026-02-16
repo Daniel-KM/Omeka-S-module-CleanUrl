@@ -23,8 +23,13 @@ class SegmentMain extends Segment
 
     public function assemble(array $params = [], array $options = [])
     {
-        return SLUG_MAIN_SITE && isset($params['site-slug']) && $params['site-slug'] === SLUG_MAIN_SITE
-            ? ''
-            : parent::assemble($params, $options);
+        if (SLUG_MAIN_SITE && isset($params['site-slug']) && $params['site-slug'] === SLUG_MAIN_SITE) {
+            // When assembling as part of a child route (e.g. "site/page"),
+            // return empty so child path "/page/slug" is not prefixed.
+            // When assembling standalone (e.g. "site"), return "/" so the
+            // site URL is valid (not an empty string).
+            return empty($options['has_child']) ? '/' : '';
+        }
+        return parent::assemble($params, $options);
     }
 }
