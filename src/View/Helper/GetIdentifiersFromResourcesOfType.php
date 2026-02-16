@@ -153,15 +153,16 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
         // TODO Use a cache table like module Reference.
         $tempTable = count($resources) > self::CHUNK_RECORDS;
         if ($tempTable) {
-            $query = 'DROP TABLE IF EXISTS `temp_resources`;';
-            $this->connection->executeStatement($query);
-            // TODO Check if the id may be unique.
-            // $query = 'CREATE TEMPORARY TABLE `temp_resources` (`id` INT UNSIGNED NOT NULL, PRIMARY KEY(`id`));';
-            $query = 'CREATE TEMPORARY TABLE `temp_resources` (`id` INT UNSIGNED NOT NULL);';
-            $this->connection->executeStatement($query);
+            $this->connection->executeStatement('DROP TABLE IF EXISTS `temp_resources`');
+            $this->connection->executeStatement(
+                'CREATE TEMPORARY TABLE `temp_resources` (`id` INT UNSIGNED NOT NULL, PRIMARY KEY(`id`))'
+            );
             foreach (array_chunk($resources, self::CHUNK_RECORDS) as $chunk) {
-                $query = 'INSERT INTO `temp_resources` VALUES(' . implode('),(', $chunk) . ');';
-                $this->connection->executeStatement($query);
+                $placeholders = implode('),(', array_fill(0, count($chunk), '?'));
+                $this->connection->executeStatement(
+                    'INSERT INTO `temp_resources` VALUES(' . $placeholders . ')',
+                    array_values($chunk)
+                );
             }
             $qb
                 // No where condition.
@@ -175,12 +176,16 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
         // The number of resources is reasonable.
         else {
             $qb
-                // ->andWhere('value.resource_id IN (:resource_ids)')
-                // ->setParameter('resource_ids', $resources, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
-                ->andWhere('value.resource_id IN (' . implode(',', $resources) . ')');
+                ->andWhere('value.resource_id IN (:resource_ids)')
+                ->setParameter('resource_ids', array_values($resources), Connection::PARAM_INT_ARRAY);
         }
 
         $result = $this->connection->executeQuery($qb, $qb->getParameters())->fetchAllKeyValue();
+
+        if ($tempTable) {
+            $this->connection->executeStatement('DROP TABLE IF EXISTS `temp_resources`');
+        }
+
         return $isSingle
             ? array_shift($result)
             : $result;
