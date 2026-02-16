@@ -69,21 +69,21 @@ class GetResourcesFromIdentifiers extends AbstractHelper
 
         // TODO Use EntityManager to avoid final api checks for rights, but with collation.
 
+        $identifierExpr = $isCaseSensitive
+            ? 'value.value' . $collation
+            : 'LOWER(value.value)';
+
         $qb = $this->connection->createQueryBuilder();
         $expr = $qb->expr();
         $qb
             ->select(
-                // MIN is a way to fix mysql "only_full_group_by" issue without "ANY_VALUE".
-                $isCaseSensitive
-                    ? 'MIN(value.value) AS "identifier"'
-                    : 'LOWER(MIN(value.value)) AS "identifier"',
-                'MIN(value.resource_id) AS "id"'
+                $identifierExpr . ' AS identifier',
+                'MIN(value.resource_id) AS id'
             )
             ->from('value', 'value')
             ->leftJoin('value', 'resource', 'resource', 'value.resource_id = resource.id')
-            // "identifier" with double quotes were not accepted in old versions.
-            ->addGroupBy('"identifier"' . $collation)
-            ->addOrderBy('"id"', 'ASC')
+            ->addGroupBy($identifierExpr)
+            ->addOrderBy('MIN(value.resource_id)', 'ASC')
             // An identifier is always literal: it identifies a resource inside
             // the base. It can't be an external uri or a linked resource.
             ->where('value.type = "literal"')
