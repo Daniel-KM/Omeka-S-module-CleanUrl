@@ -54,5 +54,18 @@ class MvcListeners extends AbstractListenerAggregate
         $forward = new RouteMatch($routeMatch->getParam('forward', []));
         $forward->setMatchedRouteName($routeMatch->getParam('forward_route_name'));
         $event->setRouteMatch($forward);
+
+        // Some modules call isSiteRequest() during bootstrap, before routing,
+        // which caches incorrect values. Reset the cached status flags so they
+        // are recalculated from the forwarded route match.
+        $status = $event->getApplication()->getServiceManager()->get('Omeka\Status');
+        $ref = new \ReflectionClass($status);
+        foreach (['isSiteRequest', 'isAdminRequest', 'isApiRequest'] as $prop) {
+            if ($ref->hasProperty($prop)) {
+                $p = $ref->getProperty($prop);
+                $p->setAccessible(true);
+                $p->setValue($status, null);
+            }
+        }
     }
 }
