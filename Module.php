@@ -2,7 +2,7 @@
 
 namespace CleanUrl;
 
-if (!class_exists(\Common\TraitModule::class)) {
+if (!class_exists('Common\TraitModule', false)) {
     require_once dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
@@ -671,6 +671,7 @@ class Module extends AbstractModule
             'sites' => $slugsSite,
         ];
         $settings->set('cleanurl_route_data', $data);
+
         return true;
     }
 

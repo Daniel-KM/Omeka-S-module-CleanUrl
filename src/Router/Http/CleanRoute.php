@@ -161,13 +161,28 @@ class CleanRoute implements RouteInterface
             return null;
         }
 
+        // Quick context detection to skip non-matching routes.
+        $isAdmin = strpos($path, '/admin/') === 0;
+        $isPublicPrefix = !$isAdmin && SLUG_SITE !== '' && strpos($path, '/' . SLUG_SITE) === 0;
+
+        $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
+        $useOffset = $pathOffset !== null;
+
         foreach ($this->routes as /* $routeName =>*/ $data) {
+            // Skip routes that can't match based on path prefix.
+            if ($isAdmin && $data['part'] !== 'admin') {
+                continue;
+            }
+            if ($isPublicPrefix && $data['part'] === 'admin') {
+                continue;
+            }
+
             $regex = $data['regex'];
 
-            if ($pathOffset === null) {
-                $result = preg_match('(^' . $regex . '$)', $path, $matches);
-            } else {
+            if ($useOffset) {
                 $result = preg_match('(\G' . $regex . '$)', $path, $matches, 0, $pathOffset);
+            } else {
+                $result = preg_match('(^' . $regex . '$)', $path, $matches);
             }
 
             if (!$result) {
@@ -185,7 +200,6 @@ class CleanRoute implements RouteInterface
 
             // Check if the resource identifier is a reserved word.
             // They are managed here currently for simplicity.
-            $reserved = '|' . SLUGS_CORE . SLUGS_RESERVED . '|';
             foreach ($params as $key => $value) {
                 if (mb_stripos($reserved, '|' . $value . '|') !== false) {
                     continue 2;
@@ -481,9 +495,10 @@ class CleanRoute implements RouteInterface
                     break;
                 case 'item_set_identifier':
                 case 'item_set_identifier_short':
+                    $skipPrefix = strpos($part, '_short') !== false;
                     switch ($resourceType) {
                         case 'item_sets':
-                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, $skipPrefix);
                             break;
                         case 'items':
                             $itemSets = $resource->itemSets();
@@ -491,7 +506,7 @@ class CleanRoute implements RouteInterface
                                 return [];
                             }
                             $itemSet = reset($itemSets);
-                            $result[$part] = $this->getResourceIdentifier->__invoke($itemSet, false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($itemSet, false, $skipPrefix);
                             break;
                         case 'media':
                             $itemSets = $resource->item()->itemSets();
@@ -499,7 +514,7 @@ class CleanRoute implements RouteInterface
                                 return [];
                             }
                             $itemSet = reset($itemSets);
-                            $result[$part] = $this->getResourceIdentifier->__invoke($itemSet, false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($itemSet, false, $skipPrefix);
                             break;
                     }
                     break;
@@ -517,14 +532,15 @@ class CleanRoute implements RouteInterface
                     break;
                 case 'item_identifier':
                 case 'item_identifier_short':
+                    $skipPrefix = strpos($part, '_short') !== false;
                     switch ($resourceType) {
                         case 'item_sets':
                             return [];
                         case 'items':
-                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, $skipPrefix);
                             break;
                         case 'media':
-                            $result[$part] = $this->getResourceIdentifier->__invoke($resource->item(), false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($resource->item(), false, $skipPrefix);
                             break;
                     }
                     break;
@@ -540,12 +556,13 @@ class CleanRoute implements RouteInterface
                     break;
                 case 'media_identifier':
                 case 'media_identifier_short':
+                    $skipPrefix = strpos($part, '_short') !== false;
                     switch ($resourceType) {
                         case 'item_sets':
                         case 'items':
                             return [];
                         case 'media':
-                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, (bool) strpos($part, '_short'));
+                            $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, $skipPrefix);
                             break;
                     }
                     break;

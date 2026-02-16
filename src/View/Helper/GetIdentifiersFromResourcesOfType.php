@@ -182,7 +182,7 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
                 ->setParameter('resource_ids', array_values($resources), Connection::PARAM_INT_ARRAY);
         }
 
-        $result = $this->connection->executeQuery($qb, $qb->getParameters())->fetchAllKeyValue();
+        $result = $this->connection->executeQuery($qb, $qb->getParameters(), $qb->getParameterTypes())->fetchAllKeyValue();
 
         if ($tempTable) {
             $this->connection->executeStatement('DROP TABLE IF EXISTS `temp_resources`');
