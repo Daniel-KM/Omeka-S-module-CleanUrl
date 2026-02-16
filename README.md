@@ -247,7 +247,7 @@ altered, and that no provisions are either added or removed herefrom.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2025 (see [Daniel-KM] on GitLab)
+* Copyright Daniel Berthereau, 2012-2026 (see [Daniel-KM] on GitLab)
 * Copyright BibLibre, 2016-2017
 
 First version of this plugin has been built for [École des Ponts ParisTech].
