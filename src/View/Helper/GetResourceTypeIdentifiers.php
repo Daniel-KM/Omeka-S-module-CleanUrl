@@ -79,7 +79,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
             }
             $qb
                 ->andWhere('value.value LIKE :value_value')
-                ->setParameter('value_value', $prefix . '%');
+                ->setParameter('value_value', addcslashes($prefix, '%_') . '%');
         } else {
             $qb
                 ->select(
