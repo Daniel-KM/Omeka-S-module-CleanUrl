@@ -588,7 +588,7 @@ class CleanRoute implements RouteInterface
     {
         if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
             try {
-                return (int) $this->api->read($data['resource_type'], ['id' => $params['resource_identifier']], ['initialize' => false, 'finalize' => false])->getContent()->getId();
+                return (int) $this->api->read($data['resource_type'], ['id' => $params['resource_identifier']], [], ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'])->getContent()->getId();
             } catch (\Exception $e) {
                 return null;
             }
@@ -699,7 +699,7 @@ class CleanRoute implements RouteInterface
         switch ($identifierType) {
             case 'id':
                 try {
-                    $resource = $this->api->read($resourceType, ['id' => $resourceIdentifier], ['initialize' => false])->getContent();
+                    $resource = $this->api->read($resourceType, ['id' => $resourceIdentifier], [], ['initialize' => false])->getContent();
                 } catch (\Exception $e) {
                     return null;
                 }
