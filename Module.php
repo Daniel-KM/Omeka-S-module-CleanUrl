@@ -3,7 +3,9 @@
 namespace CleanUrl;
 
 if (!class_exists('Common\TraitModule', false)) {
-    require_once dirname(__DIR__) . '/Common/TraitModule.php';
+    require_once file_exists(dirname(__DIR__) . '/Common/src/TraitModule.php')
+        ? dirname(__DIR__) . '/Common/src/TraitModule.php'
+        : dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
 use CleanUrl\Form\ConfigForm;
@@ -93,6 +95,7 @@ class Module extends AbstractModule
         // request as a site request. This avoids "Call to a member function
         // getParam() on null" in siteUrl() when modules serialize
         // representations during jobs (e.g. CSVImport).
+        // TODO Remove once integrated in Omeka (https://github.com/omeka/omeka-s/pull/2439).
         if (PHP_SAPI === 'cli' && !$event->getRouteMatch()) {
             $event->setRouteMatch(new \Laminas\Router\Http\RouteMatch([]));
         }
