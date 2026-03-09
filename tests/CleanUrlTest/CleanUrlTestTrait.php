@@ -103,7 +103,7 @@ trait CleanUrlTestTrait
     /**
      * Create a test site.
      */
-    protected function createSite(string $slug, string $title = null): SiteRepresentation
+    protected function createSite(string $slug, ?string $title = null): SiteRepresentation
     {
         $this->ensureLoggedIn();
         $title = $title ?? ucfirst($slug);
@@ -125,7 +125,7 @@ trait CleanUrlTestTrait
      * @param string $title Optional title
      * @param array $additionalData Additional data to merge
      */
-    protected function createItemSet(string $identifier, string $title = null, array $additionalData = []): ItemSetRepresentation
+    protected function createItemSet(string $identifier, ?string $title = null, array $additionalData = []): ItemSetRepresentation
     {
         $this->ensureLoggedIn();
         $title = $title ?? "Item Set: $identifier";
@@ -160,7 +160,7 @@ trait CleanUrlTestTrait
      * @param array $itemSetIds Optional item set IDs to attach
      * @param array $additionalData Additional data to merge
      */
-    protected function createItem(string $identifier, string $title = null, array $itemSetIds = [], array $additionalData = []): ItemRepresentation
+    protected function createItem(string $identifier, ?string $title = null, array $itemSetIds = [], array $additionalData = []): ItemRepresentation
     {
         $this->ensureLoggedIn();
         $title = $title ?? "Item: $identifier";
@@ -195,7 +195,7 @@ trait CleanUrlTestTrait
      * @param string $name The name portion of the ARK
      * @param string $title Optional title
      */
-    protected function createItemWithArk(string $naan, string $name, string $title = null): ItemRepresentation
+    protected function createItemWithArk(string $naan, string $name, ?string $title = null): ItemRepresentation
     {
         $arkIdentifier = "ark:/$naan/$name";
         return $this->createItem($arkIdentifier, $title ?? "ARK Item: $name");
@@ -208,7 +208,7 @@ trait CleanUrlTestTrait
      * @param string $name The name portion of the ARK
      * @param string $title Optional title
      */
-    protected function createItemSetWithArk(string $naan, string $name, string $title = null): ItemSetRepresentation
+    protected function createItemSetWithArk(string $naan, string $name, ?string $title = null): ItemSetRepresentation
     {
         $arkIdentifier = "ark:/$naan/$name";
         return $this->createItemSet($arkIdentifier, $title ?? "ARK Item Set: $name");
