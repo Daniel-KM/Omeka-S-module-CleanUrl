@@ -1,5 +1,5 @@
 {
-    "name": "daniel-km/omeka-s-module-cleanurl",
+    "name": "daniel-km/omeka-s-module-clean-url",
     "type": "omeka-s-module",
     "description": "Module for Omeka S: Displays clean, seo and readable URLs like https://example.org/first_collection/dc:identifier, with or without site slug, for resources, sites and pages.",
     "keywords": [
