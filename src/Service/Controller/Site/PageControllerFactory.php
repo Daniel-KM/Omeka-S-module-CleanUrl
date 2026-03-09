@@ -3,7 +3,7 @@
 namespace CleanUrl\Service\Controller\Site;
 
 use CleanUrl\Controller\Site\PageController;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class PageControllerFactory implements FactoryInterface

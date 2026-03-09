@@ -3,7 +3,7 @@
 namespace CleanUrl\Service\ViewHelper;
 
 use CleanUrl\View\Helper\GetResourceTypeIdentifiers;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class GetResourceTypeIdentifiersFactory implements FactoryInterface
