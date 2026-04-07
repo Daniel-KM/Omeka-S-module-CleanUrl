@@ -39,17 +39,6 @@ the module to `CleanUrl`.
 
 Then install it like any other Omeka module and follow the config instructions.
 
-**IMPORTANT**:
-The module copies one file in the main config directory of Omeka, "cleanurl.config.php".
-this is a list of all reserved words for the first level of the url, when
-there are no site and page prefixes. All common routes are included. It is
-larger than needed in order to manage future modules or improvments, according
-to existing modules in Omeka classic or Omeka S or common wishes.
-Furthermore, it contains the list of site slugs and some other settings in order
-to manage routing quickly, in particular when there are no site and page paths.
-Contrary to a previous version, this file is automatically updated and should
-not be updated manually.
-
 * For test
 
 The module includes a comprehensive test suite with unit and functional tests.
@@ -265,7 +254,6 @@ module was rewritten to manage various requirements.
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
-[config/clean_url.config.php]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/blob/master/config/clean_url.config.php#L9
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
 [Archive Repertory]: https://gitlab.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [Bulk Check]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkCheck
