@@ -41,6 +41,16 @@ if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActi
     throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $translate('Missing requirement. Unable to upgrade.')); // @translate
 }
 
+$config = $services->get('Config');
+$basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+if (!$this->checkDestinationDir($basePath . '/cleanurl')) {
+    $message = (new PsrMessage(
+        'The directory "{directory}" is not writeable.', // @translate
+        ['directory' => $basePath . '/xsl']
+    ))->setTranslator($translator);
+    throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+}
+
 if (version_compare($oldVersion, '3.14', '<')) {
     $settings->set('clean_url_identifier_property',
         (int) $settings->get('clean_url_identifier_property'));
@@ -67,8 +77,6 @@ if (version_compare($oldVersion, '3.15.5', '<')) {
 }
 
 if (version_compare($oldVersion, '3.15.13', '<')) {
-    $t = $services->get('MvcTranslator');
-
     if (!method_exists($this, 'preInstallCopyConfigFiles')) {
         $message = new PsrMessage(
             'Your previous version is too old to do a direct upgrade to the current version. Upgrade to version 3.15.13 first, or uninstall/reinstall the module.' // @translate
@@ -159,7 +167,6 @@ if (version_compare($oldVersion, '3.15.15', '<')) {
 if (version_compare($oldVersion, '3.15.17', '<')) {
     $source = __DIR__ . '/../../config/clean_url.config.php';
     $dest = OMEKA_PATH . '/config/clean_url.config.php';
-    $t = $services->get('MvcTranslator');
     $logger = $services->get('Omeka\Logger');
     if (!is_readable($source) || !is_writeable(dirname($dest)) || !is_writeable($dest)) {
         $message = new PsrMessage(
