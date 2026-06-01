@@ -91,6 +91,14 @@ class CleanUrl extends Url
 
         /* End of the copy. */
 
+        // Clean urls and the override of the main site route do not support the
+        // "force_canonical" option of the router: a missing identifier or the
+        // main site (slug removed) makes the router return the site root. So
+        // urls are always assembled as relative paths, then made absolute with
+        // the server url when a canonical url is requested.
+        $forceCanonical = !empty($options['force_canonical']);
+        $options['force_canonical'] = false;
+
         // Check if there is a clean url for pages of resources.
         switch ($name) {
             case 'site/resource-id':
@@ -99,9 +107,9 @@ class CleanUrl extends Url
                     $cleanOptions = $options;
                     $cleanOptions['route_name'] = $name;
                     $cleanOptions['name'] = 'clean-url';
-                    $cleanUrl = $this->router->assemble($params, $cleanOptions);
-                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
-                        return $cleanUrl;
+                    $cleanUrl = $this->assembleCleanUrl($params, $cleanOptions);
+                    if ($cleanUrl !== '') {
+                        return $this->applyCanonical($cleanUrl, $forceCanonical);
                     }
                 }
                 // TODO Check if it is still needed.
@@ -136,9 +144,9 @@ class CleanUrl extends Url
                     $cleanOptions = $options;
                     $cleanOptions['route_name'] = $name;
                     $cleanOptions['name'] = 'clean-url';
-                    $cleanUrl = $this->router->assemble($cleanParams, $cleanOptions);
-                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
-                        return $cleanUrl;
+                    $cleanUrl = $this->assembleCleanUrl($cleanParams, $cleanOptions);
+                    if ($cleanUrl !== '') {
+                        return $this->applyCanonical($cleanUrl, $forceCanonical);
                     }
                 }
                 $params['controller'] = 'item';
@@ -160,9 +168,9 @@ class CleanUrl extends Url
                     $cleanOptions = $options;
                     $cleanOptions['route_name'] = $name;
                     $cleanOptions['name'] = 'clean-url';
-                    $cleanUrl = $this->router->assemble($params, $cleanOptions);
-                    if ($cleanUrl && $cleanUrl !== $this->getBasePath()) {
-                        return $cleanUrl;
+                    $cleanUrl = $this->assembleCleanUrl($params, $cleanOptions);
+                    if ($cleanUrl !== '') {
+                        return $this->applyCanonical($cleanUrl, $forceCanonical);
                     }
                 }
                 break;
@@ -181,7 +189,8 @@ class CleanUrl extends Url
         }
 
         // Use the standard url when no identifier exists (copy of Laminas Url).
-        return $this->router->assemble($params, $options);
+        $url = $this->router->assemble($params, $options);
+        return $this->applyCanonical($url, $forceCanonical);
     }
 
     /**
@@ -228,6 +237,34 @@ class CleanUrl extends Url
             $this->basePath = $this->getView()->basePath();
         }
         return $this->basePath;
+    }
+
+    /**
+     * Assemble a clean url as a relative path, or return an empty string when
+     * none is available.
+     *
+     * The clean route is always assembled as a relative path: when the route
+     * does not apply (for example a resource without identifier), it returns an
+     * empty path, detected here as a failure. The canonical prefix, if any, is
+     * added later by the caller via applyCanonical().
+     */
+    protected function assembleCleanUrl(array $params, array $cleanOptions): string
+    {
+        $cleanOptions['force_canonical'] = false;
+        $cleanUrl = $this->router->assemble($params, $cleanOptions);
+        return !$cleanUrl || $cleanUrl === $this->getBasePath()
+            ? ''
+            : $cleanUrl;
+    }
+
+    /**
+     * Make a relative url absolute when a canonical url is requested.
+     */
+    protected function applyCanonical(string $url, bool $forceCanonical): string
+    {
+        return $forceCanonical && $url !== ''
+            ? $this->view->serverUrl($url)
+            : $url;
     }
 
     /**
