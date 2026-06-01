@@ -98,6 +98,29 @@ class ConfigForm extends Form
             ])
         ;
 
+        // Generic.
+
+        $this
+            ->add([
+                'type' => Fieldset::class,
+                'name' => 'clean_url_other',
+                'options' => [
+                    'label' => 'Other options', // @translate
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_canonical',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Add a canonical link to the clean url', // @translate
+                    'info' => 'On public resource and page views, add a "canonical" link to the clean url so search engines do not index the original and clean urls as duplicate pages.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_canonical',
+                ],
+            ])
+        ;
+
         // Admin.
 
         $this

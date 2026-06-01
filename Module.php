@@ -326,9 +326,13 @@ class Module extends AbstractModule
     public function handleCanonicalUrl(Event $event): void
     {
         $view = $event->getTarget();
+        if (!$view->setting('cleanurl_canonical')) {
+            return;
+        }
+
         // Item/media show use "resource", page show uses "page", digital object
         // show uses "digitalObject".
-        $resource = $view->resource ?? $view->digitalObject ?? $view->page ?? null;
+        $resource = $view->resource ?? $view->page ?? null;
         if (!$resource) {
             return;
         }

@@ -199,6 +199,8 @@ return [
                 'case_sensitive' => false,
             ],
 
+            'cleanurl_canonical' => false,
+
             'cleanurl_admin_use' => false,
             'cleanurl_admin_reserved' => [],
 
