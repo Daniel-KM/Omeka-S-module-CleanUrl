@@ -296,7 +296,7 @@ class CleanUrl extends Url
             if (!$resource && is_numeric($params['resource_identifier'])) {
                 try {
                     $resource = $this->view->api()->read('resources', ['id' => $params['resource_identifier']])->getContent();
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // Resource not found.
                 }
             }
