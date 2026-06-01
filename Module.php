@@ -129,13 +129,29 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
         $translate = $plugins->get('translate');
+        $translator = $services->get('MvcTranslator');
+
+        $errors = [];
 
         if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.81')) {
-            $message = new \Omeka\Stdlib\Message(
+            $errors[] = (string) new \Omeka\Stdlib\Message(
                 $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
                 'Common', '3.4.81'
             );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+        }
+
+        $config = $services->get('Config');
+        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+
+        if (!$this->checkDestinationDir($basePath . '/cleanurl')) {
+            $errors[] = (string) (new PsrMessage(
+                'The directory "{directory}" is not writeable.', // @translate
+                ['directory' => $basePath . '/xsl']
+            ))->setTranslator($translator);
+        }
+
+        if ($errors) {
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException(implode("\n", $errors));
         }
     }
 
