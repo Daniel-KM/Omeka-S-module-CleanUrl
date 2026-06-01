@@ -88,6 +88,13 @@ class CleanRoute implements RouteInterface
     protected $assembledParams = [];
 
     /**
+     * Flag to avoid infinite recursion during a reentrant match.
+     *
+     * @var bool
+     */
+    protected $matching = false;
+
+    /**
      * @param array $routes
      * @param array $routeAliases
      * @param \Omeka\Api\Manager $api
@@ -137,6 +144,25 @@ class CleanRoute implements RouteInterface
     }
 
     public function match(Request $request, $pathOffset = null)
+    {
+        // Resolving an identifier inside match() runs an api search whose
+        // listeners (for example AdvancedSearch) may call
+        // Status::isSiteRequest(), which re-triggers the whole routing while
+        // this match() has not returned yet. As the route match is not memoized
+        // until match() returns, this leads to an infinite recursion. Guard
+        // against reentrancy and let the nested match resolve to no route.
+        if ($this->matching) {
+            return null;
+        }
+        $this->matching = true;
+        try {
+            return $this->matchClean($request, $pathOffset);
+        } finally {
+            $this->matching = false;
+        }
+    }
+
+    protected function matchClean(Request $request, $pathOffset = null)
     {
         if (!method_exists($request, 'getUri')) {
             return null;
