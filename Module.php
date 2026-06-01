@@ -52,19 +52,39 @@ class Module extends AbstractModule
         // At this point, the config is read only, so it is copied and replaced.
         $config = $configListener->getMergedConfig(false);
 
-        // Manage the routes for the main site when "s/site-slug/" is skipped.
-        // So copy routes from "site", without starting "/".
+        $config = $this->copyChildRoutesToTop($config);
+
+        $configListener->setMergedConfig($config);
+    }
+
+    /**
+     * Copy child routes of site to top for main site: skip s/slug/, remove leading /.
+     *
+     * Should be a specific function to manage tests.
+     *
+     * The "top" route serves the main site home with controller "Page", but
+     * child routes inherit the controller from their parent. Under "site" they
+     * inherit "Index" (the site default controller); module routes without an
+     * explicit controller (for example Collecting) must keep it under "top"
+     * too, otherwise they resolve to a "...\Page" controller that does not
+     * exist (page not found on submit with module Collecting).
+     */
+    protected function copyChildRoutesToTop(array $config): array
+    {
+        $siteController = $config['router']['routes']['site']['options']['defaults']['controller'] ?? null;
         foreach ($config['router']['routes']['site']['child_routes'] as $routeName => $options) {
             // Skip some routes for pages that are set directly in the config.
             if (isset($config['router']['routes']['top']['child_routes'][$routeName])) {
                 continue;
             }
+            if ($siteController !== null && !isset($options['options']['defaults']['controller'])) {
+                $options['options']['defaults']['controller'] = $siteController;
+            }
             $config['router']['routes']['top']['child_routes'][$routeName] = $options;
             $config['router']['routes']['top']['child_routes'][$routeName]['options']['route'] =
-                ltrim($config['router']['routes']['top']['child_routes'][$routeName]['options']['route'], '/');
+                ltrim($options['options']['route'], '/');
         }
-
-        $configListener->setMergedConfig($config);
+        return $config;
     }
 
     public function getConfig()
