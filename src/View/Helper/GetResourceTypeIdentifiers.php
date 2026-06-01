@@ -89,7 +89,7 @@ class GetResourceTypeIdentifiers extends AbstractHelper
                 );
         }
 
-        $result = $this->connection->executeQuery($qb, $qb->getParameters())->fetchFirstColumn();
+        $result = $this->connection->executeQuery($qb->getSQL(), $qb->getParameters())->fetchFirstColumn();
 
         if ($encode) {
             $keepSlash = $this->options[$resourceName]['keep_slash'];

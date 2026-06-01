@@ -201,7 +201,7 @@ class GetResourcesFromIdentifiers extends AbstractHelper
                 ->andWhere($expr->in('value.value' . $collation, $placeholders));
         }
 
-        $result = $this->connection->executeQuery($qb, $parameters)->fetchAllKeyValue();
+        $result = $this->connection->executeQuery($qb->getSQL(), $parameters)->fetchAllKeyValue();
 
         // Get representations and check numeric identifiers as resource id.
         // It allows to check rights too (currently, Connection is used, not EntityManager).

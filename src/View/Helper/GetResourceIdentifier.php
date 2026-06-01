@@ -99,7 +99,7 @@ class GetResourceIdentifier extends AbstractHelper
                 ->setParameter('prefix', addcslashes($prefix, '%_') . '%');
         }
 
-        $identifier = $this->connection->executeQuery($qb, $qb->getParameters())->fetchOne();
+        $identifier = $this->connection->executeQuery($qb->getSQL(), $qb->getParameters())->fetchOne();
 
         // Keep only the identifier without the configured prefix.
         if ($identifier) {
