@@ -386,6 +386,7 @@ class CleanRoute implements RouteInterface
                 'item-set' => 'item-set',
                 'item' => 'item',
                 'media' => 'media',
+                'digital-object' => 'digital-object',
             ],
             'site/item-set' => [
                 'item-set' => 'item-set',
@@ -394,16 +395,19 @@ class CleanRoute implements RouteInterface
                 'item-set' => 'item-set-browse',
                 'item' => 'item-browse',
                 'media' => 'media-browse',
+                'digital-object' => 'digital-object-browse',
             ],
             'admin/id' => [
                 'item-set' => 'item-set',
                 'item' => 'item',
                 'media' => 'media',
+                'digital-object' => 'digital-object',
             ],
             'admin/default' => [
                 'item-set' => 'item-set-browse',
                 'item' => 'item-browse',
                 'media' => 'media-browse',
+                'digital-object' => 'digital-object-browse',
             ],
         ];
         $mapRouteName = $map[$routeName][$controllerName] ?? '';

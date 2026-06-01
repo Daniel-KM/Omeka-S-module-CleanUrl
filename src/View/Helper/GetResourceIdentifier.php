@@ -61,6 +61,13 @@ class GetResourceIdentifier extends AbstractHelper
             \DoctrineProxies\__CG__\Omeka\Entity\Item::class => 'items',
             \DoctrineProxies\__CG__\Omeka\Entity\Media::class => 'media',
         ];
+        if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+            $resourceClassesToTypes[\DigitalObject\Api\Representation\DigitalObjectRepresentation::class] = 'digital_objects';
+            $resourceClassesToTypes[\DigitalObject\Entity\DigitalObject::class] = 'digital_objects';
+            if (class_exists(\DoctrineProxies\__CG__\DigitalObject\Entity\DigitalObject::class)) {
+                $resourceClassesToTypes[\DoctrineProxies\__CG__\DigitalObject\Entity\DigitalObject::class] = 'digital_objects';
+            }
+        }
         $resourceClass = get_class($resource);
         if (!isset($resourceClassesToTypes[$resourceClass])) {
             return '';

@@ -12,7 +12,7 @@ class GetIdentifiersFromResourcesOfTypeFactory implements FactoryInterface
     {
         $optionsResources = [];
         $settings = $services->get('Omeka\Settings');
-        foreach (['item_set' => 'item_sets', 'item' => 'items', 'media' => 'media'] as $resourceType => $resourceName) {
+        foreach (['item_set' => 'item_sets', 'item' => 'items', 'media' => 'media', 'digital_object' => 'digital_objects'] as $resourceType => $resourceName) {
             $optionsResources[$resourceName] = $settings->get('cleanurl_' . $resourceType);
         }
         return new GetIdentifiersFromResourcesOfType(

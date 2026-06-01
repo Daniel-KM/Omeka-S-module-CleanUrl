@@ -284,7 +284,7 @@ class CleanUrl extends Url
         }
 
         $controller = $this->controllerName($params['controller']);
-        if (in_array($controller, ['item-set', 'item', 'media'])) {
+        if (in_array($controller, ['item-set', 'item', 'media', 'digital-object'])) {
             return $controller;
         }
 
