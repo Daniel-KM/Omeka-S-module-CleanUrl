@@ -298,6 +298,75 @@ class Module extends AbstractModule
             'api.update.pre',
             [$this, 'handleCheckSlugPage']
         );
+
+        // Add a canonical link to the clean url on public resource and page
+        // pages, so search engines do not index the duplicate (original and
+        // clean) urls as separate pages.
+        foreach ([
+            'Omeka\Controller\Site\Item',
+            'Omeka\Controller\Site\ItemSet',
+            'Omeka\Controller\Site\Media',
+            'Omeka\Controller\Site\Page',
+            'DigitalObject\Controller\Site\DigitalObject',
+        ] as $controller) {
+            $sharedEventManager->attach(
+                $controller,
+                'view.show.after',
+                [$this, 'handleCanonicalUrl']
+            );
+        }
+    }
+
+    /**
+     * Add a canonical link to the clean url, only when the current url is not
+     * already the clean one (no self-referencing link).
+     *
+     * @param Event $event
+     */
+    public function handleCanonicalUrl(Event $event): void
+    {
+        $view = $event->getTarget();
+        // Item/media show use "resource", page show uses "page", digital object
+        // show uses "digitalObject".
+        $resource = $view->resource ?? $view->digitalObject ?? $view->page ?? null;
+        if (!$resource) {
+            return;
+        }
+
+        $canonical = $this->canonicalUrl(
+            $resource->siteUrl(null, true),
+            (string) $view->serverUrl(true)
+        );
+        if ($canonical === null) {
+            return;
+        }
+
+        // Don't add a second canonical link when the theme already set one.
+        $headLink = $view->headLink();
+        foreach ($headLink->getContainer() as $link) {
+            if (($link->rel ?? null) === 'canonical') {
+                return;
+            }
+        }
+        $headLink(['rel' => 'canonical', 'href' => $canonical]);
+    }
+
+    /**
+     * Return the clean url to use as canonical, or null when the current url is
+     * already the clean one (so no self-referencing canonical is added) or when
+     * there is no clean url.
+     *
+     * The comparison is done on the path only (ignoring the query string and a
+     * trailing slash).
+     */
+    public function canonicalUrl(?string $cleanUrl, string $currentUrl): ?string
+    {
+        if (!$cleanUrl) {
+            return null;
+        }
+        $cleanPath = rtrim((string) parse_url($cleanUrl, PHP_URL_PATH), '/');
+        $currentPath = rtrim((string) parse_url($currentUrl, PHP_URL_PATH), '/');
+        return $cleanPath === $currentPath ? null : $cleanUrl;
     }
 
     public function getConfigForm(PhpRenderer $renderer)
