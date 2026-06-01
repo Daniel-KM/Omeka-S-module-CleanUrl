@@ -722,20 +722,11 @@ class Module extends AbstractModule
      */
     private function readRouteData(): array
     {
-        $configPath = OMEKA_PATH . '/config/database.ini';
-        if (!is_readable($configPath)) {
-            return [];
-        }
-        $ini = parse_ini_file($configPath);
-        if (!$ini) {
+        $pdo = $this->getBootstrapPdo();
+        if (!$pdo) {
             return [];
         }
         try {
-            $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4',
-                $ini['host'], $ini['dbname']);
-            $pdo = new \PDO($dsn, $ini['user'], $ini['password'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ]);
             $stmt = $pdo->prepare(
                 "SELECT value FROM setting WHERE id = 'cleanurl_route_data'"
             );
@@ -745,6 +736,71 @@ class Module extends AbstractModule
         } catch (\Exception $e) {
             return [];
         }
+    }
+
+    /**
+     * Build a direct PDO connection for the bootstrap stage (getConfig()),
+     * where the service manager and the Doctrine connection are not available.
+     *
+     * The connection parameters are not resolved here: they are reused from the
+     * "connection" config that Omeka already builds in application.config.php
+     * (from "config/database.ini" and/or the env var OMEKA_DB_CONNECTION_URL),
+     * so containerized installs configured through the environment work without
+     * duplicating that logic.
+     */
+    private function getBootstrapPdo(): ?\PDO
+    {
+        try {
+            $appConfig = require OMEKA_PATH . '/application/config/application.config.php';
+        } catch (\Throwable $e) {
+            return null;
+        }
+        $connection = $appConfig['connection'] ?? [];
+        if (!empty($connection['url'])) {
+            $params = $this->parseDatabaseUrl((string) $connection['url']);
+        } elseif (!empty($connection['host']) && !empty($connection['dbname'])) {
+            $params = [
+                'dsn' => sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4',
+                    $connection['host'], $connection['dbname']),
+                'user' => $connection['user'] ?? '',
+                'password' => $connection['password'] ?? '',
+            ];
+        } else {
+            return null;
+        }
+        if (!$params) {
+            return null;
+        }
+        try {
+            return new \PDO($params['dsn'], $params['user'], $params['password'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            ]);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Parse a database url ("mysql://user:password@host:port/dbname") into PDO
+     * connection parameters, or null when the url cannot be used.
+     */
+    private function parseDatabaseUrl(string $url): ?array
+    {
+        if ($url === '') {
+            return null;
+        }
+        $parts = parse_url($url);
+        if (!$parts || empty($parts['host']) || empty($parts['path'])) {
+            return null;
+        }
+        return [
+            'dsn' => sprintf('mysql:host=%s;%sdbname=%s;charset=utf8mb4',
+                $parts['host'],
+                isset($parts['port']) ? 'port=' . (int) $parts['port'] . ';' : '',
+                ltrim($parts['path'], '/')),
+            'user' => isset($parts['user']) ? rawurldecode($parts['user']) : '',
+            'password' => isset($parts['pass']) ? rawurldecode($parts['pass']) : '',
+        ];
     }
 
     /**
