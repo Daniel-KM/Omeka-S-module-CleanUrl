@@ -122,6 +122,15 @@ class Module extends AbstractModule
 
         // The page controller is already allowed, because it's an override.
         $this->addRoutes();
+
+        // Rebuild the route data cache when it is missing, typically right
+        // after a deployment of this version: the file does not exist yet and
+        // is otherwise only (re)built on a relevant event (install, upgrade,
+        // config or site save). This paid once keeps the main site routes
+        // available without a database read in getConfig().
+        if (!is_readable($this->getRouteDataCachePath())) {
+            $this->cacheCleanData();
+        }
     }
 
     protected function preInstall(): void
@@ -251,6 +260,22 @@ class Module extends AbstractModule
             \Omeka\Api\Adapter\SiteAdapter::class,
             'api.delete.post',
             [$this, 'handleSaveSite']
+        );
+
+        // The main site is the general Omeka setting "default_site", and the
+        // site prefixes are module settings; both can change at any time. Omeka
+        // 4.2 triggers "setting.update"/"setting.insert" on the settings
+        // service, so the route data cache is rebuilt when a relevant setting
+        // changes (no effect on Omeka < 4.2, where the event is not triggered).
+        $sharedEventManager->attach(
+            \Omeka\Settings\Settings::class,
+            'setting.update',
+            [$this, 'handleMainSettingChange']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Settings\Settings::class,
+            'setting.insert',
+            [$this, 'handleMainSettingChange']
         );
 
         $sharedEventManager->attach(
@@ -603,6 +628,29 @@ class Module extends AbstractModule
     }
 
     /**
+     * Rebuild the route data cache when a routing-related setting changes.
+     *
+     * The main site comes from the general Omeka setting "default_site" and the
+     * prefixes from the module settings; both feed cacheCleanData(). The
+     * computed setting "cleanurl_route_data" is excluded to avoid an infinite
+     * loop, since cacheCleanData() writes it.
+     *
+     * @param Event $event
+     */
+    public function handleMainSettingChange(Event $event): void
+    {
+        $relevant = [
+            'default_site',
+            'cleanurl_site_skip_main',
+            'cleanurl_site_slug',
+            'cleanurl_page_slug',
+        ];
+        if (in_array($event->getParam('id'), $relevant, true)) {
+            $this->cacheCleanData();
+        }
+    }
+
+    /**
      * Check a site before saving it.
      *
      * @param Event $event
@@ -710,97 +758,56 @@ class Module extends AbstractModule
             'sites' => $slugsSite,
         ];
         $settings->set('cleanurl_route_data', $data);
+        $this->writeRouteDataCache($data);
 
         return true;
     }
 
     /**
-     * Read dynamic route data directly from the database.
+     * Path of the file caching the dynamic route data (site slugs, prefixes).
      *
-     * The service manager is not available during getConfig(), so the setting
-     * is read via a direct PDO query.
+     * The data is computed by cacheCleanData() with the service manager, then
+     * cached in this file so getConfig() can read it without any database
+     * access, since neither the service manager nor the database connection are
+     * available at that bootstrap stage.
+     */
+    private function getRouteDataCachePath(): string
+    {
+        return OMEKA_PATH . '/files/cleanurl/route-data.json';
+    }
+
+    /**
+     * Read dynamic route data from the file cache.
+     *
+     * Returns an empty array when the cache is missing (fresh install, or right
+     * after an upgrade before cacheCleanData() runs): the default routing then
+     * applies until the cache is (re)built in onBootstrap() or on config save.
      */
     private function readRouteData(): array
     {
-        $pdo = $this->getBootstrapPdo();
-        if (!$pdo) {
+        $path = $this->getRouteDataCachePath();
+        if (!is_readable($path)) {
             return [];
         }
-        try {
-            $stmt = $pdo->prepare(
-                "SELECT value FROM setting WHERE id = 'cleanurl_route_data'"
-            );
-            $stmt->execute();
-            $value = $stmt->fetchColumn();
-            return $value ? json_decode($value, true) : [];
-        } catch (\Exception $e) {
-            return [];
-        }
+        $data = json_decode((string) file_get_contents($path), true);
+        return is_array($data) ? $data : [];
     }
 
     /**
-     * Build a direct PDO connection for the bootstrap stage (getConfig()),
-     * where the service manager and the Doctrine connection are not available.
-     *
-     * The connection parameters are not resolved here: they are reused from the
-     * "connection" config that Omeka already builds in application.config.php
-     * (from "config/database.ini" and/or the env var OMEKA_DB_CONNECTION_URL),
-     * so containerized installs configured through the environment work without
-     * duplicating that logic.
+     * Write the dynamic route data to the file cache.
      */
-    private function getBootstrapPdo(): ?\PDO
+    private function writeRouteDataCache(array $data): void
     {
-        try {
-            $appConfig = require OMEKA_PATH . '/application/config/application.config.php';
-        } catch (\Throwable $e) {
-            return null;
+        $path = $this->getRouteDataCachePath();
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
         }
-        $connection = $appConfig['connection'] ?? [];
-        if (!empty($connection['url'])) {
-            $params = $this->parseDatabaseUrl((string) $connection['url']);
-        } elseif (!empty($connection['host']) && !empty($connection['dbname'])) {
-            $params = [
-                'dsn' => sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4',
-                    $connection['host'], $connection['dbname']),
-                'user' => $connection['user'] ?? '',
-                'password' => $connection['password'] ?? '',
-            ];
-        } else {
-            return null;
-        }
-        if (!$params) {
-            return null;
-        }
-        try {
-            return new \PDO($params['dsn'], $params['user'], $params['password'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ]);
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Parse a database url ("mysql://user:password@host:port/dbname") into PDO
-     * connection parameters, or null when the url cannot be used.
-     */
-    private function parseDatabaseUrl(string $url): ?array
-    {
-        if ($url === '') {
-            return null;
-        }
-        $parts = parse_url($url);
-        if (!$parts || empty($parts['host']) || empty($parts['path'])) {
-            return null;
-        }
-        return [
-            'dsn' => sprintf('mysql:host=%s;%sdbname=%s;charset=utf8mb4',
-                $parts['host'],
-                isset($parts['port']) ? 'port=' . (int) $parts['port'] . ';' : '',
-                ltrim($parts['path'], '/')),
-            'user' => isset($parts['user']) ? rawurldecode($parts['user']) : '',
-            'password' => isset($parts['pass']) ? rawurldecode($parts['pass']) : '',
-        ];
+        @file_put_contents(
+            $path,
+            (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            LOCK_EX
+        );
     }
 
     /**
