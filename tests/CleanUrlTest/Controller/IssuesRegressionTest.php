@@ -640,4 +640,29 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
             'A reentrant match() must return null to avoid infinite recursion'
         );
     }
+
+    /**
+     * Digital objects: the default clean url path must be the standalone
+     * schema, not the item-parent one.
+     *
+     * A DigitalObject is a top-level resource without any item parent (it
+     * extends Resource with no item relation), so the parent-based schema
+     * "document/{item_identifier}/{digital_object_id}" cannot be resolved. The
+     * default must therefore stay autonomous until a parent relation is added.
+     */
+    public function testDigitalObjectDefaultPathIsStandalone(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 3) . '/config/module.config.php');
+
+        $this->assertStringContainsString(
+            "'default' => 'digital-object/{digital_object_identifier}'",
+            $source,
+            'The default digital object path must be the standalone schema'
+        );
+        $this->assertStringNotContainsString(
+            'document/{item_identifier}/{digital_object_id}',
+            $source,
+            'The item-parent digital object schema is deferred and must not be the default'
+        );
+    }
 }

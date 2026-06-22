@@ -579,6 +579,9 @@ class Module extends AbstractModule
         }
 
         $resourceTypes = ['item_set', 'item', 'media'];
+        if (class_exists('DigitalObject\Module', false)) {
+            $resourceTypes[] = 'digital_object';
+        }
 
         foreach ($resourceTypes as $resourceType) {
             $paramName = 'cleanurl_' . $resourceType;
@@ -898,6 +901,10 @@ class Module extends AbstractModule
             'item' => 'item',
             'media' => 'media',
         ];
+        $hasDigitalObject = class_exists('DigitalObject\Module', false);
+        if ($hasDigitalObject) {
+            $resourceTypes['digital-object'] = 'digital_object';
+        }
 
         $defaults = [
             'default' => 'resource/{resource_id}',
@@ -921,6 +928,7 @@ class Module extends AbstractModule
             'item_set' => $settings->get('cleanurl_item_set', $defaults) + $defaults,
             'item' => $settings->get('cleanurl_item', $defaults) + $defaults,
             'media' => $settings->get('cleanurl_media', $defaults) + $defaults,
+            'digital_object' => $settings->get('cleanurl_digital_object', $defaults) + $defaults,
             'admin_use' => $settings->get('cleanurl_admin_use', true),
             'admin_reserved' => $settings->get('cleanurl_admin_reserved', []),
             'routes' => [],
@@ -931,8 +939,13 @@ class Module extends AbstractModule
 
         // Default, short and core urls are merged to manage paths simpler,
         // Set the default route the first in stacks if any for performance.
-        // foreach (['resource' => 'resource', 'item_set' => 'item-set', 'item' => 'item', 'media' => 'media'] as $resourceType => $controller) {
-        foreach (['resource', 'item_set', 'item', 'media'] as $resourceType) {
+        // foreach (['resource' => 'resource', 'item_set' => 'item-set', 'item'
+        // => 'item', 'media' => 'media'] as $resourceType => $controller) {
+        $normalizeTypes = ['resource', 'item_set', 'item', 'media'];
+        if ($hasDigitalObject) {
+            $normalizeTypes[] = 'digital_object';
+        }
+        foreach ($normalizeTypes as $resourceType) {
             array_unshift($params[$resourceType]['paths'], $params[$resourceType]['default']);
             $params[$resourceType]['paths'][] = $params[$resourceType]['short'];
             // Core paths.
@@ -958,6 +971,7 @@ class Module extends AbstractModule
                         'item_set' => 'Omeka\Controller\Site\ItemSet',
                         'item' => 'Omeka\Controller\Site\Item',
                         'media' => 'Omeka\Controller\Site\Media',
+                        'digital_object' => 'DigitalObject\Controller\Site\DigitalObject',
                     ],
                     'action' => 'show',
                 ],
@@ -976,6 +990,7 @@ class Module extends AbstractModule
                         'item_set' => 'Omeka\Controller\Admin\ItemSet',
                         'item' => 'Omeka\Controller\Admin\Item',
                         'media' => 'Omeka\Controller\Admin\Media',
+                        'digital_object' => 'DigitalObject\Controller\Admin\DigitalObject',
                     ],
                     'action' => 'show',
                 ],
@@ -994,6 +1009,7 @@ class Module extends AbstractModule
                         'item_set' => 'Omeka\Controller\Site\ItemSet',
                         'item' => 'Omeka\Controller\Site\Item',
                         'media' => 'Omeka\Controller\Site\Media',
+                        'digital_object' => 'DigitalObject\Controller\Site\DigitalObject',
                     ],
                     'action' => 'show',
                 ],
@@ -1014,6 +1030,9 @@ class Module extends AbstractModule
             '{media_identifier}' => '(?P<media_identifier>' . $params['media']['pattern'] . ')',
             '{media_identifier_short}' => '(?P<media_identifier_short>' . $params['media']['pattern_short'] . ')',
             '{media_position}' => '(?P<media_position>\d+)',
+            '{digital_object_id}' => '(?P<digital_object_id>\d+)',
+            '{digital_object_identifier}' => '(?P<digital_object_identifier>' . $params['digital_object']['pattern'] . ')',
+            '{digital_object_identifier_short}' => '(?P<digital_object_identifier_short>' . $params['digital_object']['pattern_short'] . ')',
         ];
 
         $specs = [
@@ -1030,6 +1049,9 @@ class Module extends AbstractModule
             '{media_identifier}' => '%media_identifier%',
             '{media_identifier_short}' => '%media_identifier_short%',
             '{media_position}' => '%media_position%',
+            '{digital_object_id}' => '%digital_object_id%',
+            '{digital_object_identifier}' => '%digital_object_identifier%',
+            '{digital_object_identifier_short}' => '%digital_object_identifier_short%',
         ];
 
         $trimSlash = function ($v) {
@@ -1197,6 +1219,50 @@ class Module extends AbstractModule
             return $resourceIdentifier;
         };
 
+        $checkPathDigitalObject = function (string $path) use ($messager): ?string {
+            $checks = [
+                '{digital_object_id}',
+                '{digital_object_identifier}',
+                '{digital_object_identifier_short}',
+            ];
+            $resourceIdentifier = array_filter($checks, function ($v) use ($path) {
+                return mb_strpos($path, $v) !== false;
+            });
+            if (count($resourceIdentifier) !== 1) {
+                $messager(new PsrMessage(
+                    'The path "{path}" for digital objects should contain one and only one digital object identifier.', // @translate
+                    ['path' => $path]
+                ));
+                return null;
+            }
+            $checks = [
+                '{site_slug}',
+                '{resource_id}',
+                '{resource_identifier}',
+                '{resource_identifier_short}',
+                '{item_set_id}',
+                '{item_set_identifier}',
+                '{item_set_identifier_short}',
+                '{item_id}',
+                '{item_identifier}',
+                '{item_identifier_short}',
+                '{media_id}',
+                '{media_identifier}',
+                '{media_identifier_short}',
+                '{media_position}',
+            ];
+            foreach ($checks as $check) {
+                if (mb_strpos($path, $check) !== false) {
+                    $messager(new PsrMessage(
+                        'The path "{path}" for digital objects should not contain identifier "{identifier}".', // @translate
+                        ['path' => $path, 'identifier' => $check]
+                    ));
+                    return null;
+                }
+            }
+            return reset($resourceIdentifier);
+        };
+
         $checkPatterns = function (string $path) use ($resourceTypes, $params, $messager): bool {
             foreach ($resourceTypes as $resourceType) {
                 if (mb_strpos($path, "{{$resourceType}_identifier}") !== false && !$params[$resourceType]['pattern']) {
@@ -1236,6 +1302,12 @@ class Module extends AbstractModule
                 || mb_strpos($path, '{media_position}') !== false
             ) {
                 $route .= '-media';
+            }
+            if (mb_strpos($path, '{digital_object_id}') !== false
+                || mb_strpos($path, '{digital_object_identifier}') !== false
+                || mb_strpos($path, '{digital_object_identifier_short}') !== false
+            ) {
+                $route .= '-digital-object';
             }
             return trim($route, '-');
         };
@@ -1280,6 +1352,13 @@ class Module extends AbstractModule
                 'name' => 'media',
             ],
         ];
+        if ($hasDigitalObject) {
+            $resourcesParams['digital_object'] = [
+                'check' => $checkPathDigitalObject,
+                'controller' => 'digital-object',
+                'name' => 'digital_objects',
+            ];
+        }
 
         $index = 0;
         $mapRoutes = [];

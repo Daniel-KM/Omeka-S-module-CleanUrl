@@ -200,10 +200,10 @@ return [
             ],
 
             'cleanurl_digital_object' => [
-                'default' => 'document/{item_identifier}/{digital_object_id}',
+                'default' => 'digital-object/{digital_object_identifier}',
                 'short' => '',
                 'paths' => [],
-                'pattern' => '',
+                'pattern' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
                 'pattern_short' => '',
                 'property' => 10,
                 'prefix' => '',

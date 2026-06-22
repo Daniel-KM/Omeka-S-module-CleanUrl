@@ -98,6 +98,23 @@ class ConfigForm extends Form
             ])
         ;
 
+        if (class_exists('DigitalObject\Module', false)) {
+            $this
+                ->add([
+                    'type' => Fieldset::class,
+                    'name' => 'cleanurl_digital_object',
+                    'options' => [
+                        'label' => 'Digital objects', // @translate
+                    ],
+                ])
+                ->appendResourceFieldset('cleanurl_digital_object', [
+                    'default_placeholder' => 'digital-object/{digital_object_identifier}',
+                    'pattern_placeholder' => '[a-zA-Z0-9][a-zA-Z0-9_-]*',
+                    'prefix_placeholder' => 'ark:/12345/',
+                ])
+            ;
+        }
+
         // Generic.
 
         $this

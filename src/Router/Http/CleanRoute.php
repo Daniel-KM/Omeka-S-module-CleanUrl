@@ -467,6 +467,12 @@ class CleanRoute implements RouteInterface
                     'media_identifier_short' => null,
                     'media_position' => null,
                 ],
+                'digital_objects' => [
+                    'digital_object_resource' => null,
+                    'digital_object_id' => null,
+                    'digital_object_identifier' => null,
+                    'digital_object_identifier_short' => null,
+                ],
             ];
             if (!isset($map[$resourceType])) {
                 return [];
@@ -603,6 +609,18 @@ class CleanRoute implements RouteInterface
                     $result[$part] = $this->api->read('media', ['id' => $resource->id()], [], ['initialize' => false, 'responseContent' => 'resource'])->getContent()
                         ->getPosition();
                     break;
+                case 'digital_object_id':
+                    if ($resourceType === 'digital_objects') {
+                        $result[$part] = $resource->id();
+                    }
+                    break;
+                case 'digital_object_identifier':
+                case 'digital_object_identifier_short':
+                    $skipPrefix = strpos($part, '_short') !== false;
+                    if ($resourceType === 'digital_objects') {
+                        $result[$part] = $this->getResourceIdentifier->__invoke($resource, false, $skipPrefix);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -616,7 +634,7 @@ class CleanRoute implements RouteInterface
 
     protected function getResourceIdFromParams(array $params, array $data): ?int
     {
-        if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id'])) {
+        if (in_array($data['resource_identifier'], ['resource_id', 'item_set_id', 'item_id', 'media_id', 'digital_object_id'])) {
             try {
                 return (int) $this->api->read($data['resource_type'], ['id' => $params['resource_identifier']], [], ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'])->getContent()->getId();
             } catch (\Throwable $e) {
@@ -655,6 +673,10 @@ class CleanRoute implements RouteInterface
                     'resource' => 'media',
                     'type' => 'id',
                 ],
+                'digital_object_id' => [
+                    'resource' => 'digital_objects',
+                    'type' => 'id',
+                ],
 
                 'resource_identifier' => [
                     'resource' => 'resources',
@@ -672,6 +694,10 @@ class CleanRoute implements RouteInterface
                     'resource' => 'media',
                     'type' => 'identifier',
                 ],
+                'digital_object_identifier' => [
+                    'resource' => 'digital_objects',
+                    'type' => 'identifier',
+                ],
 
                 'resource_identifier_short' => [
                     'resource' => 'resources',
@@ -687,6 +713,10 @@ class CleanRoute implements RouteInterface
                 ],
                 'media_identifier_short' => [
                     'resource' => 'media',
+                    'type' => 'identifier_short',
+                ],
+                'digital_object_identifier_short' => [
+                    'resource' => 'digital_objects',
                     'type' => 'identifier_short',
                 ],
 
@@ -709,6 +739,10 @@ class CleanRoute implements RouteInterface
                 ],
                 'media_resource' => [
                     'resource' => 'media',
+                    'type' => 'resource',
+                ],
+                'digital_object_resource' => [
+                    'resource' => 'digital_objects',
                     'type' => 'resource',
                 ],
             ];
