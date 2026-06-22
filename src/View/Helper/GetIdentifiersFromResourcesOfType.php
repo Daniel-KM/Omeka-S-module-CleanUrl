@@ -97,6 +97,9 @@ class GetIdentifiersFromResourcesOfType extends AbstractHelper
             return $isSingle ? null : [];
         }
         $resourceName = $this->convertResourceClassToResourceName($resourceClass);
+        if (empty($this->options[$resourceName]['property'])) {
+            return $isSingle ? null : [];
+        }
 
         // Get the list of identifiers.
         $qb = $this->connection->createQueryBuilder()

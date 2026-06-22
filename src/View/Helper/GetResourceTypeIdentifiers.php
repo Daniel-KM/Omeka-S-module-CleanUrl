@@ -49,6 +49,9 @@ class GetResourceTypeIdentifiers extends AbstractHelper
         }
 
         $resourceName = $this->convertResourceClassToResourceName($resourceClass);
+        if (empty($this->options[$resourceName]['property'])) {
+            return [];
+        }
 
         // Use a direct query in order to improve speed.
         $qb = $this->connection->createQueryBuilder()

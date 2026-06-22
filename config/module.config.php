@@ -199,6 +199,19 @@ return [
                 'case_sensitive' => false,
             ],
 
+            'cleanurl_digital_object' => [
+                'default' => 'document/{item_identifier}/{digital_object_id}',
+                'short' => '',
+                'paths' => [],
+                'pattern' => '',
+                'pattern_short' => '',
+                'property' => 10,
+                'prefix' => '',
+                'prefix_part_of' => false,
+                'keep_slash' => false,
+                'case_sensitive' => false,
+            ],
+
             'cleanurl_canonical' => false,
 
             'cleanurl_admin_use' => false,

@@ -13,7 +13,7 @@ trait ResourceNameTrait
             'items' => \Omeka\Entity\Item::class,
             'item_sets' => \Omeka\Entity\ItemSet::class,
             'media' => \Omeka\Entity\Media::class,
-            'digital_objects' => class_exists(\DigitalObject\Entity\DigitalObject::class)
+            'digital_objects' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
                 : null,
             'resources' => '',
@@ -21,7 +21,7 @@ trait ResourceNameTrait
             'resource:item' => \Omeka\Entity\Item::class,
             'resource:itemset' => \Omeka\Entity\ItemSet::class,
             'resource:media' => \Omeka\Entity\Media::class,
-            'resource:digitalobject' => class_exists(\DigitalObject\Entity\DigitalObject::class)
+            'resource:digitalobject' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
                 : null,
             // Avoid a check and make the plugin more flexible.
@@ -42,14 +42,14 @@ trait ResourceNameTrait
             'itemset' => \Omeka\Entity\ItemSet::class,
             'resource:item_set' => \Omeka\Entity\ItemSet::class,
             'resource:item-set' => \Omeka\Entity\ItemSet::class,
-            'digital-object' => class_exists(\DigitalObject\Entity\DigitalObject::class)
+            'digital-object' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
                 : null,
-            'digitalobject' => class_exists(\DigitalObject\Entity\DigitalObject::class)
+            'digitalobject' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
                 : null,
         ];
-        if (class_exists(\DigitalObject\Api\Representation\DigitalObjectRepresentation::class)) {
+        if (class_exists('DigitalObject\Module', false)) {
             $resourceClasses[\DigitalObject\Api\Representation\DigitalObjectRepresentation::class] = \DigitalObject\Entity\DigitalObject::class;
         }
         return $resourceClasses[$resourceName] ?? null;
@@ -62,7 +62,7 @@ trait ResourceNameTrait
             \Omeka\Entity\Item::class => 'items',
             \Omeka\Entity\Media::class => 'media',
         ];
-        if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+        if (class_exists('DigitalObject\Module', false)) {
             $resourceNames[\DigitalObject\Entity\DigitalObject::class] = 'digital_objects';
         }
         return $resourceNames[$resourceClass] ?? 'resources';
@@ -98,7 +98,7 @@ trait ResourceNameTrait
                 \Omeka\Entity\Item::class => 'item',
                 \Omeka\Entity\Media::class => 'media',
             ];
-            if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+            if (class_exists('DigitalObject\Module', false)) {
                 $controllers[\DigitalObject\Entity\DigitalObject::class] = 'digital-object';
             }
         }

@@ -32,7 +32,7 @@ class GetIdentifiersFromResources extends AbstractHelper
 
         if (empty($resourceName)) {
             $resourceClasses = [Media::class, Item::class, ItemSet::class];
-            if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+            if (class_exists('DigitalObject\Module', false)) {
                 $resourceClasses[] = \DigitalObject\Entity\DigitalObject::class;
             }
         } elseif (is_string($resourceName)) {
