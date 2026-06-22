@@ -190,6 +190,7 @@ TODO
 
 - [ ] Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
 - [ ] Forward/Redirect to the canonical url
+- [ ] Support item-parent schema for digital objects (`document/{item_identifier}/{digital_object_id}`): a digital object is a top-level resource without any item parent, so only the standalone schema is available for now.
 - [x] Replace the check with/without space by a job that cleans all identifiers (see Bulk Check).
 - [ ] Remove the management of the space to get resources from identifiers with a prefix.
 - [ ] Improve speed to create url, in particular when creating urls in bulk (module Mapping). Create a table? Or even a single setting with the full list id/identifier?
