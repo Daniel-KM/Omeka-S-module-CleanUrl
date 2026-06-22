@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 00:00+0000\n"
+"POT-Creation-Date: 2026-06-22 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,7 +50,7 @@ msgstr ""
 msgid "See %s for more information."
 msgstr ""
 
-#: Module.php:686
+#: Module.php:689
 msgid "[none]"
 msgstr ""
 
@@ -157,58 +157,70 @@ msgid ""
 "the prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:617 Module.php:625 Module.php:1204
+#: Module.php:620 Module.php:628 Module.php:1270
 msgid ""
 "A pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
 msgstr ""
 
-#: Module.php:778
+#: Module.php:781
 msgid ""
 "The slug \"{slug}\" is used or reserved. A random string has been "
 "automatically appended."
 msgstr ""
 
-#: Module.php:1086
+#: Module.php:1108
 msgid ""
 "The path \"{path}\" for item sets should contain one and only one item set "
 "identifier."
 msgstr ""
 
-#: Module.php:1107
+#: Module.php:1129
 msgid ""
 "The path \"{path}\" for item sets should not contain identifier "
 "\"{identifier}\"."
 msgstr ""
 
-#: Module.php:1127
+#: Module.php:1149
 msgid ""
 "The path \"{path}\" for items should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:1145
+#: Module.php:1167
 msgid ""
 "The path \"{path}\" for items should not contain identifier \"{identifier}\"."
 msgstr ""
 
-#: Module.php:1166
+#: Module.php:1188
 msgid ""
 "The path \"{path}\" for medias should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:1180
+#: Module.php:1202
 msgid ""
 "The path \"{path}\" for medias should not contain identifier \"{identifier}"
 "\"."
 msgstr ""
 
-#: Module.php:1191
+#: Module.php:1213
 msgid "The path \"{path}\" for medias should contain an item identifier."
 msgstr ""
 
-#: Module.php:1210
+#: Module.php:1233
+msgid ""
+"The path \"{path}\" for digital objects should contain one and only one "
+"digital object identifier."
+msgstr ""
+
+#: Module.php:1257
+msgid ""
+"The path \"{path}\" for digital objects should not contain identifier "
+"\"{identifier}\"."
+msgstr ""
+
+#: Module.php:1276
 msgid ""
 "A short pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
@@ -250,72 +262,76 @@ msgstr ""
 msgid "Medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:115
+#: src/Form/ConfigForm.php:107
+msgid "Digital objects"
+msgstr ""
+
+#: src/Form/ConfigForm.php:132
 msgid "Add a canonical link to the clean url"
 msgstr ""
 
-#: src/Form/ConfigForm.php:116
+#: src/Form/ConfigForm.php:133
 msgid ""
 "On public resource and page views, add a \"canonical\" link to the clean url "
 "so search engines do not index the original and clean urls as duplicate "
 "pages."
 msgstr ""
 
-#: src/Form/ConfigForm.php:131
+#: src/Form/ConfigForm.php:148
 msgid "Admin Interface"
 msgstr ""
 
-#: src/Form/ConfigForm.php:138
+#: src/Form/ConfigForm.php:155
 msgid "Use in admin board"
 msgstr ""
 
-#: src/Form/ConfigForm.php:148
+#: src/Form/ConfigForm.php:165
 msgid "Other reserved routes in admin"
 msgstr ""
 
-#: src/Form/ConfigForm.php:149
+#: src/Form/ConfigForm.php:166
 msgid ""
 "This option allows to fix routes for unmanaged modules. Add them in the file "
 "cleanurl.config.php or here, one by row."
 msgstr ""
 
-#: src/Form/ConfigForm.php:167
+#: src/Form/ConfigForm.php:184
 msgid "Default path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:168
+#: src/Form/ConfigForm.php:185
 msgid "Path with placeholders, without site slug."
 msgstr ""
 
-#: src/Form/ConfigForm.php:179
+#: src/Form/ConfigForm.php:196
 msgid "Short path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:189
+#: src/Form/ConfigForm.php:206
 msgid "Additional paths"
 msgstr ""
 
-#: src/Form/ConfigForm.php:200
+#: src/Form/ConfigForm.php:217
 msgid "Pattern of identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:211
+#: src/Form/ConfigForm.php:228
 msgid "Optional pattern for short identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:221
+#: src/Form/ConfigForm.php:238
 msgid "Property for identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:227
+#: src/Form/ConfigForm.php:244
 msgid "Select a property…"
 msgstr ""
 
-#: src/Form/ConfigForm.php:234
+#: src/Form/ConfigForm.php:251
 msgid "Prefix to select an identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:235
+#: src/Form/ConfigForm.php:252
 msgid ""
 "This prefix allows to find one identifier when there are multiple values: "
 "\"ark:\", \"record:\", or \"doc =\". Include space if needed. Let empty to "
@@ -323,15 +339,15 @@ msgid ""
 "resource id will be used."
 msgstr ""
 
-#: src/Form/ConfigForm.php:246
+#: src/Form/ConfigForm.php:263
 msgid "The prefix is part of the identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:256
+#: src/Form/ConfigForm.php:273
 msgid "Identifiers have slash, so don’t escape it"
 msgstr ""
 
-#: src/Form/ConfigForm.php:266
+#: src/Form/ConfigForm.php:283
 msgid "Identifiers are case sensitive"
 msgstr ""
 
