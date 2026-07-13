@@ -4,13 +4,13 @@ namespace CleanUrl;
 
 // The check of "slugs_site" may avoid an issue when empty, after install or
 // during/after upgrade. When empty, there must be a slug site (default "s/").
-if (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE)) {
-    $slugSite = SLUG_SITE;
-    $regexSite = SLUGS_SITE;
-} else {
-    $slugSite = SLUG_SITE_DEFAULT;
-    $regexSite = '[a-zA-Z0-9_-]+';
-}
+// Fallback to a generic slug regex so site routes still match.
+$slugSite = (mb_strlen(SLUGS_SITE) || mb_strlen(SLUG_SITE))
+    ? SLUG_SITE
+    : SLUG_SITE_DEFAULT;
+$regexSite = mb_strlen(SLUGS_SITE)
+    ? SLUGS_SITE
+    : '[a-zA-Z0-9_-]+';
 
 // Prepare to get the slug of a page, that can be anything except reserved strings.
 $regexSitePage = SLUG_PAGE
