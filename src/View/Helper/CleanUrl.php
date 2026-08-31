@@ -44,6 +44,15 @@ class CleanUrl extends Url
      */
     protected $api;
 
+    /**
+     * The slug of the default site, or an empty string when there is none.
+     *
+     * Null means that it has not been fetched yet.
+     *
+     * @var string|null
+     */
+    protected $defaultSiteSlug;
+
     public function __construct(
         \Laminas\Router\RouteStackInterface $router,
         \Laminas\Mvc\Application $application,
@@ -235,10 +244,37 @@ class CleanUrl extends Url
      */
     protected function appendSiteSlug(array $params): array
     {
-        if (empty($params['site-slug'])) {
-            $params['site-slug'] = $this->application->getMvcEvent()->getRouteMatch()->getParam('site-slug');
+        if (!empty($params['site-slug'])) {
+            return $params;
         }
+        $match = $this->application->getMvcEvent()->getRouteMatch();
+        $siteSlug = $match ? $match->getParam('site-slug') : null;
+        // Outside of a site request, in particular in a job run via the cli,
+        // there is no site slug in the route match, so fall back to the default
+        // site: without it, the route cannot be assembled at all.
+        $params['site-slug'] = $siteSlug ?: $this->defaultSiteSlug();
         return $params;
+    }
+
+    /**
+     * Get the slug of the default site, or an empty string when there is none.
+     */
+    protected function defaultSiteSlug(): string
+    {
+        if ($this->defaultSiteSlug !== null) {
+            return $this->defaultSiteSlug;
+        }
+        $this->defaultSiteSlug = '';
+        $defaultSiteId = (int) $this->settings->get('default_site');
+        try {
+            $site = $defaultSiteId
+                ? $this->api->read('sites', ['id' => $defaultSiteId])->getContent()
+                : $this->api->search('sites', ['limit' => 1, 'sort_by' => 'id'])->getContent()[0] ?? null;
+            $this->defaultSiteSlug = $site ? (string) $site->slug() : '';
+        } catch (\Exception $e) {
+            // Keep an empty slug: the caller manages a missing site.
+        }
+        return $this->defaultSiteSlug;
     }
 
     /**
