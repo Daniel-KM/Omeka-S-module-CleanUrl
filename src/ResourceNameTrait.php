@@ -16,6 +16,9 @@ trait ResourceNameTrait
             'digital_objects' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
                 : null,
+            'concepts' => class_exists('Thesaurus\Module', false)
+                ? \Thesaurus\Entity\Concept::class
+                : null,
             'resources' => '',
             'resource' => '',
             'resource:item' => \Omeka\Entity\Item::class,
@@ -23,6 +26,12 @@ trait ResourceNameTrait
             'resource:media' => \Omeka\Entity\Media::class,
             'resource:digitalobject' => class_exists('DigitalObject\Module', false)
                 ? \DigitalObject\Entity\DigitalObject::class
+                : null,
+            'resource:concept' => class_exists('Thesaurus\Module', false)
+                ? \Thesaurus\Entity\Concept::class
+                : null,
+            'concept' => class_exists('Thesaurus\Module', false)
+                ? \Thesaurus\Entity\Concept::class
                 : null,
             // Avoid a check and make the plugin more flexible.
             \Omeka\Api\Representation\ItemRepresentation::class => \Omeka\Entity\Item::class,
@@ -52,6 +61,10 @@ trait ResourceNameTrait
         if (class_exists('DigitalObject\Module', false)) {
             $resourceClasses[\DigitalObject\Api\Representation\DigitalObjectRepresentation::class] = \DigitalObject\Entity\DigitalObject::class;
         }
+        if (class_exists('Thesaurus\Module', false)) {
+            $resourceClasses[\Thesaurus\Api\Representation\ConceptRepresentation::class] = \Thesaurus\Entity\Concept::class;
+            $resourceClasses[\Thesaurus\Entity\Concept::class] = \Thesaurus\Entity\Concept::class;
+        }
         return $resourceClasses[$resourceName] ?? null;
     }
 
@@ -64,6 +77,9 @@ trait ResourceNameTrait
         ];
         if (class_exists('DigitalObject\Module', false)) {
             $resourceNames[\DigitalObject\Entity\DigitalObject::class] = 'digital_objects';
+        }
+        if (class_exists('Thesaurus\Module', false)) {
+            $resourceNames[\Thesaurus\Entity\Concept::class] = 'concepts';
         }
         return $resourceNames[$resourceClass] ?? 'resources';
     }
@@ -86,6 +102,8 @@ trait ResourceNameTrait
                 'item_sets' => 'item-set',
                 'items' => 'item',
                 'digital_objects' => 'digital-object',
+                'concept' => 'concept',
+                'concepts' => 'concept',
                 'Omeka\Controller\Admin\ItemSet' => 'item-set',
                 'Omeka\Controller\Admin\Item' => 'item',
                 'Omeka\Controller\Admin\Media' => 'media',
@@ -94,6 +112,7 @@ trait ResourceNameTrait
                 'Omeka\Controller\Site\Media' => 'media',
                 'DigitalObject\Controller\Admin\DigitalObject' => 'digital-object',
                 'DigitalObject\Controller\Site\DigitalObject' => 'digital-object',
+                'Thesaurus\Controller\Admin\ConceptController' => 'concept',
                 \Omeka\Entity\ItemSet::class => 'item-set',
                 \Omeka\Entity\Item::class => 'item',
                 \Omeka\Entity\Media::class => 'media',
