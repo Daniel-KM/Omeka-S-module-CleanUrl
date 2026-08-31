@@ -39,6 +39,20 @@ class Module extends AbstractModule
 
     const NAMESPACE = __NAMESPACE__;
 
+    /**
+     * Maximum number of warnings about identifiers in the same request.
+     *
+     * @var int
+     */
+    const IDENTIFIER_WARNINGS = 5;
+
+    /**
+     * Number of warnings about identifiers in the current request.
+     *
+     * @var int
+     */
+    protected $identifierWarnings = 0;
+
     public function init(ModuleManager $moduleManager): void
     {
         $moduleManager->getEventManager()->attach(ModuleEvent::EVENT_MERGE_CONFIG, [$this, 'onEventMergeConfig']);
@@ -300,6 +314,24 @@ class Module extends AbstractModule
             'api.update.pre',
             [$this, 'handleCheckSlugPage']
         );
+
+        // Warn when a saved resource has an identifier without clean url.
+        foreach ([
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
+            \Omeka\Api\Adapter\ItemAdapter::class,
+            \Omeka\Api\Adapter\MediaAdapter::class,
+        ] as $adapter) {
+            $sharedEventManager->attach(
+                $adapter,
+                'api.create.post',
+                [$this, 'handleCheckResourceIdentifier']
+            );
+            $sharedEventManager->attach(
+                $adapter,
+                'api.update.post',
+                [$this, 'handleCheckResourceIdentifier']
+            );
+        }
 
         // Add a canonical link to the clean url on public resource and page
         // pages, so search engines do not index the duplicate (original and
@@ -652,8 +684,85 @@ class Module extends AbstractModule
 
         $this->cacheCleanData();
         $this->cacheRouteSettings(true);
+        $this->checkIdentifiers($params);
 
         return true;
+    }
+
+    /**
+     * Warn about identifiers that cannot be used to build a clean url.
+     *
+     * The check is done only for the resource types whose paths use an
+     * identifier: a path built with an id, like the default one for medias
+     * ("document/{item_identifier}/{media_id}"), needs no identifier.
+     */
+    protected function checkIdentifiers(array $params): void
+    {
+        $services = $this->getServiceLocator();
+        $messenger = $services->get('ControllerPluginManager')->get('messenger');
+        $checker = new Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
+
+        foreach ($this->identifierResourceTypes() as $resourceType => $resourceName) {
+            $options = $params['cleanurl_' . $resourceType] ?? null;
+            if (!$options) {
+                continue;
+            }
+            foreach ($this->identifierModes($options, $resourceType) as $short) {
+                $check = $checker->checkResourceType($resourceName, $options, $short);
+                if (!$check['invalid']) {
+                    continue;
+                }
+                $messenger->addWarning(new PsrMessage(
+                    '{resource_name}: {count} identifiers on {total} have no clean url, because they don’t match the pattern (for example "{identifier}"). Characters to add to the pattern: {characters}', // @translate
+                    [
+                        'resource_name' => $resourceName,
+                        'count' => $check['invalid'],
+                        'total' => $check['total'],
+                        'identifier' => (string) reset($check['examples']),
+                        'characters' => $check['characters'] ? implode(' ', $check['characters']) : '-',
+                    ]
+                ));
+            }
+        }
+    }
+
+    /**
+     * Get the resource types that may have an identifier.
+     */
+    protected function identifierResourceTypes(): array
+    {
+        $resourceTypes = [
+            'item_set' => 'item_sets',
+            'item' => 'items',
+            'media' => 'media',
+        ];
+        if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+            $resourceTypes['digital_object'] = 'digital_objects';
+        }
+        return $resourceTypes;
+    }
+
+    /**
+     * Get the identifier modes used by the paths of a resource type.
+     *
+     * @return bool[] False for the full identifier, true for the short one.
+     */
+    protected function identifierModes(array $options, string $resourceType): array
+    {
+        $paths = $options['paths'] ?? [];
+        $paths[] = $options['default'] ?? '';
+        $paths[] = $options['short'] ?? '';
+
+        $modes = [];
+        foreach (array_filter($paths) as $path) {
+            if (mb_strpos($path, '{' . $resourceType . '_identifier}') !== false) {
+                $modes[0] = false;
+            }
+            if (mb_strpos($path, '{' . $resourceType . '_identifier_short}') !== false) {
+                $modes[1] = true;
+            }
+        }
+        return array_values($modes);
     }
 
     /**
@@ -746,6 +855,75 @@ class Module extends AbstractModule
     public function handleCheckSlugPage(Event $event): void
     {
         $this->handleCheckSlug($event, 'site_pages');
+    }
+
+    /**
+     * Warn when a saved resource has an identifier without clean url.
+     */
+    public function handleCheckResourceIdentifier(Event $event): void
+    {
+        // A batch edit saves many resources in the same request, so limit the
+        // number of warnings.
+        if ($this->identifierWarnings >= self::IDENTIFIER_WARNINGS) {
+            return;
+        }
+
+        $services = $this->getServiceLocator();
+
+        // Warn only in the admin interface: the api and the bulk processes may
+        // save thousands of resources and would flood the messenger. The route
+        // match is read directly from the mvc event, because
+        // Status::isAdminRequest() runs the router again when the route match
+        // is not set yet, for example during a job.
+        $routeMatch = $services->get('Application')->getMvcEvent()->getRouteMatch();
+        if (!$routeMatch || !$routeMatch->getParam('__ADMIN__')) {
+            return;
+        }
+
+        $resourceTypes = array_flip($this->identifierResourceTypes());
+        $resourceName = $event->getTarget()->getResourceName();
+        if (!isset($resourceTypes[$resourceName])) {
+            return;
+        }
+        $resourceType = $resourceTypes[$resourceName];
+
+        $options = $services->get('Omeka\Settings')->get('cleanurl_' . $resourceType);
+        if (!is_array($options)) {
+            return;
+        }
+        $modes = $this->identifierModes($options, $resourceType);
+        if (!$modes) {
+            return;
+        }
+
+        $resource = $event->getParam('response')->getContent();
+        if (!is_object($resource)) {
+            return;
+        }
+
+        $getResourceIdentifier = $services->get('ViewHelperManager')->get('getResourceIdentifier');
+        $checker = new Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
+        $messenger = $services->get('ControllerPluginManager')->get('messenger');
+
+        foreach ($modes as $short) {
+            $identifier = (string) $getResourceIdentifier($resource, false, $short);
+            // Without identifier, the url is built with the resource id, so
+            // there is nothing to check.
+            if (!mb_strlen($identifier)
+                || $checker->isValidIdentifier($identifier, $options, $short)
+            ) {
+                continue;
+            }
+            $characters = $checker->offendingCharacters($identifier, $options, $short);
+            ++$this->identifierWarnings;
+            $messenger->addWarning(new PsrMessage(
+                'The identifier "{identifier}" has no clean url, because it doesn’t match the pattern. Characters to add to the pattern: {characters}', // @translate
+                [
+                    'identifier' => $identifier,
+                    'characters' => $characters ? implode(' ', $characters) : '-',
+                ]
+            ));
+        }
     }
 
     /**
