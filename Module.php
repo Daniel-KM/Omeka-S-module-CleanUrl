@@ -686,7 +686,38 @@ class Module extends AbstractModule
         $this->cacheRouteSettings(true);
         $this->checkIdentifiers($params);
 
+        // The post is read again, because $params was reduced to the settings.
+        if (!empty($controller->getRequest()->getPost()['cleanurl_check']['process_check'])) {
+            $this->dispatchCheckIdentifiers($controller);
+        }
+
         return true;
+    }
+
+    /**
+     * Run the full check of identifiers as a background job.
+     */
+    protected function dispatchCheckIdentifiers(AbstractController $controller): void
+    {
+        $services = $this->getServiceLocator();
+
+        $job = $services->get(\Omeka\Job\Dispatcher::class)
+            ->dispatch(\CleanUrl\Job\CheckIdentifiers::class);
+
+        $urlHelper = $services->get('ViewHelperManager')->get('url');
+        $message = new PsrMessage(
+            'Checking identifiers in a background job ({link_job}job #{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+            [
+                'link_job' => sprintf('<a href="%1$s">', htmlspecialchars($urlHelper('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+                'link_log' => class_exists('Log\Module', false)
+                    ? sprintf('<a href="%1$s">', htmlspecialchars($urlHelper('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]])))
+                    : sprintf('<a href="%1$s" target="_blank" rel="noopener noreferrer">', htmlspecialchars($urlHelper('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()]))),
+            ]
+        );
+        $message->setEscapeHtml(false);
+        $controller->messenger()->addSuccess($message);
     }
 
     /**
@@ -702,12 +733,12 @@ class Module extends AbstractModule
         $messenger = $services->get('ControllerPluginManager')->get('messenger');
         $checker = new Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
 
-        foreach ($this->identifierResourceTypes() as $resourceType => $resourceName) {
+        foreach ($checker->resourceTypes() as $resourceType => $resourceName) {
             $options = $params['cleanurl_' . $resourceType] ?? null;
             if (!$options) {
                 continue;
             }
-            foreach ($this->identifierModes($options, $resourceType) as $short) {
+            foreach ($checker->identifierModes($options, $resourceType) as $short) {
                 $check = $checker->checkResourceType($resourceName, $options, $short);
                 if (!$check['invalid']) {
                     continue;
@@ -724,45 +755,6 @@ class Module extends AbstractModule
                 ));
             }
         }
-    }
-
-    /**
-     * Get the resource types that may have an identifier.
-     */
-    protected function identifierResourceTypes(): array
-    {
-        $resourceTypes = [
-            'item_set' => 'item_sets',
-            'item' => 'items',
-            'media' => 'media',
-        ];
-        if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
-            $resourceTypes['digital_object'] = 'digital_objects';
-        }
-        return $resourceTypes;
-    }
-
-    /**
-     * Get the identifier modes used by the paths of a resource type.
-     *
-     * @return bool[] False for the full identifier, true for the short one.
-     */
-    protected function identifierModes(array $options, string $resourceType): array
-    {
-        $paths = $options['paths'] ?? [];
-        $paths[] = $options['default'] ?? '';
-        $paths[] = $options['short'] ?? '';
-
-        $modes = [];
-        foreach (array_filter($paths) as $path) {
-            if (mb_strpos($path, '{' . $resourceType . '_identifier}') !== false) {
-                $modes[0] = false;
-            }
-            if (mb_strpos($path, '{' . $resourceType . '_identifier_short}') !== false) {
-                $modes[1] = true;
-            }
-        }
-        return array_values($modes);
     }
 
     /**
@@ -880,7 +872,8 @@ class Module extends AbstractModule
             return;
         }
 
-        $resourceTypes = array_flip($this->identifierResourceTypes());
+        $checker = new Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
+        $resourceTypes = array_flip($checker->resourceTypes());
         $resourceName = $event->getTarget()->getResourceName();
         if (!isset($resourceTypes[$resourceName])) {
             return;
@@ -891,7 +884,7 @@ class Module extends AbstractModule
         if (!is_array($options)) {
             return;
         }
-        $modes = $this->identifierModes($options, $resourceType);
+        $modes = $checker->identifierModes($options, $resourceType);
         if (!$modes) {
             return;
         }
@@ -902,7 +895,6 @@ class Module extends AbstractModule
         }
 
         $getResourceIdentifier = $services->get('ViewHelperManager')->get('getResourceIdentifier');
-        $checker = new Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
         $messenger = $services->get('ControllerPluginManager')->get('messenger');
 
         foreach ($modes as $short) {

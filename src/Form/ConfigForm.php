@@ -2,6 +2,7 @@
 
 namespace CleanUrl\Form;
 
+use Common\Form\Element as CommonElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 use Laminas\Form\Form;
@@ -168,6 +169,40 @@ class ConfigForm extends Form
                 'attributes' => [
                     'id' => 'cleanurl_admin_reserved',
                     'rows' => 3,
+                ],
+            ])
+        ;
+
+        // Tasks.
+
+        $this
+            ->add([
+                'type' => Fieldset::class,
+                'name' => 'cleanurl_check',
+                'options' => [
+                    'label' => 'Check identifiers', // @translate
+                ],
+            ])
+        ;
+
+        $this
+            ->get('cleanurl_check')
+            ->add([
+                'name' => 'check_note',
+                'type' => CommonElement\Note::class,
+                'options' => [
+                    'text' => 'List the identifiers that have no clean url, because they don’t match the pattern or because they are a reserved word. The report is a tabular file saved in the directory "files/cleanurl", with the resource ids, so the resources can be selected for a bulk edit. Nothing is modified: an identifier is a metadata with an external meaning, so it is never fixed automatically. To fix them, either widen the pattern above, that is generally the right way, or normalize the values with the module Bulk Edit. Save the settings before running the task.', // @translate
+                ],
+            ])
+            ->add([
+                'name' => 'process_check',
+                'type' => Element\Submit::class,
+                'options' => [
+                    'label' => 'Check identifiers', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'process_check',
+                    'value' => 'Check identifiers', // @translate
                 ],
             ])
         ;
