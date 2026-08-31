@@ -642,6 +642,58 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
     }
 
     /**
+     * Identifiers are checked against the encoded url, like the router does.
+     *
+     * The router applies the pattern on the encoded path, so a character that
+     * rawurlencode() leaves as is, like the dot, must belong to the pattern,
+     * and a character that is encoded, like the space, never matches a simple
+     * pattern.
+     */
+    public function testIdentifierCheckedAgainstEncodedUrl(): void
+    {
+        $services = $this->getApplication()->getServiceManager();
+        $checker = new \CleanUrl\Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
+
+        $default = ['pattern' => '[a-zA-Z0-9][a-zA-Z0-9_-]*'];
+        $withDot = ['pattern' => '[a-zA-Z0-9][a-zA-Z0-9_.-]*'];
+
+        $this->assertTrue($checker->isValidIdentifier('test-output', $default));
+        $this->assertFalse(
+            $checker->isValidIdentifier('test.output', $default),
+            'A dot is not encoded, so it must be part of the pattern'
+        );
+        $this->assertTrue($checker->isValidIdentifier('test.output', $withDot));
+
+        // A space is encoded as "%20", so it cannot match a simple pattern.
+        $this->assertFalse($checker->isValidIdentifier('test output', $default));
+
+        // A reserved word is refused by the router, whatever the pattern.
+        $this->assertFalse($checker->isValidIdentifier('iiif', $default));
+
+        // Without pattern, no identifier can be matched.
+        $this->assertFalse($checker->isValidIdentifier('test', ['pattern' => '']));
+
+        // The short identifier falls back on the main pattern when empty.
+        $this->assertTrue(
+            $checker->isValidIdentifier('test', ['pattern' => '[a-z]+', 'pattern_short' => ''], true)
+        );
+    }
+
+    /**
+     * The characters to add to the pattern are reported to the administrator.
+     */
+    public function testOffendingCharactersOfIdentifier(): void
+    {
+        $services = $this->getApplication()->getServiceManager();
+        $checker = new \CleanUrl\Stdlib\IdentifierChecker($services->get('Omeka\Connection'));
+
+        $default = ['pattern' => '[a-zA-Z0-9][a-zA-Z0-9_-]*'];
+
+        $this->assertSame(['.'], $checker->offendingCharacters('test.output', $default));
+        $this->assertSame([], $checker->offendingCharacters('test-output', $default));
+    }
+
+    /**
      * Digital objects: the default clean url path must be the standalone
      * schema, not the item-parent one.
      *
