@@ -108,6 +108,17 @@ Simply set an identifier for each record in a field. The recommended field is
 - If the path for the item contains the item set identifier, the first item set
   will be used. If none, the urls will be the standard one.
 
+**Important**: the pattern is applied on the url, that is encoded, and not on
+the raw value. So a character that is not encoded must be part of the pattern
+to be usable: the identifier `test.output` requires a pattern like
+`[a-zA-Z0-9][a-zA-Z0-9_.-]*`, else the resource keeps its default url. The
+characters `- _ . ~` and `! $ & ' ( ) * + , : ; = @` are kept as is in the url,
+and the slash too when the option "Identifiers have slash" is set. On the
+contrary, a character that is encoded, like the space (`%20`) or an accented
+letter (`%C3%A9`), can nearly never be matched by a simple pattern.
+
+See below how to list the identifiers that have no clean url.
+
 ### Structure of urls
 
 The configuration page let you choose the structure of paths for item sets,
@@ -130,6 +141,12 @@ between `{}`. Managed identifiers are:
 - `media_identifier`
 - `media_identifier_short`
 - `media_position`
+- `digital_object_id` (only with module [Digital Object])
+- `digital_object_identifier` (only with module [Digital Object])
+- `digital_object_identifier_short` (only with module [Digital Object])
+- `concept_id` (only with module [Thesaurus])
+- `concept_identifier` (only with module [Thesaurus])
+- `concept_identifier_short` (only with module [Thesaurus])
 
 So an example for a document within an item set may be `collection/{item_set_identifier}/{item_identifier}`.
 
@@ -144,13 +161,123 @@ the database or if the positions are not the good one, use module [Bulk Check]
 to fix them. Anyway, the identifier can be the content of any property, as long
 as its content is unique for the list of media of the item.
 
+### Digital objects
+
+When the module [Digital Object] is installed, digital objects get their own
+paths, with the same options than the other resources.
+
+A digital object is a top-level resource: unlike a media, it has no parent
+item, so its path cannot contain an item identifier. Only the standalone
+schema is available, and the default path is
+`digital-object/{digital_object_identifier}`.
+
+### Concepts
+
+When the module [Thesaurus] is installed, concepts get their own paths, with
+the same options than the other resources. The default path is
+`concept/{concept_identifier}` and the default property is `skos:notation`.
+
+A concept is a top-level resource, so its path cannot contain an item or an
+item set identifier. Furthermore, the module [Thesaurus] has no public
+controller for concepts, so the clean urls are built for the admin board only.
+
+### Canonical url
+
+A resource is available through its clean url and through its default url, so
+a search engine may index the same page twice. The option "Add a canonical
+link to the clean url" adds a `<link rel="canonical">` to the clean url on the
+public pages of item sets, items, medias, digital objects and site pages.
+Nothing is added when the current url is already the clean one, or when the
+resource has no clean url.
+
+### Access a resource with its identifier
+
+Two options, disabled by default, allow to reach a resource with its identifier
+instead of its internal id.
+
+The option "Allow to read the api with an identifier" makes the api answer to
+`/api/items/{identifier}` as well as to `/api/items/{id}`. A numeric value is
+always an id, so an identifier that is a number cannot be used. Only the read is
+managed for now: an identifier is a metadata that can be edited or duplicated,
+so it is not a safe target to create, update or delete a resource. The `@id` of
+the json-ld output is unchanged, so the identity of the resources is the same
+for the clients that already use it.
+
+The option "Add the dereferenceable uri" publishes `/id/{identifier}` for each
+resource. This uri depends neither on the type of the resource nor on the way it
+is displayed, so it can be published as the identifier of the resource itself.
+It redirects with a "303 See Other" to the page of the resource for a browser,
+and to its json-ld description when the client asks for it (header `Accept` with
+`application/ld+json` or `application/json`), according to the W3C note [Cool URIs].
+The identifier may contain a "/", so an ark can be used: `/id/ark:/12345/bWZ4`.
+
+### Urls built outside of a site
+
+A site url requires the slug of the site, that is taken from the current
+request. Outside of a site request, in particular in a background job run via
+the cli, there is no such slug, so the slug of the default site is used, or the
+one of the first site when no default site is set. Without it, the url could
+not be built at all and the job would fail.
+
+### Urls built by background jobs
+
+Building a clean url requires to look for the identifier of the resource in the
+database, so it costs about two hundred times more than a standard url. This is
+fine to display a page, but not for a job that builds thousands of urls that
+are never displayed, for example to serialize resources as json-ld.
+
+Such a job may skip the clean urls during its process:
+
+```php
+$urlHelper = $services->get('ViewHelperManager')->get('url');
+// The module may not be installed.
+if (method_exists($urlHelper, 'setSkipCleanUrl')) {
+    $urlHelper->setSkipCleanUrl(true);
+}
+// Process…
+$urlHelper->setSkipCleanUrl(false);
+```
+
+The urls remain valid: only the clean form is skipped, so the standard url is
+returned instead. The option should always be restored at the end of the
+process, and it must not be used to build urls that are displayed or stored.
+
+### Check of identifiers
+
+An identifier that doesn’t match the pattern, or that is a reserved word, has
+no clean url: the resource silently keeps its default url. Three checks warn
+the administrator:
+
+- when the config is saved, the number of identifiers that don’t match the
+  pattern is displayed, with an example and the characters to add to it. This
+  is the main point to watch: changing a pattern breaks all the existing clean
+  urls at once.
+- when an item set, an item or a media is saved in the admin interface, its
+  own identifier is checked.
+- the task "Check identifiers", available in the tab "Tasks" of the config
+  form and in the tasks of the module [Easy Admin], lists all of them in a
+  tabular file saved in the directory `files/cleanurl`. The report contains
+  the resource ids, so the resources can be selected for a bulk edit.
+
+Only the first literal value of the configured property is checked for each
+resource, since it is the one used to build the url.
+
+Nothing is fixed automatically: an identifier is a metadata with an external
+meaning (ark, shelf mark), so changing it would break the references used
+elsewhere. There are two ways to fix the identifiers without clean url: widen
+the pattern, that is generally the right way, or normalize the values with the
+module [Bulk Edit], that replaces a string or a regex in a property.
+
 ### Config for Ark
 
 The module [Ark] allows to create normalized unique identifiers formatted like
-`ark:/12025/b6KN`, where the "12025" is the id of the institution, that is
-assigned for free by the [California Digital Library] to any institution with
-historical or archival purposes. The "b6KN" is the short hash of the id, with a
-control key. The name is always short, because four characters are enough to
+`ark:/12025/b6KN`, where the "12025" is the NAAN (Name Assigning Authority
+Number), that identifies the institution. It is assigned for free by the [ARK Alliance]
+to any stable memory organization, through the [NAAN request form], that is used
+to update an existing entry of the registry too. The registry is maintained at
+the California Digital Library and mirrored at the National Library of Medicine
+and the National Library of France. The "b6KN" is the short hash of the id, with
+a control key. The name is always short, because four characters are enough to
 create more than ten millions of unique names.
 
 There are multiple way to config arks:
@@ -190,10 +317,11 @@ TODO
 
 - [ ] Manage hierarchy of pages (/my-site/part-1/part-1.1/part-1.1.1).
 - [ ] Forward/Redirect to the canonical url
+- [ ] Support public clean urls for concepts (module [Thesaurus], (see `site_parts` in `Module.php`).
 - [ ] Support item-parent schema for digital objects (`document/{item_identifier}/{digital_object_id}`): a digital object is a top-level resource without any item parent, so only the standalone schema is available for now.
 - [x] Replace the check with/without space by a job that cleans all identifiers (see Bulk Check).
 - [ ] Remove the management of the space to get resources from identifiers with a prefix.
-- [ ] Improve speed to create url, in particular when creating urls in bulk (module Mapping). Create a table? Or even a single setting with the full list id/identifier?
+- [ ] Improve speed to create url, in particular when creating urls in bulk (module Mapping). Create a table? Or even a single setting with the full list id/identifier? A job may already skip the clean urls when they are not displayed (see above), but the urls that are really displayed in bulk still need it.
 
 
 Warning
@@ -247,17 +375,26 @@ module was rewritten to manage various requirements.
 
 
 [Clean Url]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl
+[CleanUrl.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/releases
 [Omeka S]: https://omeka.org/s
 [Clean Url plugin]: https://gitlab.com/Daniel-KM/Omeka-plugin-CleanUrl
 [Omeka]: https://omeka.org/classic
 [BibLibre]: https://github.com/biblibre
 [Ark]: https://gitlab.com/Daniel-KM/Omeka-S-module-Ark
+[ARK Alliance]: https://arks.org
+[NAAN request form]: https://docs.google.com/forms/d/e/1FAIpQLSf_847hNXtLGikR-XeDy1uT1AKd24DpHnt5UQh2i8ORRu7u-w/viewform
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
+[CleanUrl.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/releases
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
 [Archive Repertory]: https://gitlab.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [Bulk Check]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkCheck
+[Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
+[Digital Object]: https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject
+[Cool URIs]: https://www.w3.org/TR/cooluris/ "Cool URIs for the Semantic Web"
+[Easy Admin]: https://gitlab.com/Daniel-KM/Omeka-S-module-EasyAdmin
+[Thesaurus]: https://gitlab.com/Daniel-KM/Omeka-S-module-Thesaurus
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
