@@ -22,7 +22,7 @@
         "issues": "https://gitlab.com/Daniel-KM/omeka-s-module-CleanUrl/-/issues",
         "forum": "https://forum.omeka.org/"
     },
-    "_require (not set until Omeka S merges PR #2412)": {
+    "_require (not set until Omeka S merges PR #2432)": {
         "omeka/omeka-s": "^4.1",
         "daniel-km/omeka-s-module-common": "*"
     },

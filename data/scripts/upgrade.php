@@ -345,6 +345,17 @@ if (version_compare($oldVersion, '3.17.11', '<')) {
     $messenger->addSuccess($message);
 }
 
+if (version_compare($oldVersion, '3.17.16', '<')) {
+    // The new options are disabled by default, so they are only initialized.
+    $settings->set('cleanurl_api_identifier', (bool) $settings->get('cleanurl_api_identifier', false));
+    $settings->set('cleanurl_identifier_route', (bool) $settings->get('cleanurl_identifier_route', false));
+
+    $message = new PsrMessage(
+        'A new option allows to read the api with the identifier of a resource, and another one to publish a dereferenceable uri "/id/{identifier}" for each resource. They are disabled by default and can be enabled in the config of the module.' // @translate
+    );
+    $messenger->addSuccess($message);
+}
+
 // TODO Use TraitModule.
 $this->getConfig();
 $this->cacheCleanData();
