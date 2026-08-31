@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 00:00+0000\n"
+"POT-Creation-Date: 2026-09-04 12:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:37 Module.php:145
+#: data/scripts/upgrade.php:37 Module.php:183
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
@@ -26,35 +26,35 @@ msgstr ""
 msgid "Missing requirement. Unable to upgrade."
 msgstr ""
 
-#: Module.php:378
+#: Module.php:601
 msgid ""
 "\"Clean Url\" module allows to have clean, readable and search engine "
 "optimized urls for pages and resources, like https://example.net/"
 "item_set_identifier/item_identifier."
 msgstr ""
 
-#: Module.php:380
+#: Module.php:603
 msgid ""
 "For identifiers, it is recommended to use a pattern that includes at least "
 "one letter to avoid confusion with internal numerical ids."
 msgstr ""
 
-#: Module.php:382
+#: Module.php:605
 msgid ""
 "For a good seo, it’s not recommended to have multiple urls for the same "
 "resource."
 msgstr ""
 
-#: Module.php:384
+#: Module.php:607
 #, php-format
 msgid "See %s for more information."
 msgstr ""
 
-#: Module.php:689
+#: Module.php:1049
 msgid "[none]"
 msgstr ""
 
-#: data/scripts/upgrade.php:48 Module.php:155
+#: data/scripts/upgrade.php:48 Module.php:193
 msgid "The directory \"{directory}\" is not writeable."
 msgstr ""
 
@@ -98,129 +98,177 @@ msgstr ""
 msgid "The specific config file is no more needed and was removed."
 msgstr ""
 
-#: Module.php:454
+#: data/scripts/upgrade.php:354
+msgid ""
+"A new option allows to read the api with the identifier of a resource, and "
+"another one to publish a dereferenceable uri \"/id/{identifier}\" for each "
+"resource. They are disabled by default and can be enabled in the config of "
+"the module."
+msgstr ""
+
+#: Module.php:528
+msgid ""
+"Resource #{resource_id}: the identifier \"{identifier}\" has no clean url. "
+"Characters to add to the pattern: {characters}"
+msgstr ""
+
+#: Module.php:698
 msgid "Set a default site if you want to remove the part \"/s/site-slug\"."
 msgstr ""
 
-#: Module.php:471
+#: Module.php:715
 msgid ""
 "The sites \"{site_slugs}\" use a reserved string which prevents \"/s/site-"
 "slug\" from being removed. Rename these sites if you want to skip \"/s/site-"
 "slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:486
+#: Module.php:730
 msgid ""
 "The sites pages \"{page_slugs}\" use a reserved string or a site slug which "
 "prevents \"/s/site-slug\" from being removed. Rename these pages if you want "
 "to skip \"/s/site-slug\". See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:501
+#: Module.php:745
 msgid ""
 "The prefix \"{slug}\" is reserved, which prevents from being used as a "
 "prefix. Use another prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:512
+#: Module.php:756
 msgid ""
 "The prefix \"{slug}\" is already set for a site, which prevents from being "
 "used as a prefix. Use another prefix or rename the site. See the {link}list "
 "of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:529
+#: Module.php:773
 msgid ""
 "The sites \"{site_slugs}\" use a reserved string which prevents the prefix "
 "for site from being removed. Rename these sites if you want to skip the "
 "prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:544
+#: Module.php:788
 msgid ""
 "The prefix \"{slug}\" is reserved, which prevents from being used as a "
 "prefix for pages. Use another prefix. See the {link}list of reserved "
 "strings{link_end}."
 msgstr ""
 
-#: Module.php:555
+#: Module.php:799
 msgid ""
 "The prefix \"{slug}\" is already set for a site, which prevents from being "
 "used as a prefix for pages. Use another prefix or rename the site. See the "
 "{link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:572
+#: Module.php:816
 msgid ""
 "The sites pages \"{page_slugs}\" use a reserved string which prevents the "
 "prefix for pages from being removed. Rename these pages if you want to skip "
 "the prefix. See the {link}list of reserved strings{link_end}."
 msgstr ""
 
-#: Module.php:620 Module.php:628 Module.php:1270
+#: Module.php:864 Module.php:872 Module.php:1699
 msgid ""
 "A pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
 msgstr ""
 
-#: Module.php:781
+#: Module.php:917
+msgid ""
+"Checking identifiers in a background job ({link_job}job #{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: Module.php:945 Module.php:952
+msgid "Clean Url: Check identifiers"
+msgstr ""
+
+#: Module.php:953
+msgid ""
+"List the identifiers that have no clean url, because they don’t match the "
+"pattern or because they are a reserved word, in a tabular file saved in the "
+"directory \"files/cleanurl\"."
+msgstr ""
+
+#: Module.php:955
+msgid "Check"
+msgstr ""
+
+#: Module.php:1002
+msgid ""
+"{resource_name}: {count} identifiers on {total} have no clean url, because "
+"they don’t match the pattern (for example \"{identifier}\"). Characters to "
+"add to the pattern: {characters}"
+msgstr ""
+
+#: Module.php:1167
+msgid ""
+"The identifier \"{identifier}\" has no clean url, because it doesn’t match "
+"the pattern. Characters to add to the pattern: {characters}"
+msgstr ""
+
+#: Module.php:1210
 msgid ""
 "The slug \"{slug}\" is used or reserved. A random string has been "
 "automatically appended."
 msgstr ""
 
-#: Module.php:1108
+#: Module.php:1537
 msgid ""
 "The path \"{path}\" for item sets should contain one and only one item set "
 "identifier."
 msgstr ""
 
-#: Module.php:1129
+#: Module.php:1558
 msgid ""
 "The path \"{path}\" for item sets should not contain identifier "
 "\"{identifier}\"."
 msgstr ""
 
-#: Module.php:1149
+#: Module.php:1578
 msgid ""
 "The path \"{path}\" for items should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:1167
+#: Module.php:1596
 msgid ""
 "The path \"{path}\" for items should not contain identifier \"{identifier}\"."
 msgstr ""
 
-#: Module.php:1188
+#: Module.php:1617
 msgid ""
 "The path \"{path}\" for medias should contain one and only one item "
 "identifier."
 msgstr ""
 
-#: Module.php:1202
+#: Module.php:1631
 msgid ""
 "The path \"{path}\" for medias should not contain identifier \"{identifier}"
 "\"."
 msgstr ""
 
-#: Module.php:1213
+#: Module.php:1642
 msgid "The path \"{path}\" for medias should contain an item identifier."
 msgstr ""
 
-#: Module.php:1233
+#: Module.php:1662
 msgid ""
 "The path \"{path}\" for digital objects should contain one and only one "
 "digital object identifier."
 msgstr ""
 
-#: Module.php:1257
+#: Module.php:1686
 msgid ""
 "The path \"{path}\" for digital objects should not contain identifier "
 "\"{identifier}\"."
 msgstr ""
 
-#: Module.php:1276
+#: Module.php:1705
 msgid ""
 "A short pattern for \"{resource_type}\", for example \"[a-zA-Z0-9_-]+\", is "
 "required to use the path \"{path}\"."
@@ -230,108 +278,172 @@ msgstr ""
 msgid "Item should be an Item, an ItemRepresentation or an integer."
 msgstr ""
 
-#: src/Form/ConfigForm.php:22
+#: src/Job/CheckIdentifiers.php:38
+msgid "Unable to write the report \"{filepath}\"."
+msgstr ""
+
+#: src/Job/CheckIdentifiers.php:62
+msgid "The check was stopped. The partial report is \"{filepath}\"."
+msgstr ""
+
+#: src/Job/CheckIdentifiers.php:84
+msgid ""
+"{resource_name} ({identifier_type}): {count} identifiers on {total} have no "
+"clean url. Characters to add to the pattern: {characters}"
+msgstr ""
+
+#: src/Job/CheckIdentifiers.php:99
+msgid ""
+"{count} identifiers on {total} have no clean url. The report is \"{filepath}"
+"\"."
+msgstr ""
+
+#: src/Form/ConfigForm.php:27
 msgid "Sites and pages"
 msgstr ""
 
-#: src/Form/ConfigForm.php:29
-msgid "Skip \"s/site-slug/\" for default site"
-msgstr ""
-
 #: src/Form/ConfigForm.php:30
-msgid "The main site is defined in the main settings."
+msgid "Admin Interface"
 msgstr ""
 
-#: src/Form/ConfigForm.php:40
-msgid "Rename or skip prefix /s/"
-msgstr ""
-
-#: src/Form/ConfigForm.php:44
-msgid "s/"
+#: src/Form/ConfigForm.php:35
+msgid "Tasks"
 msgstr ""
 
 #: src/Form/ConfigForm.php:51
+msgid "Skip \"s/site-slug/\" for default site"
+msgstr ""
+
+#: src/Form/ConfigForm.php:52
+msgid "The main site is defined in the main settings."
+msgstr ""
+
+#: src/Form/ConfigForm.php:64
+msgid "Rename or skip prefix /s/"
+msgstr ""
+
+#: src/Form/ConfigForm.php:68
+msgid "s/"
+msgstr ""
+
+#: src/Form/ConfigForm.php:77
 msgid "Rename or skip prefix /page/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:55
+#: src/Form/ConfigForm.php:81
 msgid "page/"
 msgstr ""
 
-#: src/Form/ConfigForm.php:91
+#: src/Form/ConfigForm.php:123
 msgid "Medias"
 msgstr ""
 
-#: src/Form/ConfigForm.php:107
+#: src/Form/ConfigForm.php:141
 msgid "Digital objects"
 msgstr ""
 
-#: src/Form/ConfigForm.php:132
+#: src/Form/ConfigForm.php:161
 msgid "Add a canonical link to the clean url"
 msgstr ""
 
-#: src/Form/ConfigForm.php:133
+#: src/Form/ConfigForm.php:162
 msgid ""
 "On public resource and page views, add a \"canonical\" link to the clean url "
 "so search engines do not index the original and clean urls as duplicate "
 "pages."
 msgstr ""
 
-#: src/Form/ConfigForm.php:148
-msgid "Admin Interface"
+#: src/Form/ConfigForm.php:174
+msgid "Allow to read the api with an identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:155
+#: src/Form/ConfigForm.php:175
+msgid ""
+"The api can be read with the identifier of a resource (\"/api/items/"
+"{identifier}\") as well as with its id. A numeric value is always an id. The "
+"identifier is not allowed to create, update or delete a resource, and the "
+"\"@id\" of the json-ld output is unchanged."
+msgstr ""
+
+#: src/Form/ConfigForm.php:187
+msgid "Add the dereferenceable uri \"/id/{identifier}\""
+msgstr ""
+
+#: src/Form/ConfigForm.php:188
+msgid ""
+"This uri identifies the resource itself, independantly from its type and "
+"from the way it is displayed. It redirects (303) to the page of the "
+"resource, or to its json-ld description when the client asks for it."
+msgstr ""
+
+#: src/Form/ConfigForm.php:206
 msgid "Use in admin board"
 msgstr ""
 
-#: src/Form/ConfigForm.php:165
+#: src/Form/ConfigForm.php:218
 msgid "Other reserved routes in admin"
 msgstr ""
 
-#: src/Form/ConfigForm.php:166
+#: src/Form/ConfigForm.php:219
 msgid ""
 "This option allows to fix routes for unmanaged modules. Add them in the file "
 "cleanurl.config.php or here, one by row."
 msgstr ""
 
-#: src/Form/ConfigForm.php:184
+#: src/Form/ConfigForm.php:236 src/Form/ConfigForm.php:254
+#: src/Form/ConfigForm.php:258
+msgid "Check identifiers"
+msgstr ""
+
+#: src/Form/ConfigForm.php:247
+msgid ""
+"List the identifiers that have no clean url, because they don’t match the "
+"pattern or because they are a reserved word. The report is a tabular file "
+"saved in the directory \"files/cleanurl\", with the resource ids, so the "
+"resources can be selected for a bulk edit. Nothing is modified: an "
+"identifier is a metadata with an external meaning, so it is never fixed "
+"automatically. To fix them, either widen the pattern above, that is "
+"generally the right way, or normalize the values with the module Bulk Edit. "
+"Save the settings before running the task."
+msgstr ""
+
+#: src/Form/ConfigForm.php:272
 msgid "Default path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:185
+#: src/Form/ConfigForm.php:273
 msgid "Path with placeholders, without site slug."
 msgstr ""
 
-#: src/Form/ConfigForm.php:196
+#: src/Form/ConfigForm.php:284
 msgid "Short path"
 msgstr ""
 
-#: src/Form/ConfigForm.php:206
+#: src/Form/ConfigForm.php:294
 msgid "Additional paths"
 msgstr ""
 
-#: src/Form/ConfigForm.php:217
+#: src/Form/ConfigForm.php:305
 msgid "Pattern of identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:228
+#: src/Form/ConfigForm.php:316
 msgid "Optional pattern for short identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:238
+#: src/Form/ConfigForm.php:326
 msgid "Property for identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:244
+#: src/Form/ConfigForm.php:332
 msgid "Select a property…"
 msgstr ""
 
-#: src/Form/ConfigForm.php:251
+#: src/Form/ConfigForm.php:339
 msgid "Prefix to select an identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:252
+#: src/Form/ConfigForm.php:340
 msgid ""
 "This prefix allows to find one identifier when there are multiple values: "
 "\"ark:\", \"record:\", or \"doc =\". Include space if needed. Let empty to "
@@ -339,15 +451,15 @@ msgid ""
 "resource id will be used."
 msgstr ""
 
-#: src/Form/ConfigForm.php:263
+#: src/Form/ConfigForm.php:351
 msgid "The prefix is part of the identifier"
 msgstr ""
 
-#: src/Form/ConfigForm.php:273
+#: src/Form/ConfigForm.php:361
 msgid "Identifiers have slash, so don’t escape it"
 msgstr ""
 
-#: src/Form/ConfigForm.php:283
+#: src/Form/ConfigForm.php:371
 msgid "Identifiers are case sensitive"
 msgstr ""
 
