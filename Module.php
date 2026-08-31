@@ -355,27 +355,9 @@ class Module extends AbstractModule
         // Resource Template).
         $sharedEventManager->attach(
             'AdvancedResourceTemplate',
-            'advancedresourcetemplate.audit.options',
-            [$this, 'handleAuditOption']
-        );
-        $sharedEventManager->attach(
-            'AdvancedResourceTemplate',
             'advancedresourcetemplate.audit.checkers',
             [$this, 'handleAuditChecker']
         );
-    }
-
-    /**
-     * Add the option to check the identifiers to the audit of a template.
-     */
-    public function handleAuditOption(Event $event): void
-    {
-        $view = $event->getTarget();
-        $options = $event->getParam('options');
-        $options[] = '<div class="field"><label><input type="checkbox" name="check_cleanurl_identifiers" value="1"> '
-            . $view->escapeHtml($view->translate('Check the format of the identifiers (Clean Url)')) // @translate
-            . '</label></div>';
-        $event->setParam('options', $options);
     }
 
     /**
@@ -387,11 +369,6 @@ class Module extends AbstractModule
      */
     public function handleAuditChecker(Event $event): void
     {
-        $args = (array) $event->getParam('args');
-        if (empty($args['check_cleanurl_identifiers'])) {
-            return;
-        }
-
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings');
         $easyMeta = $services->get('Common\EasyMeta');
