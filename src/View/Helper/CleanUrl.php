@@ -53,6 +53,11 @@ class CleanUrl extends Url
      */
     protected $defaultSiteSlug;
 
+    /**
+     * @var bool
+     */
+    protected $skipCleanUrl = false;
+
     public function __construct(
         \Laminas\Router\RouteStackInterface $router,
         \Laminas\Mvc\Application $application,
@@ -237,6 +242,22 @@ class CleanUrl extends Url
     }
 
     /**
+     * Skip clean urls and return the standard urls, that are quicker to build.
+     *
+     * A clean url requires to look for the identifier of each resource in the
+     * database, so it costs about two hundred times more than a standard url. A
+     * background job that builds many urls that are not displayed, for example
+     * to serialize resources, may skip them during its process.
+     *
+     * The urls remain valid: only the clean form is skipped.
+     */
+    public function setSkipCleanUrl(bool $skipCleanUrl): self
+    {
+        $this->skipCleanUrl = $skipCleanUrl;
+        return $this;
+    }
+
+    /**
      * Append the site slug to the params for a url path when it is missing.
      *
      * @param array $params
@@ -312,6 +333,12 @@ class CleanUrl extends Url
      */
     protected function assembleCleanUrl(array $params, array $cleanOptions): string
     {
+        // Skipping returns an empty path, so the caller falls back to the
+        // standard url, that is about two hundred times quicker to build.
+        if ($this->skipCleanUrl) {
+            return '';
+        }
+
         $cleanOptions['force_canonical'] = false;
         $cleanUrl = $this->router->assemble($params, $cleanOptions);
         return !$cleanUrl || $cleanUrl === $this->getBasePath()
