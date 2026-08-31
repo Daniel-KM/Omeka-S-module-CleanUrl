@@ -72,6 +72,72 @@ class GetResourcesFromIdentifiers extends AbstractHelper
             return $identifiers;
         }
 
+        [$result, $variants] = $this->searchIdsFromIdentifiers($identifiers, $resourceName, $resourceClass);
+
+        // Get representations and check numeric identifiers as resource id.
+        // It allows to check rights too (currently, Connection is used, not EntityManager).
+        $api = $this->view->api();
+
+        // Batch fetch resources when possible.
+        $matchedResults = array_intersect_key($result, $variants);
+        $ids = array_values($matchedResults);
+        if ($ids) {
+            if ($resourceName !== 'resources') {
+                // Use batch search for specific resource types.
+                $resources = $api->search($resourceName, ['id' => $ids])->getContent();
+                $resourcesById = [];
+                foreach ($resources as $resource) {
+                    $resourcesById[$resource->id()] = $resource;
+                }
+                foreach ($matchedResults as $identifier => $id) {
+                    if (isset($resourcesById[$id])) {
+                        $identifiers[$variants[$identifier]] = $resourcesById[$id];
+                    }
+                }
+            } else {
+                // Fallback for generic 'resources' type (no batch search available).
+                foreach ($matchedResults as $identifier => $id) {
+                    try {
+                        $identifiers[$variants[$identifier]] = $api->read($resourceName, ['id' => $id])->getContent();
+                    } catch (NotFoundException $e) {
+                        // Nothing to do.
+                    }
+                }
+            }
+        }
+
+        // Check remaining numeric identifiers, for example when some resources
+        // don't have an identifier and the id is used instead of.
+        $identifiers = $this->appendResourcesFromNumeric($identifiers, $resourceName);
+
+        return $identifiers;
+    }
+
+    /**
+     * Complete an array of resources by id.
+     *
+     * @param array $identifiers The keys are the id.
+     */
+    /**
+     * Get the ids of the resources matching identifiers, without any check of
+     * rights: only the sql is done here, so the result can be used outside of a
+     * view, in particular during an api request.
+     *
+     * @param array $identifiers Cleaned identifiers, as keys of the array.
+     * @return array First value is the list of ids by matched identifier, and
+     * second one the variants of the identifiers by cleaned identifier.
+     */
+    public function searchIdsFromIdentifiers(
+        array $identifiers,
+        string $resourceName,
+        ?string $resourceClass
+    ): array {
+        // The property is required to search an identifier, and it may be
+        // missing when the module is not configured yet.
+        if (empty($this->options[$resourceName]['property'])) {
+            return [[], []];
+        }
+
         $parameters = [];
 
         $isCaseSensitive = !empty($this->options[$resourceName]['case_sensitive']);
@@ -203,50 +269,9 @@ class GetResourcesFromIdentifiers extends AbstractHelper
 
         $result = $this->connection->executeQuery($qb->getSQL(), $parameters)->fetchAllKeyValue();
 
-        // Get representations and check numeric identifiers as resource id.
-        // It allows to check rights too (currently, Connection is used, not EntityManager).
-        $api = $this->view->api();
-
-        // Batch fetch resources when possible.
-        $matchedResults = array_intersect_key($result, $variants);
-        $ids = array_values($matchedResults);
-        if ($ids) {
-            if ($resourceName !== 'resources') {
-                // Use batch search for specific resource types.
-                $resources = $api->search($resourceName, ['id' => $ids])->getContent();
-                $resourcesById = [];
-                foreach ($resources as $resource) {
-                    $resourcesById[$resource->id()] = $resource;
-                }
-                foreach ($matchedResults as $identifier => $id) {
-                    if (isset($resourcesById[$id])) {
-                        $identifiers[$variants[$identifier]] = $resourcesById[$id];
-                    }
-                }
-            } else {
-                // Fallback for generic 'resources' type (no batch search available).
-                foreach ($matchedResults as $identifier => $id) {
-                    try {
-                        $identifiers[$variants[$identifier]] = $api->read($resourceName, ['id' => $id])->getContent();
-                    } catch (NotFoundException $e) {
-                        // Nothing to do.
-                    }
-                }
-            }
-        }
-
-        // Check remaining numeric identifiers, for example when some resources
-        // don't have an identifier and the id is used instead of.
-        $identifiers = $this->appendResourcesFromNumeric($identifiers, $resourceName);
-
-        return $identifiers;
+        return [$result, $variants];
     }
 
-    /**
-     * Complete an array of resources by id.
-     *
-     * @param array $identifiers The keys are the id.
-     */
     protected function appendResourcesFromNumeric(array $identifiers, string $resourceName): array
     {
         $ids = array_keys(array_filter($identifiers, function ($v, $k) {

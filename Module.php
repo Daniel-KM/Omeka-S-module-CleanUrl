@@ -12,6 +12,7 @@ if (!trait_exists(\Common\TraitModule::class, false)) {
     }
 }
 
+use CleanUrl\Controller;
 use CleanUrl\Form\ConfigForm;
 use CleanUrl\Stdlib\IdentifierChecker;
 use Common\Stdlib\PsrMessage;
@@ -141,6 +142,11 @@ class Module extends AbstractModule
 
         // The page controller is already allowed, because it's an override.
         $this->addRoutes();
+
+        // The dereferenceable uri "/id/{identifier}" is public, like the pages
+        // of the resources it redirects to.
+        $this->getServiceLocator()->get('Omeka\Acl')
+            ->allow(null, Controller\IdentifierController::class);
 
         // Rebuild the route data cache when it is missing, typically right
         // after a deployment of this version: the file does not exist yet and
@@ -370,6 +376,69 @@ class Module extends AbstractModule
             'advancedresourcetemplate.audit.checkers',
             [$this, 'handleAuditChecker']
         );
+
+        // Allow to read a resource with its identifier through the api.
+        foreach ([
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
+            \Omeka\Api\Adapter\ItemAdapter::class,
+            \Omeka\Api\Adapter\MediaAdapter::class,
+            'DigitalObject\Api\Adapter\DigitalObjectAdapter',
+        ] as $adapter) {
+            $sharedEventManager->attach(
+                $adapter,
+                'api.read.pre',
+                [$this, 'handleApiReadIdentifier']
+            );
+        }
+    }
+
+    /**
+     * Read a resource with its identifier, not only with its internal id.
+     *
+     * Only the read is managed: an identifier is a metadata that can be edited
+     * or duplicated, so it is not a safe target for an update or a delete.
+     *
+     * @see https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues/7
+     */
+    public function handleApiReadIdentifier(Event $event): void
+    {
+        $services = $this->getServiceLocator();
+        if (!$services->get('Omeka\Settings')->get('cleanurl_api_identifier')) {
+            return;
+        }
+
+        /** @var \Omeka\Api\Request $request */
+        $request = $event->getParam('request');
+        $id = $request->getId();
+
+        // An internal id is always numeric, so keep the standard process, that
+        // is quicker and that avoids any ambiguity with a numeric identifier.
+        if (is_numeric($id) || !is_string($id) || !strlen($id)) {
+            return;
+        }
+
+        // Only the id is searched, without building any representation: an api
+        // request cannot run another one inside itself safely.
+        $resourceName = $event->getTarget()->getResourceName();
+        $helper = $services->get('ViewHelperManager')->get('getResourcesFromIdentifiers');
+        [$result, $variants] = $helper->searchIdsFromIdentifiers(
+            [$this->trimIdentifier($id) => null],
+            $resourceName,
+            $event->getTarget()->getEntityClass()
+        );
+
+        $matching = array_intersect_key($result, $variants);
+        if ($matching) {
+            $request->setId((int) reset($matching));
+        }
+    }
+
+    /**
+     * Clean an identifier like the view helpers do.
+     */
+    protected function trimIdentifier($identifier): string
+    {
+        return trim(rawurldecode((string) $identifier), " \t\n\r\0\x0B\u{a0}\u{feff}");
     }
 
     /**

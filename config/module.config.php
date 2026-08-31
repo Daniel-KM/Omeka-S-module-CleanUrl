@@ -65,12 +65,36 @@ return [
     ],
     'controllers' => [
         'factories' => [
+            Controller\IdentifierController::class => Service\Controller\IdentifierControllerFactory::class,
             // Override the page controller used for the root url.
             'Omeka\Controller\Site\Page' => Service\Controller\Site\PageControllerFactory::class,
         ],
     ],
     'router' => [
-        'routes' => array_merge(
+        'routes' => array_merge([
+            // Stable uri of a resource, independant from its type and from the
+            // way it is displayed. The route is always defined, but it returns
+            // a 404 when the option is disabled, so the setting can be changed
+            // without rebuilding the routes.
+            // The identifier may contain "/" (ark, shelf mark), so it is the
+            // last part of the route and it is not constrained.
+            'cleanurl-identifier' => [
+                'type' => \Laminas\Router\Http\Segment::class,
+                // A high priority avoids the clean routes to catch "/id/…".
+                'priority' => 10,
+                'options' => [
+                    'route' => '/id/:identifier',
+                    'constraints' => [
+                        'identifier' => '.+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'CleanUrl\Controller',
+                        'controller' => Controller\IdentifierController::class,
+                        'action' => 'index',
+                    ],
+                ],
+            ],
+        ],
             // Override the top route only when "s/site-slug/" is skipped
             // for a main site, so the default Omeka top route (site index
             // or default site) is preserved when no main site is set.
@@ -219,6 +243,12 @@ return [
             ],
 
             'cleanurl_canonical' => false,
+
+            // Read the api with the identifier of a resource, not only its id.
+            'cleanurl_api_identifier' => false,
+
+            // Dereferenceable uri "/id/{identifier}" for each resource.
+            'cleanurl_identifier_route' => false,
 
             'cleanurl_admin_use' => false,
             'cleanurl_admin_reserved' => [],

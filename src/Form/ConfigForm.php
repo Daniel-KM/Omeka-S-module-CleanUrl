@@ -165,6 +165,33 @@ class ConfigForm extends Form
                     'id' => 'cleanurl_canonical',
                 ],
             ])
+            ->add([
+                'name' => 'cleanurl_api_identifier',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'other',
+                    'tab' => 'cleanurl-settings',
+                    'label' => 'Allow to read the api with an identifier', // @translate
+                    'info' => 'The api can be read with the identifier of a resource ("/api/items/{identifier}") as well as with its id. A numeric value is always an id. The identifier is not allowed to create, update or delete a resource, and the "@id" of the json-ld output is unchanged.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_api_identifier',
+                ],
+            ])
+            ->add([
+                'name' => 'cleanurl_identifier_route',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'other',
+                    'tab' => 'cleanurl-settings',
+                    'label' => 'Add the dereferenceable uri "/id/{identifier}"', // @translate
+                    'info' => 'This uri identifies the resource itself, independantly from its type and from the way it is displayed. It redirects (303) to the page of the resource, or to its json-ld description when the client asks for it.', // @translate
+                    'documentation' => 'https://www.w3.org/TR/cooluris/',
+                ],
+                'attributes' => [
+                    'id' => 'cleanurl_identifier_route',
+                ],
+            ])
         ;
 
         // Admin.
