@@ -12,7 +12,7 @@ use Traversable;
 /**
  * Create a clean url if possible, else return the standard url.
  *
- * Note: The helper "Url" is overridden and no factory is used currently.
+ * Note: The helper "Url" is overridden.
  *
  * @see Laminas\View\Helper\Url
  */
@@ -28,6 +28,33 @@ class CleanUrl extends Url
      * @var string
      */
     protected $basePath;
+
+    /**
+     * @var \Laminas\Mvc\Application
+     */
+    protected $application;
+
+    /**
+     * @var \Omeka\Settings\Settings
+     */
+    protected $settings;
+
+    /**
+     * @var \Omeka\Api\Manager
+     */
+    protected $api;
+
+    public function __construct(
+        \Laminas\Router\RouteStackInterface $router,
+        \Laminas\Mvc\Application $application,
+        \Omeka\Settings\Settings $settings,
+        \Omeka\Api\Manager $api
+    ) {
+        $this->router = $router;
+        $this->application = $application;
+        $this->settings = $settings;
+        $this->api = $api;
+    }
 
     /**
      * Generate a clean or a standard url given the name of a route (clean-url).
@@ -188,6 +215,13 @@ class CleanUrl extends Url
                 break;
         }
 
+        // Any site route requires the site slug, that is missing outside of a
+        // site request, in particular in a job run via the cli. This applies to
+        // the site routes of other modules too, not only the ones above.
+        if (substr_compare((string) $name, 'site/', 0, 5) === 0) {
+            $params = $this->appendSiteSlug($params);
+        }
+
         // Use the standard url when no identifier exists (copy of Laminas Url).
         $url = $this->router->assemble($params, $options);
         return $this->applyCanonical($url, $forceCanonical);
@@ -198,30 +232,22 @@ class CleanUrl extends Url
      *
      * @param array $params
      * @return array
-     *
-     * @todo Fix the deprecation when calling services from helper.
      */
     protected function appendSiteSlug(array $params): array
     {
         if (empty($params['site-slug'])) {
-            $params['site-slug'] = @$this->view->getHelperPluginManager()->getServiceLocator()->get('Application')->getMvcEvent()->getRouteMatch()->getParam('site-slug');
+            $params['site-slug'] = $this->application->getMvcEvent()->getRouteMatch()->getParam('site-slug');
         }
         return $params;
     }
 
     /**
      * @see \Laminas\Mvc\Service\ViewHelperManagerFactory::injectOverrideFactories()
-     *
-     * @todo Fix the deprecation when calling services from helper.
      */
     protected function prepareRouter(): void
     {
-        if (empty($this->router)) {
-            $services = @$this->view->getHelperPluginManager()->getServiceLocator();
-            $this->setRouter($services->get('HttpRouter'));
-            $match = $services->get('Application')
-                ->getMvcEvent()
-                ->getRouteMatch();
+        if ($this->routeMatch === null) {
+            $match = $this->application->getMvcEvent()->getRouteMatch();
             if ($match instanceof RouteMatch) {
                 $this->setRouteMatch($match);
             }

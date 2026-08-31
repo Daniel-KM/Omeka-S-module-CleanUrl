@@ -41,15 +41,21 @@ return [
         'invokables' => [
             'getIdentifiersFromResources' => View\Helper\GetIdentifiersFromResources::class,
             'getResourceFromIdentifier' => View\Helper\GetResourceFromIdentifier::class,
-            'url' => View\Helper\CleanUrl::class,
-            'Url' => View\Helper\CleanUrl::class,
         ],
         'factories' => [
+            View\Helper\CleanUrl::class => Service\ViewHelper\CleanUrlFactory::class,
             'getIdentifiersFromResourcesOfType' => Service\ViewHelper\GetIdentifiersFromResourcesOfTypeFactory::class,
             'getMediaFromPosition' => Service\ViewHelper\GetMediaFromPositionFactory::class,
             'getResourcesFromIdentifiers' => Service\ViewHelper\GetResourcesFromIdentifiersFactory::class,
             'getResourceTypeIdentifiers' => Service\ViewHelper\GetResourceTypeIdentifiersFactory::class,
             'getResourceIdentifier' => Service\ViewHelper\GetResourceIdentifierFactory::class,
+        ],
+        // The helper "url" is an alias in the view plugin manager, and an alias
+        // wins over a factory, so the override requires an alias too, like the
+        // one that invokables used to create.
+        'aliases' => [
+            'url' => View\Helper\CleanUrl::class,
+            'Url' => View\Helper\CleanUrl::class,
         ],
     ],
     'form_elements' => [
