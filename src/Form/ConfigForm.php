@@ -11,22 +11,43 @@ use Omeka\Form\Element\PropertySelect;
 
 class ConfigForm extends Form
 {
+    /**
+     * The settings are in the first tab and the processes in the second one.
+     *
+     * The ids are the ones used before the tabs were declared here, so the
+     * anchors of the sections are unchanged.
+     *
+     * @see \Common\View\Helper\FormTabs
+     */
+    /**
+     * The sections replace the fieldsets that were only titles, so the settings
+     * keep their name and the elements stay at the first level of the form.
+     */
+    protected $elementGroups = [
+        'pages' => 'Sites and pages', // @translate
+        'resources' => 'Resources', // @translate
+        'other' => 'Other options', // @translate
+        'admin' => 'Admin Interface', // @translate
+    ];
+
+    protected $elementTabs = [
+        'cleanurl-settings' => 'Settings', // @translate
+        'cleanurl-tasks' => 'Tasks', // @translate
+    ];
+
     public function init(): void
     {
         // Pages.
 
         $this
-            ->add([
-                'type' => Fieldset::class,
-                'name' => 'clean_url_pages',
-                'options' => [
-                    'label' => 'Sites and pages', // @translate
-                ],
-            ])
+            ->setOption('element_groups', $this->elementGroups)
+            ->setOption('element_tabs', $this->elementTabs)
             ->add([
                 'name' => 'cleanurl_site_skip_main',
                 'type' => Element\Checkbox::class,
                 'options' => [
+                    'element_group' => 'pages',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Skip "s/site-slug/" for default site', // @translate
                     'info' => 'The main site is defined in the main settings.', // @translate
                 ],
@@ -38,6 +59,8 @@ class ConfigForm extends Form
                 'name' => 'cleanurl_site_slug',
                 'type' => Element\Text::class,
                 'options' => [
+                    'element_group' => 'pages',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Rename or skip prefix /s/', // @translate
                 ],
                 'attributes' => [
@@ -49,6 +72,8 @@ class ConfigForm extends Form
                 'name' => 'cleanurl_page_slug',
                 'type' => Element\Text::class,
                 'options' => [
+                    'element_group' => 'pages',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Rename or skip prefix /page/', // @translate
                 ],
                 'attributes' => [
@@ -65,6 +90,8 @@ class ConfigForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'cleanurl_item_set',
                 'options' => [
+                    'element_group' => 'resources',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Item sets', // @translate
                 ],
             ])
@@ -77,6 +104,8 @@ class ConfigForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'cleanurl_item',
                 'options' => [
+                    'element_group' => 'resources',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Items', // @translate
                 ],
             ])
@@ -89,6 +118,8 @@ class ConfigForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'cleanurl_media',
                 'options' => [
+                    'element_group' => 'resources',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Medias', // @translate
                 ],
             ])
@@ -105,6 +136,8 @@ class ConfigForm extends Form
                     'type' => Fieldset::class,
                     'name' => 'cleanurl_digital_object',
                     'options' => [
+                        'element_group' => 'resources',
+                        'tab' => 'cleanurl-settings',
                         'label' => 'Digital objects', // @translate
                     ],
                 ])
@@ -120,16 +153,11 @@ class ConfigForm extends Form
 
         $this
             ->add([
-                'type' => Fieldset::class,
-                'name' => 'clean_url_other',
-                'options' => [
-                    'label' => 'Other options', // @translate
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_canonical',
                 'type' => Element\Checkbox::class,
                 'options' => [
+                    'element_group' => 'other',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Add a canonical link to the clean url', // @translate
                     'info' => 'On public resource and page views, add a "canonical" link to the clean url so search engines do not index the original and clean urls as duplicate pages.', // @translate
                 ],
@@ -143,16 +171,11 @@ class ConfigForm extends Form
 
         $this
             ->add([
-                'type' => Fieldset::class,
-                'name' => 'clean_url_admin',
-                'options' => [
-                    'label' => 'Admin Interface', // @translate
-                ],
-            ])
-            ->add([
                 'name' => 'cleanurl_admin_use',
                 'type' => Element\Checkbox::class,
                 'options' => [
+                    'element_group' => 'admin',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Use in admin board', // @translate
                 ],
                 'attributes' => [
@@ -163,6 +186,8 @@ class ConfigForm extends Form
                 'name' => 'cleanurl_admin_reserved',
                 'type' => ArrayTextarea::class,
                 'options' => [
+                    'element_group' => 'admin',
+                    'tab' => 'cleanurl-settings',
                     'label' => 'Other reserved routes in admin', // @translate
                     'info' => 'This option allows to fix routes for unmanaged modules. Add them in the file cleanurl.config.php or here, one by row.', // @translate
                 ],
@@ -180,6 +205,7 @@ class ConfigForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'cleanurl_check',
                 'options' => [
+                    'tab' => 'cleanurl-tasks',
                     'label' => 'Check identifiers', // @translate
                 ],
             ])

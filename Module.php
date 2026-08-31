@@ -537,8 +537,29 @@ class Module extends AbstractModule
                 sprintf('<a href="https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl">%s</a>', 'Readme')
             );
 
+        $formManager = $services->get('FormElementManager');
+        $formClass = static::NAMESPACE . '\Form\ConfigForm';
+        if (!$formManager->has($formClass)) {
+            return null;
+        }
+
+        $settings = $services->get('Omeka\Settings');
+        $this->initDataToPopulate($settings, 'config');
+        $data = $this->prepareDataToPopulate($settings, 'config');
+        if ($data === null) {
+            return null;
+        }
+
+        /** @var \CleanUrl\Form\ConfigForm $form */
+        $form = $formManager->get($formClass);
+        $form->init();
+        $form->setData($data);
+        $form->prepare();
+
+        // The tabs are declared by the form, each element carrying its own tab.
+        // @see \CleanUrl\Form\ConfigForm
         return $html
-            . $this->getConfigFormAuto($renderer);
+            . $renderer->formTabs($form, [], 'cleanurl.config.section_nav');
     }
 
     public function handleConfigForm(AbstractController $controller)
