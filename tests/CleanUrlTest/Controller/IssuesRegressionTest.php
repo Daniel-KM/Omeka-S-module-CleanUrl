@@ -691,6 +691,18 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
 
         $this->assertSame(['.'], $checker->offendingCharacters('test.output', $default));
         $this->assertSame([], $checker->offendingCharacters('test-output', $default));
+
+        // An encoded ark has two refused characters, the colon and the "%" of
+        // the encoded slash: both must be reported, since removing only one of
+        // them would not be enough to match.
+        $this->assertSame(
+            [':', '%'],
+            $checker->offendingCharacters('ark:/35228/006570', $default)
+        );
+
+        // An underscore is refused as first character only, so it is not a
+        // character to add to the pattern.
+        $this->assertSame([], $checker->offendingCharacters('test_output', $default));
     }
 
     /**

@@ -96,16 +96,67 @@ class IdentifierChecker
             return [];
         }
 
-        $characters = preg_split('//u', $encoded, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $characters = array_unique(preg_split('//u', $encoded, -1, PREG_SPLIT_NO_EMPTY) ?: []);
+
+        // A character is refused when it doesn't match after a character that
+        // the pattern accepts. Checking each character on its own would flag
+        // "_" or "-", that are usually refused as first character only, and
+        // removing them one by one would find nothing as soon as an identifier
+        // has two refused characters, like ":" and "%" in an encoded ark.
+        $accepted = $this->acceptedCharacter($pattern);
+        if ($accepted === null) {
+            return [];
+        }
 
         $result = [];
-        foreach (array_unique($characters) as $character) {
-            $stripped = str_replace($character, '', $encoded);
-            if (mb_strlen($stripped) && @preg_match('(^' . $pattern . '$)', $stripped)) {
+        foreach ($characters as $character) {
+            if (!@preg_match('(^' . $pattern . '$)', $accepted . $character)) {
                 $result[] = $character;
             }
         }
         return $result;
+    }
+
+    /**
+     * Get the resource types that may have an identifier.
+     */
+    public function resourceTypes(): array
+    {
+        $resourceTypes = [
+            'item_set' => 'item_sets',
+            'item' => 'items',
+            'media' => 'media',
+        ];
+        if (class_exists(\DigitalObject\Entity\DigitalObject::class)) {
+            $resourceTypes['digital_object'] = 'digital_objects';
+        }
+        return $resourceTypes;
+    }
+
+    /**
+     * Get the identifier modes used by the paths of a resource type.
+     *
+     * A path built with an id, like the default one for medias
+     * ("document/{item_identifier}/{media_id}"), needs no identifier.
+     *
+     * @return bool[] False for the full identifier, true for the short one.
+     */
+    public function identifierModes(array $options, string $resourceType): array
+    {
+        $paths = $options['paths'] ?? [];
+        $paths[] = $options['default'] ?? '';
+        $paths[] = $options['short'] ?? '';
+
+        $modes = [];
+        foreach (array_filter($paths) as $path) {
+            if (mb_strpos($path, '{' . $resourceType . '_identifier}') !== false) {
+                $modes[0] = false;
+            }
+            if (mb_strpos($path, '{' . $resourceType . '_identifier_short}') !== false) {
+                $modes[1] = true;
+            }
+        }
+        return array_values($modes);
     }
 
     /**
@@ -115,10 +166,17 @@ class IdentifierChecker
      * configured property is used for each resource, so the other values are
      * not checked: they are not used to build the url.
      *
+     * The callback, when set, is called for each invalid identifier with the
+     * resource id, the identifier and the characters to add to the pattern.
+     *
      * @return array With keys "total", "invalid", "examples" and "characters".
      */
-    public function checkResourceType(string $resourceName, array $options, bool $short = false): array
-    {
+    public function checkResourceType(
+        string $resourceName,
+        array $options,
+        bool $short = false,
+        ?callable $onInvalid = null
+    ): array {
         $result = [
             'total' => 0,
             'invalid' => 0,
@@ -149,7 +207,7 @@ class IdentifierChecker
         }
 
         $sql = <<<SQL
-            SELECT value.value
+            SELECT value.resource_id, value.value
             FROM value
             INNER JOIN (
                 SELECT MIN(id) AS id
@@ -167,8 +225,8 @@ class IdentifierChecker
         do {
             $values = $this->connection
                 ->executeQuery($sql . ' LIMIT ' . self::CHUNK_SIZE . ' OFFSET ' . $offset, $bind)
-                ->fetchFirstColumn();
-            foreach ($values as $value) {
+                ->fetchAllKeyValue();
+            foreach ($values as $resourceId => $value) {
                 // The short identifier is the value without the prefix.
                 $identifier = $short && $lengthPrefix
                     ? trim(mb_substr((string) $value, $lengthPrefix))
@@ -181,8 +239,12 @@ class IdentifierChecker
                 if (count($result['examples']) < self::EXAMPLE_SIZE) {
                     $result['examples'][] = $identifier;
                 }
-                foreach ($this->offendingCharacters($identifier, $options, $short) as $character) {
+                $characters = $this->offendingCharacters($identifier, $options, $short);
+                foreach ($characters as $character) {
                     $result['characters'][$character] = $character;
+                }
+                if ($onInvalid) {
+                    $onInvalid((int) $resourceId, $identifier, $characters);
                 }
             }
             $offset += self::CHUNK_SIZE;
@@ -190,6 +252,20 @@ class IdentifierChecker
 
         $result['characters'] = array_values($result['characters']);
         return $result;
+    }
+
+    /**
+     * Get a single character accepted by the pattern, used to check the other
+     * ones in a continuation position.
+     */
+    protected function acceptedCharacter(string $pattern): ?string
+    {
+        foreach (['a', 'A', '0', 'z', '9'] as $character) {
+            if (@preg_match('(^' . $pattern . '$)', $character)) {
+                return $character;
+            }
+        }
+        return null;
     }
 
     /**
