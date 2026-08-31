@@ -13,6 +13,7 @@ if (!trait_exists(\Common\TraitModule::class, false)) {
 }
 
 use CleanUrl\Form\ConfigForm;
+use CleanUrl\Stdlib\IdentifierChecker;
 use Common\Stdlib\PsrMessage;
 use Common\TraitModule;
 use Laminas\EventManager\Event;
@@ -349,6 +350,121 @@ class Module extends AbstractModule
                 [$this, 'handleCanonicalUrl']
             );
         }
+
+        // Check the identifiers during the audit of a template (module Advanced
+        // Resource Template).
+        $sharedEventManager->attach(
+            'AdvancedResourceTemplate',
+            'advancedresourcetemplate.audit.options',
+            [$this, 'handleAuditOption']
+        );
+        $sharedEventManager->attach(
+            'AdvancedResourceTemplate',
+            'advancedresourcetemplate.audit.checkers',
+            [$this, 'handleAuditChecker']
+        );
+    }
+
+    /**
+     * Add the option to check the identifiers to the audit of a template.
+     */
+    public function handleAuditOption(Event $event): void
+    {
+        $view = $event->getTarget();
+        $options = $event->getParam('options');
+        $options[] = '<div class="field"><label><input type="checkbox" name="check_cleanurl_identifiers" value="1"> '
+            . $view->escapeHtml($view->translate('Check the format of the identifiers (Clean Url)')) // @translate
+            . '</label></div>';
+        $event->setParam('options', $options);
+    }
+
+    /**
+     * Report the identifiers that cannot be used to build a clean url.
+     *
+     * Nothing is fixed: an identifier is a metadata with an external meaning
+     * (ark, shelf mark), so the remediation belongs to the administrator, by
+     * widening the pattern or by normalizing the values with module Bulk Edit.
+     */
+    public function handleAuditChecker(Event $event): void
+    {
+        $args = (array) $event->getParam('args');
+        if (empty($args['check_cleanurl_identifiers'])) {
+            return;
+        }
+
+        $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
+        $easyMeta = $services->get('Common\EasyMeta');
+        $checker = new IdentifierChecker($services->get('Omeka\Connection'));
+
+        // Prepare the options of each resource type once.
+        $config = [];
+        foreach ($checker->resourceTypes() as $resourceType => $resourceName) {
+            $options = $settings->get('cleanurl_' . $resourceType);
+            if (!is_array($options) || empty($options['property'])) {
+                continue;
+            }
+            $term = $easyMeta->propertyTerm((int) $options['property']);
+            if (!$term) {
+                continue;
+            }
+            $config[$resourceName] = [
+                'options' => $options,
+                'term' => $term,
+                'modes' => $checker->identifierModes($options, $resourceType),
+            ];
+        }
+        if (!$config) {
+            return;
+        }
+
+        $checkers = (array) $event->getParam('checkers');
+        $checkers[] = function ($resource) use ($checker, $config): array {
+            $resourceName = $resource->resourceName();
+            if (!isset($config[$resourceName])) {
+                return [];
+            }
+
+            $options = $config[$resourceName]['options'];
+            $prefix = (string) ($options['prefix'] ?? '');
+            $lengthPrefix = mb_strlen($prefix);
+
+            // The identifier is the first literal value of the property, like
+            // in the job that checks all the identifiers.
+            $identifierValue = null;
+            foreach ($resource->value($config[$resourceName]['term'], ['all' => true, 'type' => 'literal']) as $value) {
+                $val = (string) $value->value();
+                if ($lengthPrefix && mb_strpos($val, $prefix) !== 0) {
+                    continue;
+                }
+                $identifierValue = $val;
+                break;
+            }
+            if ($identifierValue === null) {
+                return [];
+            }
+
+            $issues = [];
+            foreach ($config[$resourceName]['modes'] as $short) {
+                $identifier = $short && $lengthPrefix
+                    ? trim(mb_substr($identifierValue, $lengthPrefix))
+                    : $identifierValue;
+                if ($checker->isValidIdentifier($identifier, $options, $short)) {
+                    continue;
+                }
+                $characters = $checker->offendingCharacters($identifier, $options, $short);
+                $issues[] = [
+                    'message' => 'Resource #{resource_id}: the identifier "{identifier}" has no clean url. Characters to add to the pattern: {characters}', // @translate
+                    'context' => [
+                        'resource_id' => $resource->id(),
+                        'identifier' => $identifier,
+                        'characters' => $characters ? implode(' ', $characters) : '-',
+                    ],
+                ];
+            }
+            return $issues;
+        };
+        $event->setParam('checkers', $checkers);
     }
 
     /**
