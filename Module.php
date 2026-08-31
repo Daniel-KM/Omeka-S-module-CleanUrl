@@ -316,6 +316,18 @@ class Module extends AbstractModule
             [$this, 'handleCheckSlugPage']
         );
 
+        // Add the check of identifiers to the tasks of module Easy Admin.
+        $sharedEventManager->attach(
+            \EasyAdmin\Form\CheckAndFixForm::class,
+            'form.add_elements',
+            [$this, 'handleEasyAdminJobsForm']
+        );
+        $sharedEventManager->attach(
+            \EasyAdmin\Controller\Admin\CheckAndFixController::class,
+            'easyadmin.job',
+            [$this, 'handleEasyAdminJobs']
+        );
+
         // Warn when a saved resource has an identifier without clean url.
         foreach ([
             \Omeka\Api\Adapter\ItemSetAdapter::class,
@@ -832,6 +844,53 @@ class Module extends AbstractModule
         );
         $message->setEscapeHtml(false);
         $controller->messenger()->addSuccess($message);
+    }
+
+    /**
+     * Add the check of identifiers to the tasks of module Easy Admin.
+     */
+    public function handleEasyAdminJobsForm(Event $event): void
+    {
+        /**
+         * @var \EasyAdmin\Form\CheckAndFixForm $form
+         * @var \Laminas\Form\Element\Radio $process
+         */
+        $form = $event->getTarget();
+        $fieldset = $form->get('module_tasks');
+
+        $process = $fieldset->get('process');
+        $valueOptions = $process->getValueOptions();
+        $valueOptions['cleanurl_check_identifiers'] = 'Clean Url: Check identifiers'; // @translate
+        $process->setValueOptions($valueOptions);
+
+        // Describe the task for the check-and-fix ui (recent Easy Admin only).
+        if (method_exists($form, 'addTaskSubjects')) {
+            $form->addTaskSubjects([
+                'cleanurl_check_identifiers' => [
+                    'name' => 'Clean Url: Check identifiers', // @translate
+                    'description' => 'List the identifiers that have no clean url, because they don’t match the pattern or because they are a reserved word, in a tabular file saved in the directory "files/cleanurl".', // @translate
+                    'actions' => [
+                        'cleanurl_check_identifiers' => 'Check', // @translate
+                    ],
+                ],
+            ]);
+        }
+
+        // The task is not flagged as dangerous, unlike most of the tasks of
+        // Easy Admin: it only reads the identifiers and writes a report, and
+        // never modifies any resource.
+    }
+
+    /**
+     * Run the check of identifiers from the tasks of module Easy Admin.
+     */
+    public function handleEasyAdminJobs(Event $event): void
+    {
+        $process = $event->getParam('process');
+        if ($process === 'cleanurl_check_identifiers') {
+            $event->setParam('job', \CleanUrl\Job\CheckIdentifiers::class);
+            $event->setParam('args', []);
+        }
     }
 
     /**
