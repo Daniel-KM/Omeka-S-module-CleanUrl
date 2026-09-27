@@ -9,7 +9,7 @@ Clean Url (module for Omeka S)
 engine optimized URLs like `https://example.com/my_item_set/dc:identifier`
 instead of `https://example.com/item/internal_code`. Used identifiers come from
 standard Dublin Core metadata, or from any specific field, so they are easy to
-manage. It supports [Ark] and short urls too.
+manage. It supports [Ark] and short urls too. [Cool uris] are supported too.
 
 Furthermore, it makes possible to use a main site and additional sites, like in
 Omeka Classic, so the main site won’t start with "/s/site-slug". The slug "/page/"
@@ -383,11 +383,12 @@ module was rewritten to manage various requirements.
 [Ark]: https://gitlab.com/Daniel-KM/Omeka-S-module-Ark
 [ARK Alliance]: https://arks.org
 [NAAN request form]: https://docs.google.com/forms/d/e/1FAIpQLSf_847hNXtLGikR-XeDy1uT1AKd24DpHnt5UQh2i8ORRu7u-w/viewform
+[Cool uris]: https://www.w3.org/TR/cooluris/
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [CleanUrl.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/releases
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [omeka/omeka-s#870]: https://github.com/omeka/omeka-s/issues/870
-[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
+[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items
 [Archive Repertory]: https://gitlab.com/Daniel-KM/Omeka-S-module-ArchiveRepertory
 [Bulk Check]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkCheck
 [Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
