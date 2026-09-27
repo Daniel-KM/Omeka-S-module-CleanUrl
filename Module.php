@@ -1385,11 +1385,19 @@ class Module extends AbstractModule
             }
         }
 
+        // The constants may be stale in the current request (route data file
+        // missing during upgrade, or route data just updated), so use the fresh
+        // route data.
+        $routeData = $settings->get('cleanurl_route_data') ?: [];
+        $slugMainSite = $routeData['main_site'] ?? SLUG_MAIN_SITE;
+        $slugSite = $routeData['site'] ?? SLUG_SITE;
+        $slugsSite = $routeData['sites'] ?? SLUGS_SITE;
+
         $baseRoutes = [
             'public' => [
-                'base_route' => '/' . SLUG_SITE . ':site-slug/',
-                'base_regex' => '/' . SLUG_SITE . '(?P<site_slug>' . SLUGS_SITE . ')/',
-                'base_spec' => '/' . SLUG_SITE . '%site-slug%/',
+                'base_route' => '/' . $slugSite . ':site-slug/',
+                'base_regex' => '/' . $slugSite . '(?P<site_slug>' . $slugsSite . ')/',
+                'base_spec' => '/' . $slugSite . '%site-slug%/',
                 'space' => '__SITE__',
                 'namespace' => 'CleanUrl\Controller\Site',
                 'site_slug' => null,
@@ -1430,7 +1438,7 @@ class Module extends AbstractModule
                 'base_spec' => '/',
                 'space' => '__SITE__',
                 'namespace' => 'CleanUrl\Controller\Site',
-                'site_slug' => SLUG_MAIN_SITE,
+                'site_slug' => $slugMainSite,
                 'forward' => [
                     'route_name' => 'site/resource-id',
                     'namespace' => 'Omeka\Controller\Site',
