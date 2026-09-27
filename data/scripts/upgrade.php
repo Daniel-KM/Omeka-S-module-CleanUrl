@@ -46,7 +46,7 @@ $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files
 if (!$this->checkDestinationDir($basePath . '/cleanurl')) {
     $message = (new PsrMessage(
         'The directory "{directory}" is not writeable.', // @translate
-        ['directory' => $basePath . '/xsl']
+        ['directory' => $basePath . '/cleanurl']
     ))->setTranslator($translator);
     throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
 }

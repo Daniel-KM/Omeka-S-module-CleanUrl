@@ -191,7 +191,7 @@ class Module extends AbstractModule
         if (!$this->checkDestinationDir($basePath . '/cleanurl')) {
             $errors[] = (string) (new PsrMessage(
                 'The directory "{directory}" is not writeable.', // @translate
-                ['directory' => $basePath . '/xsl']
+                ['directory' => $basePath . '/cleanurl']
             ))->setTranslator($translator);
         }
 
