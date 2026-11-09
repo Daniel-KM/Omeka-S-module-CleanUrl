@@ -283,6 +283,19 @@ class Module extends AbstractModule
             [$this, 'displayViewEntityIdentifier']
         );
 
+        // Fetch the identifiers of the resources of a list in one query, and
+        // forget the identifier of an updated resource.
+        $adapters = [
+            \Omeka\Api\Adapter\ItemAdapter::class,
+            \Omeka\Api\Adapter\ItemSetAdapter::class,
+            \Omeka\Api\Adapter\MediaAdapter::class,
+        ];
+        foreach ($adapters as $adapter) {
+            $sharedEventManager->attach($adapter, 'api.search.post', [$this, 'preloadResourceIdentifiers']);
+            $sharedEventManager->attach($adapter, 'api.update.post', [$this, 'forgetResourceIdentifier']);
+            $sharedEventManager->attach($adapter, 'api.delete.post', [$this, 'forgetResourceIdentifier']);
+        }
+
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\SiteAdapter::class,
             'api.create.post',
@@ -1059,6 +1072,41 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
+    public function preloadResourceIdentifiers(Event $event): void
+    {
+        $resources = $event->getParam('response')->getContent();
+        if (!is_array($resources) || !$resources) {
+            return;
+        }
+        $ids = [];
+        foreach ($resources as $resource) {
+            if ($resource instanceof \Omeka\Entity\Item) {
+                $ids['items'][] = $resource->getId();
+            } elseif ($resource instanceof \Omeka\Entity\Media) {
+                $ids['media'][] = $resource->getId();
+                // The url of a media may use the identifier of its item.
+                $ids['items'][] = $resource->getItem()->getId();
+            } elseif ($resource instanceof \Omeka\Entity\ItemSet) {
+                $ids['item_sets'][] = $resource->getId();
+            }
+        }
+        /** @var \CleanUrl\View\Helper\GetResourceIdentifier $getResourceIdentifier */
+        $getResourceIdentifier = $this->getServiceLocator()->get('ViewHelperManager')->get('getResourceIdentifier');
+        foreach ($ids as $resourceType => $resourceIds) {
+            $getResourceIdentifier->preload($resourceType, $resourceIds);
+        }
+    }
+
+    public function forgetResourceIdentifier(Event $event): void
+    {
+        $request = $event->getParam('request');
+        $id = (int) $request->getId();
+        if ($id) {
+            $this->getServiceLocator()->get('ViewHelperManager')->get('getResourceIdentifier')
+                ->forget($request->getResource(), $id);
+        }
+    }
+
     public function handleSaveSite(Event $event): void
     {
         $this->cacheCleanData();

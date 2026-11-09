@@ -134,6 +134,68 @@ class GetResourceIdentifier extends AbstractHelper
     }
 
     /**
+     * Fetch the identifiers of many resources in one query.
+     *
+     * @param string $resourceType "items", "item_sets", "media" or
+     * "digital_objects".
+     * @param int[] $ids
+     */
+    public function preload(string $resourceType, array $ids): void
+    {
+        if (empty($this->options[$resourceType]['property'])) {
+            return;
+        }
+        $ids = array_diff(array_unique(array_map('intval', $ids)), [0]);
+        $ids = array_filter($ids, fn ($id) => !array_key_exists($resourceType . ':' . $id, $this->identifiers));
+        if (!$ids) {
+            return;
+        }
+        if (count($this->identifiers) + count($ids) > 1000) {
+            $this->identifiers = [];
+        }
+
+        $prefix = $this->options[$resourceType]['prefix'];
+        foreach (array_chunk($ids, 500) as $chunk) {
+            $qb = $this->connection->createQueryBuilder()
+                ->select('value.resource_id', 'value.value')
+                ->from('value', 'value')
+                ->where('value.type = "literal"')
+                ->andWhere('value.property_id = :property_id')
+                ->setParameter('property_id', $this->options[$resourceType]['property'])
+                ->andWhere('value.resource_id IN (:resource_ids)')
+                ->setParameter('resource_ids', $chunk, Connection::PARAM_INT_ARRAY)
+                ->addOrderBy('value.id', 'ASC');
+            if (mb_strlen($prefix)) {
+                $qb
+                    ->andWhere('value.value LIKE :prefix')
+                    ->setParameter('prefix', addcslashes($prefix, '%_') . '%');
+            }
+            // Keep the first identifier of each resource, else false, like the
+            // single query.
+            $identifiers = array_fill_keys($chunk, false);
+            $rows = $this->connection
+                ->executeQuery($qb->getSQL(), $qb->getParameters(), $qb->getParameterTypes())
+                ->fetchAllNumeric();
+            foreach ($rows as [$resourceId, $value]) {
+                if ($identifiers[(int) $resourceId] === false) {
+                    $identifiers[(int) $resourceId] = $value;
+                }
+            }
+            foreach ($identifiers as $id => $identifier) {
+                $this->identifiers[$resourceType . ':' . $id] = $identifier;
+            }
+        }
+    }
+
+    /**
+     * Remove the cached identifier of a resource, for example after an update.
+     */
+    public function forget(string $resourceType, int $id): void
+    {
+        unset($this->identifiers[$resourceType . ':' . $id]);
+    }
+
+    /**
      * Encode a string.
      *
      * This method avoids to raw-urlencode characters that don't need.
