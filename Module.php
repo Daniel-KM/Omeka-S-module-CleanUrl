@@ -244,6 +244,7 @@ class Module extends AbstractModule
                     'getMediaFromPosition' => $helpers->get('getMediaFromPosition'),
                     'getResourceFromIdentifier' => $helpers->get('getResourceFromIdentifier'),
                     'getResourceIdentifier' => $helpers->get('getResourceIdentifier'),
+                    'adapterManager' => $services->get('Omeka\ApiAdapterManager'),
                 ],
                 // Fix https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/11
                 // FIXME Go thorough to find why site/resource-id answer by a site/resource (so, above during merge of child routes).

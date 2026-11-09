@@ -20,6 +20,7 @@ use Laminas\Router\Http\RouteInterface;
 use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\ArrayUtils;
 use Laminas\Stdlib\RequestInterface as Request;
+use Omeka\Api\Adapter\Manager as AdapterManager;
 use Omeka\Api\Manager as ApiManager;
 use Traversable;
 
@@ -39,6 +40,11 @@ class CleanRoute implements RouteInterface
      * @var \Omeka\Api\Manager
      */
     protected $api;
+
+    /**
+     * @var \Omeka\Api\Adapter\Manager|null
+     */
+    protected $adapterManager;
 
     /**
      * Resources already read to assemble urls, by resource type and id.
@@ -109,6 +115,7 @@ class CleanRoute implements RouteInterface
      * @param \CleanUrl\View\Helper\GetMediaFromPosition $getMediaFromPosition
      * @param \CleanUrl\View\Helper\GetResourceFromIdentifier $getResourceFromIdentifier
      * @param \CleanUrl\View\Helper\GetResourceIdentifier $getResourceIdentifier
+     * @param \Omeka\Api\Adapter\Manager|null $adapterManager
      */
     public function __construct(
         array $routes,
@@ -117,7 +124,8 @@ class CleanRoute implements RouteInterface
         EntityManager $entityManager,
         GetMediaFromPosition $getMediaFromPosition,
         GetResourceFromIdentifier $getResourceFromIdentifier,
-        GetResourceIdentifier $getResourceIdentifier
+        GetResourceIdentifier $getResourceIdentifier,
+        ?AdapterManager $adapterManager = null
     ) {
         $this->routes = $routes;
         $this->routeAliases = $routeAliases;
@@ -126,6 +134,7 @@ class CleanRoute implements RouteInterface
         $this->getMediaFromPosition = $getMediaFromPosition;
         $this->getResourceFromIdentifier = $getResourceFromIdentifier;
         $this->getResourceIdentifier = $getResourceIdentifier;
+        $this->adapterManager = $adapterManager;
     }
 
     public static function factory($options = [])
@@ -146,7 +155,8 @@ class CleanRoute implements RouteInterface
             $options['entityManager'],
             $options['getMediaFromPosition'],
             $options['getResourceFromIdentifier'],
-            $options['getResourceIdentifier']
+            $options['getResourceIdentifier'],
+            $options['adapterManager'] ?? null
         );
     }
 
@@ -500,11 +510,15 @@ class CleanRoute implements RouteInterface
                 $this->resources = [];
             }
             if (!array_key_exists($key, $this->resources)) {
-                try {
-                    $this->resources[$key] = $this->api->read($resourceType, ['id' => $params['id']], [], ['initialize' => false])->getContent();
-                } catch (\Omeka\Api\Exception\NotFoundException $e) {
-                    $this->resources[$key] = null;
+                $resource = $this->managedResource($resourceType, (int) $params['id']);
+                if (!$resource) {
+                    try {
+                        $resource = $this->api->read($resourceType, ['id' => $params['id']], [], ['initialize' => false])->getContent();
+                    } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                        $resource = null;
+                    }
                 }
+                $this->resources[$key] = $resource;
             }
             $resource = $this->resources[$key];
             if (!$resource) {
@@ -866,4 +880,27 @@ class CleanRoute implements RouteInterface
             ->fetchOne();
     }
 
+    /**
+     * Get a resource already loaded by doctrine, without query nor api event.
+     *
+     * The resource is used only to build the url of a resource that the caller
+     * already has.
+     *
+     * @return \Omeka\Api\Representation\AbstractResourceEntityRepresentation|null
+     */
+    protected function managedResource(string $resourceType, int $id)
+    {
+        if (!$this->adapterManager || !$this->adapterManager->has($resourceType)) {
+            return null;
+        }
+        $entity = $this->entityManager->getUnitOfWork()->tryGetById($id, \Omeka\Entity\Resource::class);
+        if (!$entity) {
+            return null;
+        }
+        $adapter = $this->adapterManager->get($resourceType);
+        $entityClass = $adapter->getEntityClass();
+        return $entity instanceof $entityClass
+            ? $adapter->getRepresentation($entity)
+            : null;
+    }
 }
