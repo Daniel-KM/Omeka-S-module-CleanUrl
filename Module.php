@@ -246,7 +246,7 @@ class Module extends AbstractModule
                     'getResourceIdentifier' => $helpers->get('getResourceIdentifier'),
                     'adapterManager' => $services->get('Omeka\ApiAdapterManager'),
                 ],
-                // Fix https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/11
+                // Fix https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/11
                 // FIXME Go thorough to find why site/resource-id answer by a site/resource (so, above during merge of child routes).
                 // 'may_terminate' => !empty($childRoutes),
                 'may_terminate' => true,
