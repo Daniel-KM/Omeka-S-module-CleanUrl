@@ -28,6 +28,13 @@ class GetResourceIdentifier extends AbstractHelper
     protected $options;
 
     /**
+     * Identifiers already fetched, by resource type and id.
+     *
+     * @var array
+     */
+    protected $identifiers = [];
+
+    /**
      * @param \Doctrine\DBAL\Connection $connection
      * @param array $options
      */
@@ -79,28 +86,39 @@ class GetResourceIdentifier extends AbstractHelper
         // The resource type is already verified above, so the join on
         // `resource` table is not needed: resource_id identifies exactly
         // one resource of a known type.
-        $qb = $this->connection->createQueryBuilder()
-            ->select('value.value')
-            ->from('value', 'value')
-            // An identifier is always literal: it identifies a resource inside
-            // the base. It can't be an external uri or a linked resource.
-            ->where('value.type = "literal"')
-            ->andWhere('value.property_id = :property_id')
-            ->setParameter('property_id', $this->options[$resourceType]['property'])
-            ->andWhere('value.resource_id = :resource_id')
-            ->setParameter('resource_id', $resource instanceof Resource ? $resource->getId() : $resource->id())
-            ->addOrderBy('value.id', 'ASC')
-            ->setMaxResults(1);
-
+        $resourceId = $resource instanceof Resource ? $resource->getId() : $resource->id();
         $prefix = $this->options[$resourceType]['prefix'];
         $lengthPrefix = mb_strlen($prefix);
-        if ($lengthPrefix) {
-            $qb
-                ->andWhere('value.value LIKE :prefix')
-                ->setParameter('prefix', addcslashes($prefix, '%_') . '%');
+        // The same resource may be linked many times in a page.
+        $key = $resourceType . ':' . $resourceId;
+        // Limit the memory used by a job that processes many resources.
+        if (count($this->identifiers) > 1000) {
+            $this->identifiers = [];
         }
-
-        $identifier = $this->connection->executeQuery($qb->getSQL(), $qb->getParameters())->fetchOne();
+        if (array_key_exists($key, $this->identifiers)) {
+            $identifier = $this->identifiers[$key];
+        } else {
+            $qb = $this->connection->createQueryBuilder()
+                ->select('value.value')
+                ->from('value', 'value')
+                // An identifier is always literal: it identifies a resource
+                // inside the base. It can't be an external uri or a linked
+                // resource.
+                ->where('value.type = "literal"')
+                ->andWhere('value.property_id = :property_id')
+                ->setParameter('property_id', $this->options[$resourceType]['property'])
+                ->andWhere('value.resource_id = :resource_id')
+                ->setParameter('resource_id', $resourceId)
+                ->addOrderBy('value.id', 'ASC')
+                ->setMaxResults(1);
+            if ($lengthPrefix) {
+                $qb
+                    ->andWhere('value.value LIKE :prefix')
+                    ->setParameter('prefix', addcslashes($prefix, '%_') . '%');
+            }
+            $identifier = $this->connection->executeQuery($qb->getSQL(), $qb->getParameters())->fetchOne();
+            $this->identifiers[$key] = $identifier;
+        }
 
         // Keep only the identifier without the configured prefix.
         if ($identifier) {

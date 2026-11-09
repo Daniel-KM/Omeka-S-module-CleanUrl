@@ -41,6 +41,13 @@ class CleanRoute implements RouteInterface
     protected $api;
 
     /**
+     * Resources already read to assemble urls, by resource type and id.
+     *
+     * @var array
+     */
+    protected $resources = [];
+
+    /**
      * @var EntityManager
      */
     protected $entityManager;
@@ -486,9 +493,21 @@ class CleanRoute implements RouteInterface
                 return [];
             }
         } else {
-            try {
-                $resource = $this->api->read($resourceType, ['id' => $params['id']], [], ['initialize' => false])->getContent();
-            } catch (\Omeka\Api\Exception\NotFoundException $e) {
+            // The same resource may be linked many times in a page.
+            $key = $resourceType . ':' . $params['id'];
+            // Limit the memory used by a job that processes many resources.
+            if (count($this->resources) > 1000) {
+                $this->resources = [];
+            }
+            if (!array_key_exists($key, $this->resources)) {
+                try {
+                    $this->resources[$key] = $this->api->read($resourceType, ['id' => $params['id']], [], ['initialize' => false])->getContent();
+                } catch (\Omeka\Api\Exception\NotFoundException $e) {
+                    $this->resources[$key] = null;
+                }
+            }
+            $resource = $this->resources[$key];
+            if (!$resource) {
                 return [];
             }
         }
