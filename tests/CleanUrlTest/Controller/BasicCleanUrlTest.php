@@ -144,6 +144,51 @@ class BasicCleanUrlTest extends AbstractHttpControllerTestCase
     }
 
     /**
+     * Test the identifiers of a list are fetched in one query.
+     */
+    public function testIdentifiersArePreloadedBySearch(): void
+    {
+        $items = [$this->createItem('preload-item-1'), $this->createItem('preload-item-2')];
+        $this->item = $items[0];
+        $ids = array_map(fn ($item) => $item->id(), $items);
+
+        $services = $this->getServiceLocator();
+        $getResourceIdentifier = $services->get('ViewHelperManager')->get('getResourceIdentifier');
+        $connection = $services->get('Omeka\Connection');
+        $logger = new \Doctrine\DBAL\Logging\DebugStack();
+        $connection->getConfiguration()->setSQLLogger($logger);
+        try {
+            $found = $this->api()->search('items', ['id' => $ids])->getContent();
+            $count = count($logger->queries);
+            $identifiers = array_map(fn ($item) => $getResourceIdentifier($item), $found);
+            $this->assertSame($count, count($logger->queries));
+        } finally {
+            $connection->getConfiguration()->setSQLLogger(null);
+            foreach (array_slice($items, 1) as $item) {
+                $this->api()->delete('items', $item->id());
+            }
+        }
+
+        sort($identifiers);
+        $this->assertSame(['preload-item-1', 'preload-item-2'], $identifiers);
+    }
+
+    /**
+     * Test the identifier of an updated resource is not kept in cache.
+     */
+    public function testIdentifierIsForgottenAfterUpdate(): void
+    {
+        $this->item = $this->createItem('before-update');
+        $getResourceIdentifier = $this->getServiceLocator()->get('ViewHelperManager')->get('getResourceIdentifier');
+        $this->assertSame('before-update', $getResourceIdentifier($this->item));
+
+        $item = $this->api()->update('items', $this->item->id(), [
+            'dcterms:identifier' => [['type' => 'literal', 'property_id' => 10, '@value' => 'after-update']],
+        ], [], ['isPartial' => true, 'collectionAction' => 'replace'])->getContent();
+        $this->assertSame('after-update', $getResourceIdentifier($item));
+    }
+
+    /**
      * Test item in item set relation.
      */
     public function testItemInItemSet(): void

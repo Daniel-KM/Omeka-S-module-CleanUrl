@@ -9,7 +9,7 @@ use CommonTest\AbstractHttpControllerTestCase;
  * Regression tests for reported GitHub/GitLab issues.
  *
  * @see https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues
- * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues
+ * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items
  */
 class IssuesRegressionTest extends AbstractHttpControllerTestCase
 {
@@ -86,7 +86,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * identifiers, causing "resource removed" errors.
      *
      * @see https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues/17
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/23
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/23
      *
      * @dataProvider reservedWordsProvider
      */
@@ -315,7 +315,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * non-main case (SLUG_MAIN_SITE is fixed to false in the test bootstrap, so
      * the main-site branch cannot be exercised here).
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/24
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/24
      */
     public function testGl24SiteUrlNotEmptyWithCleanUrl(): void
     {
@@ -334,7 +334,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * never yield an empty string. With SLUG_MAIN_SITE disabled in tests, the
      * route delegates to the parent Segment, which yields "/s/{slug}".
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/24
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/24
      */
     public function testGl24SegmentMainStandaloneNotEmpty(): void
     {
@@ -366,7 +366,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      *
      * @see https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues/20
      * @see https://github.com/Daniel-KM/Omeka-S-module-CleanUrl/issues/21
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/26
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/26
      *
      * @dataProvider topRouteProvider
      */
@@ -408,7 +408,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * factory building its own PageController with the current theme.
      *
      * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/merge_requests/9
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/25
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/25
      */
     public function testGl25PageControllerOverriddenViaFactory(): void
     {
@@ -435,7 +435,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * array (the default routing applies until the cache is rebuilt), never a
      * database access.
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/29
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/29
      */
     public function testGl29RouteDataReadFromFileCacheNotDatabase(): void
     {
@@ -480,7 +480,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * listens to it and rebuilds the cache, so the main-site routes stay
      * correct.
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/29
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/29
      */
     public function testGl29CacheRebuiltWhenMainSiteSettingChanges(): void
     {
@@ -523,7 +523,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * submit). The copy must instead carry the site default controller
      * ("Index"), while routes with an explicit controller keep it.
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/16
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/16
      */
     public function testGl16ModuleRoutesCopiedToTopKeepSiteController(): void
     {
@@ -587,7 +587,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * the clean one (path compared, ignoring query string and trailing slash),
      * nor when the resource has no clean url.
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/22
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/22
      */
     public function testGl22CanonicalUrlOnlyWhenNotCleanUrl(): void
     {
@@ -622,7 +622,7 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
      * until match() returns, this leads to an infinite recursion. A reentrant
      * call must therefore return null immediately.
      *
-     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/issues/30
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl/-/work_items/30
      */
     public function testGl30MatchGuardsAgainstReentrancy(): void
     {
@@ -727,6 +727,59 @@ class IssuesRegressionTest extends AbstractHttpControllerTestCase
             'document/{item_identifier}/{digital_object_id}',
             $source,
             'The item-parent digital object schema is deferred and must not be the default'
+        );
+    }
+
+    /**
+     * Guest #9: a reserved slug must be detected even at the first position.
+     *
+     * The reserved slugs are checked with mb_stripos() against a list built as
+     * "|slug|slug|". The first slug of the list matches at offset 0, and 0 is
+     * falsy, so a check without a strict comparison silently accepts it. A
+     * site or a page named "item-set" was therefore never reported.
+     *
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-Guest/-/work_items/9
+     */
+    public function testGuest9ReservedSlugCheckedWithStrictComparison(): void
+    {
+        $haystack = '|' . \CleanUrl\SLUGS_CORE . \CleanUrl\SLUGS_RESERVED . '|';
+        $first = strtok(\CleanUrl\SLUGS_CORE, '|');
+
+        // The first reserved slug matches at offset 0, that is falsy.
+        $this->assertSame(0, mb_stripos($haystack, '|' . $first . '|'));
+        $this->assertFalse((bool) mb_stripos($haystack, '|' . $first . '|'));
+
+        // So every check of a slug must compare the result strictly.
+        $source = file_get_contents(dirname(__DIR__, 3) . '/Module.php');
+        $this->assertSame(
+            [],
+            preg_grep('~mb_stripos\(.*\)\)\s*\{~', explode("\n", $source)),
+            'A reserved slug check must compare mb_stripos() to false strictly'
+        );
+    }
+
+    /**
+     * Guest #9: the slugs of the sites and of the pages are reported apart.
+     *
+     * Both loops filled the same variable, so a single wrong site slug made
+     * the message about the pages list the slugs of the sites too.
+     *
+     * @see https://gitlab.com/Daniel-KM/Omeka-S-module-Guest/-/work_items/9
+     */
+    public function testGuest9SlugCheckResetsResultBetweenSitesAndPages(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 3) . '/Module.php');
+
+        $sites = mb_strpos($source, "SELECT slug FROM site ORDER BY id ASC");
+        $pages = mb_strpos($source, "SELECT slug FROM site_page ORDER BY id ASC");
+        $this->assertIsInt($sites);
+        $this->assertIsInt($pages);
+        $this->assertGreaterThan($sites, $pages);
+
+        $this->assertStringContainsString(
+            '$result = [];',
+            mb_substr($source, $sites, $pages - $sites),
+            'The result must be reset before the loop on the slugs of the pages'
         );
     }
 }
