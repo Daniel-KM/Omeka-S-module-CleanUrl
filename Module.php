@@ -706,7 +706,7 @@ class Module extends AbstractModule
             $result = [];
             $slugs = $connection->executeQuery('SELECT slug FROM site ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
-                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
                 }
             }
@@ -719,6 +719,9 @@ class Module extends AbstractModule
                 $messenger->addError($message);
                 $hasError = true;
             }
+            // Reset the result, else the message below would list the slugs
+            // of the sites checked above too.
+            $result = [];
             $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
                 if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
@@ -764,7 +767,7 @@ class Module extends AbstractModule
             $result = [];
             $slugs = $connection->executeQuery('SELECT slug FROM site ORDER by id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
-                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|')) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
                 }
             }
@@ -807,7 +810,7 @@ class Module extends AbstractModule
             $result = [];
             $slugs = $connection->executeQuery('SELECT slug FROM site_page ORDER BY id ASC;')->fetchFirstColumn();
             foreach ($slugs as $slug) {
-                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|')) {
+                if (mb_stripos('|' . SLUGS_CORE . SLUGS_RESERVED . '|' . SLUGS_SITE . '|', '|' . trim($slug, '/') . '|') !== false) {
                     $result[] = $slug;
                 }
             }
